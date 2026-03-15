@@ -1,0 +1,14 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Validate conventional commit message format
+commit_msg_file="$1"
+if ! grep -qE '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?!?: .{1,}$' "$commit_msg_file"; then
+  echo 'ERROR: Commit message does not follow Conventional Commits format.'
+  echo 'Expected: <type>[optional scope]: <description>'
+  echo 'Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert'
+  echo ''
+  echo 'Your message:'
+  cat "$commit_msg_file"
+  exit 1
+fi

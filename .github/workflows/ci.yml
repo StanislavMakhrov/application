@@ -1,0 +1,129 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '.github/**'
+      - 'scripts/**'
+
+concurrency:
+  group: versioning-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  checks: write
+  pull-requests: read
+
+# CI Optimization: Tests removed from this workflow to eliminate redundancy.
+# All quality gates (format, build, test, lint, vulnerability scan) run in PR Validation.
+# This workflow only handles versioning after merge, reducing CI time significantly.
+jobs:
+  version:
+    name: Version and Tag
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+
+      - name: Install commit-and-tag-version
+        run: npm install -g commit-and-tag-version
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Detect release-worthy changes
+        id: release_needed
+        run: |
+          set -euo pipefail
+
+          last_tag=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || true)
+          if [ -z "$last_tag" ]; then
+            echo "No previous v* tag found; allowing version bump."
+            echo "release_needed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Last tag: $last_tag"
+          changed=$(git diff --name-only "$last_tag"..HEAD || true)
+          if [ -z "$changed" ]; then
+            echo "No changes detected since $last_tag; skipping."
+            echo "release_needed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Paths that affect the published Docker image
+          releasable=$(echo "$changed" | grep -E '^(src/)' || true)
+
+          if [ -z "$releasable" ]; then
+            echo "Only non-release-impacting files changed since $last_tag; skipping."
+            echo "release_needed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Release-impacting changes detected:"
+          echo "$releasable"
+          echo "release_needed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Bump version
+        id: bump
+        if: steps.release_needed.outputs.release_needed == 'true'
+        run: |
+          commit-and-tag-version --skip.changelog --packageFiles src/package.json --bumpFiles src/package.json || { echo "No releasable commits; skipping."; exit 0; }
+          echo "version_bumped=true" >> $GITHUB_OUTPUT
+
+      - name: Amend commit message with [skip ci]
+        if: steps.bump.outputs.version_bumped == 'true'
+        run: |
+          git log -1 --pretty=%B > "$RUNNER_TEMP/commit-msg.txt"
+
+          if [ ! -s "$RUNNER_TEMP/commit-msg.txt" ]; then
+            echo "Error: Failed to read commit message"
+            exit 1
+          fi
+
+          FIRST_LINE=$(head -n1 "$RUNNER_TEMP/commit-msg.txt")
+
+          echo "$FIRST_LINE [skip ci]" > "$RUNNER_TEMP/commit-msg-amended.txt"
+
+          if [ "$(wc -l < "$RUNNER_TEMP/commit-msg.txt")" -gt 1 ]; then
+            tail -n +2 "$RUNNER_TEMP/commit-msg.txt" >> "$RUNNER_TEMP/commit-msg-amended.txt"
+          fi
+
+          TAG_NAME=$(git describe --tags --exact-match HEAD 2>/dev/null || echo "")
+
+          git commit --amend -F "$RUNNER_TEMP/commit-msg-amended.txt"
+          echo "Amended commit message to include [skip ci]"
+
+          if [ -n "$TAG_NAME" ]; then
+            echo "Moving tag $TAG_NAME to amended commit"
+            git tag -f "$TAG_NAME"
+          fi
+
+      - name: Push changes
+        if: steps.bump.outputs.version_bumped == 'true'
+        env:
+          GIT_TERMINAL_PROMPT: '0'
+        run: |
+          git remote set-url origin "https://x-access-token:${{ secrets.RELEASE_TOKEN }}@github.com/${{ github.repository }}.git"
+
+          git push --no-follow-tags origin HEAD
+
+          TAG_NAME=$(git describe --tags --exact-match HEAD 2>/dev/null || echo "")
+          if [ -n "$TAG_NAME" ]; then
+            echo "Pushing tag $TAG_NAME separately to trigger Release workflow"
+            git push origin "$TAG_NAME"
+          fi

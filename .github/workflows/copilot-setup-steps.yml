@@ -1,0 +1,37 @@
+name: Copilot Setup Steps
+
+# This workflow customizes the GitHub Copilot coding agent environment
+# It runs before the agent starts working to set up tools
+# Documentation: https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/customize-the-agent-environment
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: src
+        run: npm ci || echo "No package-lock.json yet; skipping npm ci"
+
+      - name: Setup complete
+        run: |
+          echo "✓ GitHub Copilot coding agent environment ready"
+          echo "  - Node.js: $(node --version)"
+          echo "  - npm: $(npm --version)"

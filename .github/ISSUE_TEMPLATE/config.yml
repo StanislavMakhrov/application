@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Questions & Discussions
+    url: https://github.com/StanislavMakhrov/application/discussions
+    about: Ask questions, share ideas, or discuss usage
+  - name: 📖 Documentation
+    url: https://github.com/StanislavMakhrov/application/blob/main/README.md
+    about: Read the project documentation and examples
+  - name: 🔒 Security Vulnerability
+    url: https://github.com/StanislavMakhrov/application/security/advisories/new
+    about: Report a security vulnerability privately

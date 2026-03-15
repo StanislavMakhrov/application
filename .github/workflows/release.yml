@@ -1,0 +1,280 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g., v1.11.0)'
+        required: true
+        type: string
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    # Only run if:
+    # 1. Triggered by a tag push (manual or external), OR
+    # 2. Triggered by CI workflow completion that was successful, OR
+    # 3. Manually triggered via workflow_dispatch
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      minor: ${{ steps.version.outputs.minor }}
+      major: ${{ steps.version.outputs.major }}
+      is_prerelease: ${{ steps.version.outputs.is_prerelease }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+          # For workflow_run: checkout main branch (CI pushes versionize commit + tag to main)
+          # For tag push: checkout the tag ref
+          # For workflow_dispatch: checkout the specified tag
+          ref: |
+            ${{
+              github.event.inputs.tag ||
+              (github.event_name == 'workflow_run' && 'main') ||
+              github.ref
+            }}
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          # Get tag from workflow_dispatch input, tag push event, or find latest tag for workflow_run
+          if [ -n "${{ github.event.inputs.tag }}" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          elif [ "${{ github.event_name }}" = "workflow_run" ]; then
+            # CI workflow pushes versionize commit + tag to main branch
+            # We checked out main, so HEAD should have the tag
+            # Retry a few times to handle timing delays in tag propagation
+            TAG=""
+            for attempt in $(seq 1 24); do
+              TAG=$(git describe --tags --exact-match HEAD 2>/dev/null || echo "")
+              if [ -n "$TAG" ]; then
+                break
+              fi
+              if [ "$attempt" -lt 24 ]; then
+                echo "Tag not found yet, waiting 5 seconds before retry $((attempt + 1))/24..."
+                sleep 5
+                # Pull latest main to get the versionize commit + tag pushed by CI
+                git pull origin main --tags
+              fi
+            done
+
+            if [ -z "$TAG" ]; then
+              echo "No tag found on main branch HEAD after waiting."
+              echo "CI likely completed without creating a release tag; skipping release."
+              echo "version=" >> $GITHUB_OUTPUT
+              echo "major=" >> $GITHUB_OUTPUT
+              echo "minor=" >> $GITHUB_OUTPUT
+              echo "is_prerelease=false" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+            echo "Found tag $TAG on main branch HEAD"
+          else
+            TAG="${{ github.ref }}"
+          fi
+          VERSION=${TAG#refs/tags/v}
+          VERSION=${VERSION#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          MAJOR=$(echo $VERSION | cut -d. -f1)
+          MINOR=$(echo $VERSION | cut -d. -f1-2)
+          echo "major=$MAJOR" >> $GITHUB_OUTPUT
+          echo "minor=$MINOR" >> $GITHUB_OUTPUT
+          if [[ "$VERSION" == *-* ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Find previous GitHub release
+        id: previous_release
+        if: steps.version.outputs.version != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_PAGER: cat
+          PAGER: cat
+        run: |
+          CURRENT_TAG="v${{ steps.version.outputs.version }}"
+          # Get the latest 2 releases to handle re-runs where the current release already exists
+          mapfile -t tags < <(GH_PAGER=cat gh release list --limit 2 --json tagName --jq '.[].tagName // ""')
+          last=""
+          for tag in "${tags[@]}"; do
+            if [ "$tag" != "$CURRENT_TAG" ] && [ -n "$tag" ]; then
+              last="${tag#v}"
+              break
+            fi
+          done
+          echo "last=${last}" >> $GITHUB_OUTPUT
+
+      - name: Find user-focused release notes
+        id: find_release_notes
+        if: steps.version.outputs.version != ''
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          LAST="${{ steps.previous_release.outputs.last }}"
+          CURRENT_TAG="v${VERSION}"
+
+          # Only use release notes that changed in the current release range.
+          # This prevents accidentally reusing stale release notes from older releases.
+          if [ -n "$LAST" ]; then
+            PREVIOUS_TAG="v${LAST}"
+            if git rev-parse --verify --quiet "refs/tags/${PREVIOUS_TAG}" >/dev/null && git rev-parse --verify --quiet "refs/tags/${CURRENT_TAG}" >/dev/null; then
+              echo "Searching release notes changed between ${PREVIOUS_TAG} and ${CURRENT_TAG}"
+              mapfile -t RELEASE_NOTES_FILES < <(git diff --name-only "${PREVIOUS_TAG}..${CURRENT_TAG}" -- \
+                docs/features/*/release-notes.md \
+                docs/issues/*/release-notes.md \
+                docs/workflow/*/release-notes.md | sort -u)
+            else
+              echo "Previous or current tag not found; using changelog extraction"
+              RELEASE_NOTES_FILES=()
+            fi
+          else
+            if git rev-parse --verify --quiet "refs/tags/${CURRENT_TAG}" >/dev/null; then
+              echo "No previous release found; searching release notes changed in ${CURRENT_TAG}"
+              mapfile -t RELEASE_NOTES_FILES < <(git show --pretty="" --name-only "${CURRENT_TAG}" -- \
+                docs/features/*/release-notes.md \
+                docs/issues/*/release-notes.md \
+                docs/workflow/*/release-notes.md | sort -u)
+            else
+              echo "Current tag not found; using changelog extraction"
+              RELEASE_NOTES_FILES=()
+            fi
+          fi
+
+          if [ "${#RELEASE_NOTES_FILES[@]}" -eq 1 ] && [ -f "${RELEASE_NOTES_FILES[0]}" ]; then
+            echo "found=true" >> $GITHUB_OUTPUT
+            echo "path=${RELEASE_NOTES_FILES[0]}" >> $GITHUB_OUTPUT
+            echo "Found user-focused release notes: ${RELEASE_NOTES_FILES[0]}"
+          elif [ "${#RELEASE_NOTES_FILES[@]}" -gt 1 ]; then
+            # Multiple release note files can exist in cumulative release ranges when
+            # intermediate versions were not released. Pick the latest work item by
+            # numeric prefix (docs/*/NNN-*/release-notes.md).
+            latest_release_notes=""
+            latest_work_item_id=-1
+            for release_notes_file in "${RELEASE_NOTES_FILES[@]}"; do
+              work_item_dir="$(basename "$(dirname "$release_notes_file")")"
+              work_item_id="${work_item_dir%%-*}"
+              if [[ "$work_item_id" =~ ^[0-9]+$ ]]; then
+                work_item_id_numeric=$((10#$work_item_id))
+                if [ "$work_item_id_numeric" -gt "$latest_work_item_id" ]; then
+                  latest_work_item_id="$work_item_id_numeric"
+                  latest_release_notes="$release_notes_file"
+                fi
+              fi
+            done
+
+            if [ -n "$latest_release_notes" ] && [ -f "$latest_release_notes" ]; then
+              echo "found=true" >> $GITHUB_OUTPUT
+              echo "path=${latest_release_notes}" >> $GITHUB_OUTPUT
+              echo "Multiple release-notes.md files changed; selected latest work item notes: ${latest_release_notes}"
+            else
+              echo "found=false" >> $GITHUB_OUTPUT
+              echo "Multiple release-notes.md files changed but no valid latest work item found; using changelog extraction"
+            fi
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+            echo "No user-focused release notes found, will use changelog extraction"
+          fi
+
+      - name: Extract changelog range
+        id: changelog
+        if: steps.version.outputs.version != ''
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          LAST="${{ steps.previous_release.outputs.last }}"
+
+          # Use user-focused release notes if available
+          if [ "${{ steps.find_release_notes.outputs.found }}" = "true" ]; then
+            echo "Using user-focused release notes from ${{ steps.find_release_notes.outputs.path }}"
+            cp "${{ steps.find_release_notes.outputs.path }}" release-notes.md
+          else
+            echo "Extracting changelog for version $VERSION"
+            bash scripts/extract-changelog.sh CHANGELOG.md "$VERSION" "$LAST" > release-notes.md
+            if [ ! -s release-notes.md ]; then
+              echo "Release v${VERSION}" > release-notes.md
+            fi
+          fi
+
+      - name: Create GitHub Release
+        if: steps.version.outputs.version != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          body_path: release-notes.md
+          generate_release_notes: false
+          prerelease: ${{ steps.version.outputs.is_prerelease == 'true' }}
+
+  docker:
+    name: Build and Push Docker Image to GHCR
+    if: needs.release.outputs.version != ''
+    runs-on: ubuntu-latest
+    needs: release
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute Docker tags
+        id: tags
+        run: |
+          VERSION="${{ needs.release.outputs.version }}"
+          REPO="ghcr.io/${{ github.repository_owner }}/green-ledger"
+          REPO=$(echo "$REPO" | tr '[:upper:]' '[:lower:]')
+          TAGS="${REPO}:${VERSION}"
+          if [ "${{ needs.release.outputs.is_prerelease }}" != "true" ]; then
+            TAGS="${TAGS},${REPO}:${{ needs.release.outputs.minor }}"
+            TAGS="${TAGS},${REPO}:${{ needs.release.outputs.major }}"
+            TAGS="${TAGS},${REPO}:latest"
+          fi
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./src
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+          labels: |
+            org.opencontainers.image.version=${{ needs.release.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.title=green-ledger
+            org.opencontainers.image.description=CSRD Climate Reporting for German SMEs
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
