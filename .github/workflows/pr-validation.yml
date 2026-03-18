@@ -70,7 +70,7 @@ jobs:
 
       - name: Set up Docker Buildx
         if: steps.dockerfile_check.outputs.exists == 'true'
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Log in to GitHub Container Registry
         if: steps.dockerfile_check.outputs.exists == 'true'
