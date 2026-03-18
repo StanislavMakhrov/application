@@ -19,7 +19,7 @@ Instead, please report them privately using one of these methods:
 
 ### Preferred: GitHub Security Advisories
 
-1. Go to https://github.com/<owner>/<project>/security/advisories/new
+1. Go to https://github.com/<owner>/<project-name>/security/advisories/new
 2. Click "Report a vulnerability"
 3. Fill in the details of the vulnerability
 4. Submit the advisory
@@ -28,7 +28,7 @@ This keeps the vulnerability private until we've addressed it.
 
 ### Alternative: Email
 
-Send an email to: **security@example.com**
+Send an email to: **project-email@example.com**
 
 Please include:
 - Description of the vulnerability
@@ -47,7 +47,7 @@ As a hobby project maintained in my free time, I cannot guarantee specific respo
 
 Please be patient - response times may vary depending on other commitments.
 
-## Security Considerations for \<project\>
+## Security Considerations for <project-name>
 
 ### In Scope
 
@@ -64,14 +64,14 @@ The following are generally **not** considered security vulnerabilities:
 - Issues in Terraform itself (report to HashiCorp)
 - Infrastructure security configurations shown in plan files (report to your team)
 - DoS through extremely large plan files (resource exhaustion is expected)
-- Issues requiring physical access to the system running \<project\>
+- Issues requiring physical access to the system running <project-name>
 
 ### Best Practices for Users
 
-When using \<project\>:
+When using <project-name>:
 - ✅ Use `--show-sensitive` only in secure environments
 - ✅ Review generated reports before sharing publicly
-- ✅ Keep \<project\> updated to the latest version
+- ✅ Keep <project-name> updated to the latest version
 - ✅ Use the official Docker image from Docker Hub
 - ✅ Validate plan files come from trusted sources
 
@@ -95,12 +95,12 @@ We follow **coordinated disclosure**:
 
 ## Past Advisories
 
-- [Sensitive Attribute Disclosure in Array/Nested Structures (fixed in v1.23.1, 8.5/10)](https://github.com/<owner>/<project>/security/advisories/GHSA-vrg5-jhph-q74p)
+- [Sensitive Attribute Disclosure in Array/Nested Structures (fixed in v1.23.1, 8.5/10)](https://github.com/<owner>/<project-name>/security/advisories/<advisory-id>)
 
 ## Questions?
 
 If you have questions about this security policy, feel free to:
-- Open a [GitHub Discussion](https://github.com/<owner>/<project>/discussions)
-- Email: security@example.com
+- Open a [GitHub Discussion](https://github.com/<owner>/<project-name>/discussions)
+- Email: project-email@example.com
 
-Thank you for helping keep \<project\> and its users safe!
+Thank you for helping keep <project-name> and its users safe!

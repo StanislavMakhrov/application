@@ -279,11 +279,11 @@ _Agents produce and consume artifacts. Arrows show artifact creation and consump
 1. **Issue Analyst** investigates bugs, incidents, and technical problems.
 2. **Requirements Engineer** gathers and clarifies requirements for new features.
 3. **Architect** designs the solution and documents decisions.
-4. **Quality Engineer** defines the test plan and cases (consumes architecture). For user-facing features, defines acceptance scenarios for UAT. **For features with UAT test plans, specifies requirements for feature-specific UAT plan artifacts (`uat-plan.json` and `uat-plan.md`).**
+4. **Quality Engineer** defines the test plan and cases (consumes architecture). For user-facing features, defines acceptance scenarios for UAT.
 5. **Task Planner** creates and prioritizes actionable work items (consumes test plan).
-6. **Developer** implements features/fixes and tests. **For features with UAT test plans, creates `uat-plan.json` and `uat-plan.md` in the feature folder.**
+6. **Developer** implements features/fixes and tests.
 7. **Technical Writer** updates all relevant documentation (markdown files in the repository).
-8. **Code Reviewer** reviews and approves the work. **For features with UAT test plans, validates that `uat-plan.json` and `uat-plan.md` exist, are up-to-date, and complete.** Hands off to UAT Tester for user-facing features, or directly to Release Manager for internal changes.
+8. **Code Reviewer** reviews and approves the work. Hands off to UAT Tester for user-facing features, or directly to Release Manager for internal changes.
 9. **UAT Tester** writes automated **E2E tests** for user-facing scenarios/user stories (committed to `e2e-tests/<feature-slug>/e2e.spec.ts` at repo root) that cover all scenarios from the test plan. E2E tests run in CI via the `e2e-tests` job. Also posts optional manual verification instructions for the Maintainer as an additional check. Waits for Maintainer PASS/FAIL on the manual check.
 10. **Release Manager** prepares, coordinates, and executes the release.
 
@@ -334,9 +334,9 @@ _Agents produce and consume artifacts. Arrows show artifact creation and consump
 
 ### 4. Quality Engineer
 - **Goal:** Define how the feature will be tested and validated.
-- **Deliverables:** Test plan, test cases, quality criteria. For user-facing features, user acceptance scenarios for manual review via PRs. **For features with UAT test plans, defines requirements for feature-specific UAT plan artifacts (`uat-plan.json` and `uat-plan.md`) stored in the feature folder.**
+- **Deliverables:** Test plan, test cases, quality criteria. For user-facing features, user acceptance scenarios for manual review via PRs.
 - **Model:** Claude Sonnet 4.6
-- **Definition of Done:** Test plan covers all acceptance criteria. User-facing features have clear acceptance scenarios defined. UAT test plans specify what the feature-specific plan.json must contain and test.
+- **Definition of Done:** Test plan covers all acceptance criteria. User-facing features have clear acceptance scenarios defined.
 
 ### 5. Task Planner
 - **Goal:** Translate requirements and architecture into actionable work items.
@@ -345,8 +345,8 @@ _Agents produce and consume artifacts. Arrows show artifact creation and consump
 
 ### 6. Developer
 - **Goal:** Implement features and tests as specified.
-- **Deliverables:** Code, tests, passing CI. **For features with UAT test plans, creates `uat-plan.json` and `uat-plan.md` in the feature folder based on Quality Engineer's requirements.**
-- **Definition of Done:** Code and tests meet requirements and pass all checks. UAT plan artifacts (when required) are created and verified to match the specification.
+- **Deliverables:** Code, tests, passing CI.
+- **Definition of Done:** Code and tests meet requirements and pass all checks.
 
 ### 7. Technical Writer
 - **Goal:** Update and maintain all relevant documentation.
@@ -355,8 +355,8 @@ _Agents produce and consume artifacts. Arrows show artifact creation and consump
 
 ### 8. Code Reviewer
 - **Goal:** Ensure code quality and process adherence.
-- **Deliverables:** Code review feedback or approval. **For features with UAT test plans, validates that `uat-plan.json` and `uat-plan.md` exist, are up-to-date, and cover all specified changes and edge cases.**
-- **Definition of Done:** Code is reviewed and approved or sent back for rework. UAT plan artifacts (when required) are validated for completeness and correctness.
+- **Deliverables:** Code review feedback or approval.
+- **Definition of Done:** Code is reviewed and approved or sent back for rework.
 
 ### 9. UAT Tester
 - **Goal:** Validate user-facing features by writing automated TypeScript Playwright e2e tests covering all user-facing scenarios, and providing optional manual UAT instructions for the Maintainer.
@@ -390,7 +390,7 @@ _Agents produce and consume artifacts. Arrows show artifact creation and consump
 - **Note:** Can operate in both local (chat) and cloud (issue) contexts. This agent operates outside the normal feature development flow.
 
 ### 13. Web Designer (Specialized Agent)
-- **Goal:** Design, develop, and maintain the \<project\> website hosted on GitHub Pages.
+- **Goal:** Design, develop, and maintain the `<project-name>` website hosted on GitHub Pages.
 - **Execution Modes:**
   - **Cloud (GitHub):** Automated content/style updates via issue assignment for well-defined changes
 - **Deliverables:** Website pages (HTML/CSS), design prototypes, website content derived from existing documentation.
@@ -428,8 +428,7 @@ When multiple branches are created in parallel, they may independently pick the 
 | **Architecture Decision Records (ADRs)** | Captures significant design decisions, alternatives considered, and rationale. Provides context for future maintainers. | Markdown following the ADR format: Context, Decision, Consequences. | `docs/adr-<number>-<short-title>.md` (high level / general decisions) and `docs/features/NNN-<feature-slug>/architecture.md` (feature-specific decisions) |
 | **User Stories / Tasks** | Actionable work items with clear acceptance criteria. Used to track implementation progress (features) or workflow improvement work (workflow). | Markdown. For workflow improvements, use a table with a Status column (icon + text) and a short rationale per item. | `docs/features/NNN-<feature-slug>/tasks.md` and `docs/workflow/NNN-<topic-slug>/tasks.md` |
 | **Test Plan & Test Cases** | Defines how the feature will be verified. Maps test cases to acceptance criteria. For user-facing features, includes user acceptance scenarios for manual review. | Markdown document with: Test Objectives, Test Cases (ID, Description, Steps, Expected Result), Coverage Matrix, User Acceptance Scenarios (for user-facing features). | `docs/features/NNN-<feature-slug>/test-plan.md` |
-| **UAT Test Plan** | For user-facing features (especially markdown rendering), defines what the feature-specific UAT plan should contain, what it should test, and validation instructions for the maintainer. | Markdown document specifying: Goal, Feature-Specific Artifact Requirements (must specify what uat-plan.json should contain), Test Steps, Validation Instructions. | `docs/features/NNN-<feature-slug>/uat-test-plan.md` |
-| **UAT Plan Artifacts** | **REQUIRED** when UAT test plan exists. Feature-specific Terraform plan JSON and rendered markdown designed to exercise the feature changes and edge cases. Must be real \<project\> output (not synthetic). Used by UAT Tester for feature-specific testing. | JSON (Terraform plan format) and Markdown (\<project\> rendered output). Quality Engineer defines requirements, Developer creates artifacts, Code Reviewer validates completeness, UAT Tester uses for testing. | `docs/features/NNN-<feature-slug>/uat-plan.json` and `docs/features/NNN-<feature-slug>/uat-plan.md` |
+| **UAT Test Plan** | For user-facing features, defines what will be tested during UAT and provides validation instructions for the maintainer. | Markdown document specifying: Goal, Test Steps, Expected Results, Validation Instructions. | `docs/features/NNN-<feature-slug>/uat-test-plan.md` |
 | **User Acceptance PRs** | Real-environment verification for user-facing features (especially markdown rendering). Used to catch rendering bugs and validate real-world usage. Managed by UAT Tester agent. | Temporary PRs in GitHub and Azure DevOps. **Two markdown reports** are posted as separate PR comments: (1) **🎯 Feature Test** - feature-specific artifact exercising the changes, (2) **🔄 Regression Test** - comprehensive demo ensuring no side effects. Fixes posted as new comments. Approval is either **interactive** (Maintainer replies PASS/FAIL in chat) or **automated polling** (GitHub: `uat-approved` / `uat-rejected` labels; Azure DevOps: reviewer votes). For interactive runs, `scripts/uat-run.sh --create-only` + `--cleanup-last` provides a one-command create/cleanup workflow, and prints a copy/paste-friendly “UAT PR links” block for the Maintainer to paste into chat. UAT branches are created in **dedicated UAT repositories via git submodules** (`uat-repos/github` and `uat-repos/azdo`) so the UAT repos remain completely separate from this repo’s history. | GitHub + Azure DevOps (via `scripts/uat-*.sh`) |
 | **Code & Tests** | Implementation of the feature including unit tests, integration tests, and any necessary refactoring. | Source code files following project conventions. Tests in `src/tests/` directory. | `src/` and `src/tests/` directories |
 | **Documentation** | Updated user-facing and developer documentation reflecting the new feature. | Markdown files following existing documentation structure. | `docs/`, `README.md` |

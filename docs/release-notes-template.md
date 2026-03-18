@@ -51,13 +51,13 @@ Constraints for release notes:
 
 > **CRITICAL**: Use absolute `raw.githubusercontent.com` URLs, NOT relative paths.
 > Relative paths (e.g., `./image.png`) break in GitHub Release pages.
-> Use the release tag in the URL: `https://raw.githubusercontent.com/<owner>/<project>/v{VERSION}/docs/{path}/image.png`
+> Use the release tag in the URL: `https://raw.githubusercontent.com/<owner>/<project-name>/v{VERSION}/docs/{path}/image.png`
 
 ### Before
-![Before](https://raw.githubusercontent.com/<owner>/<project>/v{VERSION}/docs/features/NNN-feature-name/before-screenshot.png)
+![Before](https://raw.githubusercontent.com/<owner>/<project-name>/v{VERSION}/docs/features/NNN-feature-name/before-screenshot.png)
 
 ### After
-![After](https://raw.githubusercontent.com/<owner>/<project>/v{VERSION}/docs/features/NNN-feature-name/after-screenshot.png)
+![After](https://raw.githubusercontent.com/<owner>/<project-name>/v{VERSION}/docs/features/NNN-feature-name/after-screenshot.png)
 
 -->
 
@@ -65,7 +65,7 @@ Constraints for release notes:
 
 > List user-facing commits only (exclude task tracking, internal workflow/agent changes, snapshot-only commits unless they reflect a user-visible output change).
 
-- [`<sha>`](https://github.com/<owner>/<project>/commit/<sha>) <subject>
+- [`<sha>`](https://github.com/<owner>/<project-name>/commit/<sha>) <subject>
 
 ## 🚨 Breaking changes
 
@@ -77,5 +77,5 @@ Constraints for release notes:
 
 ```bash
 # Example
-# <project> plan.json > plan.md
+# <project-name> plan.json > plan.md
 ```
