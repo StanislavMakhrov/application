@@ -184,7 +184,7 @@ jobs:
 
       - name: Install Chrome
         if: steps.dockerfile_check.outputs.exists == 'true'
-        uses: browser-actions/setup-chrome@v1
+        uses: browser-actions/setup-chrome@v2
 
       - name: Install Python smoke-test dependencies
         if: steps.dockerfile_check.outputs.exists == 'true'
