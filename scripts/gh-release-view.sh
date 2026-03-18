@@ -27,7 +27,7 @@ Examples:
   scripts/gh-release-view.sh --latest
 
   # View release in a specific repository
-  scripts/gh-release-view.sh --repo StanislavMakhrov/green-ledger v1.0.0
+  scripts/gh-release-view.sh --repo StanislavMakhrov/application v1.0.0
 
 Notes:
   - All commands suppress interactive pagers (GH_PAGER=cat, GH_FORCE_TTY=false)

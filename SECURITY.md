@@ -19,7 +19,7 @@ Instead, please report them privately using one of these methods:
 
 ### Preferred: GitHub Security Advisories
 
-1. Go to https://github.com/oocx/tfplan2md/security/advisories/new
+1. Go to https://github.com/<owner>/<project>/security/advisories/new
 2. Click "Report a vulnerability"
 3. Fill in the details of the vulnerability
 4. Submit the advisory
@@ -28,7 +28,7 @@ This keeps the vulnerability private until we've addressed it.
 
 ### Alternative: Email
 
-Send an email to: **tfplan2md@outofcoffeeexception.de**
+Send an email to: **security@example.com**
 
 Please include:
 - Description of the vulnerability
@@ -47,7 +47,7 @@ As a hobby project maintained in my free time, I cannot guarantee specific respo
 
 Please be patient - response times may vary depending on other commitments.
 
-## Security Considerations for tfplan2md
+## Security Considerations for \<project\>
 
 ### In Scope
 
@@ -64,14 +64,14 @@ The following are generally **not** considered security vulnerabilities:
 - Issues in Terraform itself (report to HashiCorp)
 - Infrastructure security configurations shown in plan files (report to your team)
 - DoS through extremely large plan files (resource exhaustion is expected)
-- Issues requiring physical access to the system running tfplan2md
+- Issues requiring physical access to the system running \<project\>
 
 ### Best Practices for Users
 
-When using tfplan2md:
+When using \<project\>:
 - ✅ Use `--show-sensitive` only in secure environments
 - ✅ Review generated reports before sharing publicly
-- ✅ Keep tfplan2md updated to the latest version
+- ✅ Keep \<project\> updated to the latest version
 - ✅ Use the official Docker image from Docker Hub
 - ✅ Validate plan files come from trusted sources
 
@@ -95,12 +95,12 @@ We follow **coordinated disclosure**:
 
 ## Past Advisories
 
-- [Sensitive Attribute Disclosure in Array/Nested Structures (fixed in v1.23.1, 8.5/10)](https://github.com/oocx/tfplan2md/security/advisories/GHSA-vrg5-jhph-q74p)
+- [Sensitive Attribute Disclosure in Array/Nested Structures (fixed in v1.23.1, 8.5/10)](https://github.com/<owner>/<project>/security/advisories/GHSA-vrg5-jhph-q74p)
 
 ## Questions?
 
 If you have questions about this security policy, feel free to:
-- Open a [GitHub Discussion](https://github.com/oocx/tfplan2md/discussions)
-- Email: tfplan2md@outofcoffeeexception.de
+- Open a [GitHub Discussion](https://github.com/<owner>/<project>/discussions)
+- Email: security@example.com
 
-Thank you for helping keep tfplan2md and its users safe!
+Thank you for helping keep \<project\> and its users safe!
