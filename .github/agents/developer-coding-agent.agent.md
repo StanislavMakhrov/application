@@ -132,6 +132,8 @@ Follow the project's coding conventions strictly:
 
 3. **Ensure a Dockerfile exists in `src/`** — the release pipeline builds the Docker image from `./src` context. If `src/Dockerfile` does not exist, **you must create it** as the first implementation step before writing any other code. The Dockerfile should be appropriate for the application stack (e.g., a multi-stage Next.js build). Commit it with `build: add Dockerfile for application`.
 
+   **Next.js Dockerfile — `public` directory:** The `public/` directory may not exist in projects with no static assets. In the builder stage, always add `RUN mkdir -p /app/public` **after** `npm run build` to guarantee the directory exists before the runner stage copies it. Without this, the build fails with: `failed to calculate checksum of ref: "/app/public": not found`.
+
 4. **Verify the app runs with Docker** (required before marking work complete):
    ```bash
    docker build -t app:local ./src
