@@ -101,8 +101,14 @@ jobs:
         run: |
           IMAGE="ghcr.io/${{ steps.repo.outputs.name }}:pr-${{ github.event.pull_request.number }}-${{ steps.repo.outputs.sha }}"
           # Generate unique credentials for this run
-          UAT_EMAIL="uat-pr${{ github.event.pull_request.number }}-$(date +%s)@gruenbilanz.de"
-          UAT_PASSWORD="$(openssl rand -base64 18 | tr -d '+/=' | head -c 20)"
+          # Domain is also random so the entire email address is fresh every run
+          UAT_RAND_DOMAIN="$(openssl rand -hex 6)"
+          UAT_EMAIL="uat-pr${{ github.event.pull_request.number }}@${UAT_RAND_DOMAIN}.test"
+          # Password is constructed to always satisfy app validation:
+          #   min 8 chars, at least one uppercase letter, at least one digit
+          UAT_RAND_SUFFIX="$(openssl rand -base64 12 | tr -d '+/=\n' | head -c 12)"
+          UAT_RAND_NUM="$(( (RANDOM % 90) + 10 ))"
+          UAT_PASSWORD="Uat${UAT_RAND_SUFFIX}${UAT_RAND_NUM}"
           {
             echo "## 🐳 UAT — Docker image ready"
             echo ""
