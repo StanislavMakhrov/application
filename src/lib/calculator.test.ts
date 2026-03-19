@@ -64,6 +64,6 @@ describe('calculateFootprint', () => {
     // scope1: (100*2.0 + 50*2.65 + 30*2.68) / 1000 = (200 + 132.5 + 80.4) / 1000 = 0.4129 => 0.41
     // scope2: 1000 * 0.38 / 1000 = 0.38
     // total: 0.4129 + 0.38 = 0.7929 => 0.79
-    expect(result.total_t).toBe(result.scope1_t + result.scope2_t);
+    expect(result.total_t).toBe(0.79);
   });
 });
