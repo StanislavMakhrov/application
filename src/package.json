@@ -12,7 +12,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "next": "14.2.29",
+    "next": "15.5.13",
     "@supabase/ssr": "^0.5.1",
     "@supabase/supabase-js": "^2.47.0",
     "@prisma/client": "^6.1.0",
@@ -30,9 +30,9 @@
     "autoprefixer": "^10.4.20",
     "postcss": "^8",
     "eslint": "^8",
-    "eslint-config-next": "14.2.29",
+    "eslint-config-next": "15.3.9",
     "prettier": "^3",
     "prisma": "^6.1.0",
-    "vitest": "^2.1.8"
+    "vitest": "^3.2.4"
   }
 }
