@@ -100,6 +100,9 @@ jobs:
         if: steps.dockerfile_check.outputs.exists == 'true'
         run: |
           IMAGE="ghcr.io/${{ steps.repo.outputs.name }}:pr-${{ github.event.pull_request.number }}-${{ steps.repo.outputs.sha }}"
+          # Generate unique credentials for this run
+          UAT_EMAIL="uat-pr${{ github.event.pull_request.number }}-$(date +%s)@gruenbilanz.de"
+          UAT_PASSWORD="$(openssl rand -base64 18 | tr -d '+/=' | head -c 20)"
           {
             echo "## 🐳 UAT — Docker image ready"
             echo ""
@@ -117,13 +120,13 @@ jobs:
             echo "No login required — the app redirects directly to \`/onboarding\`."
             echo ""
             echo "**Production mode** (when Supabase env vars are configured):"
+            echo "Register a new account at \`/register\` using the generated credentials below,"
+            echo "or create this user in your Supabase project via *Authentication → Users → Add user*."
             echo ""
-            echo "| Field    | Value                    |"
-            echo "| -------- | ------------------------ |"
-            echo "| Email    | \`demo@gruenbilanz.de\`  |"
-            echo "| Password | \`GruenBilanz2024!\`     |"
-            echo ""
-            echo "> Create this user in your Supabase project via *Authentication → Users → Add user* before testing."
+            echo "| Field    | Value |"
+            echo "| -------- | ----- |"
+            echo "| Email    | \`${UAT_EMAIL}\` |"
+            echo "| Password | \`${UAT_PASSWORD}\` |"
             echo ""
             echo "> The tag includes the commit SHA to ensure Docker always pulls the latest image."
           } | tee -a "$GITHUB_STEP_SUMMARY"
