@@ -1,0 +1,5 @@
+# Python cache (smoke tests)
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
