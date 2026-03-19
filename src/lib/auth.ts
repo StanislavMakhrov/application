@@ -62,13 +62,14 @@ export async function getUser(): Promise<SessionUser | null> {
 
 /** Cookie options for setting the session after login/register */
 export function sessionCookieOptions(token: string) {
+  // maxAge matches the JWT expiration ('7d' = 604800 seconds) so both expire together
   return {
     name: SESSION_COOKIE,
     value: token,
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax' as const,
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    maxAge: 60 * 60 * 24 * 7, // 7 days — must match createSession expiration above
     path: '/',
   };
 }

@@ -3,51 +3,73 @@
 ## Overview
 
 GrünBilanz is a CO₂ footprint calculator for German Handwerksbetriebe. This document
-describes how to manually test the full user journey from onboarding through energy-data
-entry to the final PDF report.
+describes how to manually test the full user journey from registration through onboarding,
+energy-data entry to the final PDF report.
+
+The app uses **PostgreSQL** (via Prisma) and **JWT session auth** and always runs in full
+production mode — there is no demo mode.
 
 ---
 
-## Access Modes
+## Quick Start (Docker Compose)
 
-### Demo Mode (no Supabase credentials required)
+The easiest way to run the app locally is with docker-compose, which starts both the app
+and a PostgreSQL database automatically:
 
-When the app is deployed **without** `NEXT_PUBLIC_SUPABASE_URL` /
-`NEXT_PUBLIC_SUPABASE_ANON_KEY` set, it runs in **Demo Mode**:
+```bash
+# 1. Clone the repository
+git clone <repo-url> && cd application
 
-- No login required — the app redirects directly to `/onboarding`
-- A yellow banner is shown at the top of every dashboard page: **"Demo-Modus aktiv"**
-- All CO₂ calculation and PDF-export features work fully
-- Data is stored in memory only and is not persisted between requests
+# 2. Set the required AUTH_SECRET (use any long random string for local testing)
+export AUTH_SECRET="$(openssl rand -base64 48)"
 
-**Demo credentials:** none needed — navigate directly to the app URL.
+# 3. Start everything
+docker compose up --build
+```
 
-### Production Mode (Supabase configured)
+Open <http://localhost:3000>.
 
-When Supabase credentials are configured, full authentication is required.
-Register a new account at `/register`, or create a user via
-*Authentication → Users → Add user* in your Supabase project.
-
-> **Note:** The Docker image built from this repository is always in **Demo Mode** (no
-> Supabase credentials are set at build time). Production-mode testing requires a
-> separately configured Supabase project and a custom Docker run with the env vars set.
+Expected: browser redirects to `/login`.
 
 ---
 
-## Full UAT Journey (Demo Mode)
+## Environment Variables
+
+| Variable       | Description                                  | Example |
+|----------------|----------------------------------------------|---------|
+| `DATABASE_URL` | PostgreSQL connection string                 | `postgresql://gruenbilanz:gruenbilanz_dev@db:5432/gruenbilanz` |
+| `AUTH_SECRET`  | Secret key for JWT signing (min 32 chars)   | `$(openssl rand -base64 48)` |
+
+The `docker-compose.yml` sets `DATABASE_URL` automatically. You only need to set
+`AUTH_SECRET` (which is required and must not be left empty).
+
+---
+
+## Full UAT Journey
 
 ### 1. Start the app
 
 ```bash
-cd src
-npm install
-npm run dev
+export AUTH_SECRET="$(openssl rand -base64 48)"
+docker compose up --build
 ```
 
 Open <http://localhost:3000>.  
-Expected: browser redirects to `/onboarding` with the amber **Demo-Modus** banner visible.
+Expected: redirect to `/login`.
 
-### 2. Company Onboarding (`/onboarding`)
+### 2. Register a new account (`/register`)
+
+Fill in the registration form:
+
+| Field     | Test value                    |
+|-----------|-------------------------------|
+| E-Mail    | `tester@example.de`           |
+| Passwort  | `TestPass123`                 |
+
+Click **Registrieren**.  
+Expected: redirect to `/onboarding`.
+
+### 3. Company Onboarding (`/onboarding`)
 
 Fill in the company form:
 
@@ -60,7 +82,7 @@ Fill in the company form:
 
 Click **Weiter**. Expected: redirect to `/energy`.
 
-### 3. Energy Data Entry (`/energy`)
+### 4. Energy Data Entry (`/energy`)
 
 Fill in annual energy consumption for the current year:
 
@@ -73,7 +95,7 @@ Fill in annual energy consumption for the current year:
 
 Click **Berechnen**. Expected: redirect to `/results/<year>`.
 
-### 4. Results Page (`/results/<year>`)
+### 5. Results Page (`/results/<year>`)
 
 Verify the CO₂ breakdown:
 
@@ -87,25 +109,28 @@ Verify the CO₂ breakdown:
 Verify the SVG benchmark chart renders and indicates the company's position relative
 to the `Baugewerbe` industry quartiles.
 
-### 5. PDF Report Download
+### 6. PDF Report Download
 
 Click **PDF-Bericht herunterladen**.  
 Expected: a PDF file is downloaded containing the company name, year, scope breakdown,
 and benchmark comparison.
 
-### 6. Navigation
+### 7. Navigation and Logout
 
 Use the top navigation bar to go back to energy entry and change values.  
-Expected: updated totals shown on next visit to results page.
+Click **Abmelden** to log out.  
+Expected: redirect to `/login`.
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] App loads without errors in demo mode (no login prompt)
+- [ ] App loads and shows login page
+- [ ] Registration creates a new account and redirects to onboarding
 - [ ] Tailwind CSS styles render correctly (green colour scheme, card layout, form inputs)
-- [ ] Onboarding form validates and submits
-- [ ] Energy form calculates correct Scope 1 & 2 totals
+- [ ] Onboarding form validates and submits, company data is persisted
+- [ ] Energy form calculates correct Scope 1 & 2 totals, data is persisted
 - [ ] Benchmark chart renders with company dot positioned correctly
 - [ ] PDF downloads successfully and contains correct data
-- [ ] Demo-Modus banner is always visible in demo mode
+- [ ] Logout clears session and redirects to login
+- [ ] Unauthenticated access to `/onboarding`, `/energy`, `/results/*` redirects to `/login`

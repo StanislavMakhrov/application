@@ -109,32 +109,45 @@ jobs:
           UAT_RAND_SUFFIX="$(openssl rand -base64 12 | tr -d '+/=\n' | head -c 12)"
           UAT_RAND_NUM="$(( (RANDOM % 90) + 10 ))"
           UAT_PASSWORD="Uat${UAT_RAND_SUFFIX}${UAT_RAND_NUM}"
+          # Generate a random AUTH_SECRET for this run (min 32 chars)
+          UAT_AUTH_SECRET="$(openssl rand -base64 48 | tr -d '\n')"
           {
             echo "## 🐳 UAT — Docker image ready"
             echo ""
-            echo "Pull and run the image to verify this PR locally:"
+            echo "The app requires PostgreSQL. Use **docker-compose** to start both the app and the database:"
             echo ""
             echo '```bash'
-            echo "docker run --rm -p 3000:3000 ${IMAGE}"
+            echo "git clone <repo> && cd <repo>"
+            echo "export AUTH_SECRET=\"${UAT_AUTH_SECRET}\""
+            echo "# Replace the app image with the PR build:"
+            echo "IMAGE=${IMAGE} docker compose up"
             echo '```'
             echo ""
-            echo "Then open **http://localhost:3000** in your browser."
+            echo "Or run manually with a throwaway Postgres container:"
+            echo ""
+            echo '```bash'
+            echo "docker network create gb-net"
+            echo "docker run -d --name gb-db --network gb-net \\"
+            echo "  -e POSTGRES_DB=gruenbilanz -e POSTGRES_USER=gruenbilanz -e POSTGRES_PASSWORD=gruenbilanz_dev \\"
+            echo "  postgres:16-alpine"
+            echo "docker run --rm -p 3000:3000 --network gb-net \\"
+            echo "  -e DATABASE_URL=postgresql://gruenbilanz:gruenbilanz_dev@gb-db:5432/gruenbilanz \\"
+            echo "  -e AUTH_SECRET=\"${UAT_AUTH_SECRET}\" \\"
+            echo "  ${IMAGE}"
+            echo '```'
+            echo ""
+            echo "Then open **http://localhost:3000** and register with the credentials below."
             echo ""
             echo "### 🔑 Credentials"
             echo ""
-            echo "**Demo mode — this is the default for the Docker image above.**"
-            echo "The image is built without Supabase credentials, so there is **no database**."
-            echo "No login is required — the app redirects directly to \`/onboarding\`."
-            echo ""
-            echo "**Production mode** (only if you run the image with your own Supabase env vars):"
-            echo "Register at \`/register\` using the credentials generated below for this run,"
-            echo "or create the user in your Supabase project via *Authentication → Users → Add user*."
+            echo "Register at \`/register\` using the credentials generated for this run."
             echo "These credentials satisfy the app's validation rules (min 8 chars, uppercase, digit)."
             echo ""
-            echo "| Field    | Value |"
-            echo "| -------- | ----- |"
-            echo "| Email    | \`${UAT_EMAIL}\` |"
-            echo "| Password | \`${UAT_PASSWORD}\` |"
+            echo "| Field       | Value |"
+            echo "| ----------- | ----- |"
+            echo "| Email       | \`${UAT_EMAIL}\` |"
+            echo "| Password    | \`${UAT_PASSWORD}\` |"
+            echo "| AUTH_SECRET | \`${UAT_AUTH_SECRET}\` |"
             echo ""
             echo "> The tag includes the commit SHA to ensure Docker always pulls the latest image."
           } | tee -a "$GITHUB_STEP_SUMMARY"
@@ -143,6 +156,21 @@ jobs:
     name: Smoke Tests
     runs-on: ubuntu-latest
     needs: docker
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: gruenbilanz
+          POSTGRES_USER: gruenbilanz
+          POSTGRES_PASSWORD: gruenbilanz_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U gruenbilanz"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
       - name: Checkout
@@ -183,7 +211,12 @@ jobs:
       - name: Start Docker container
         if: steps.dockerfile_check.outputs.exists == 'true'
         run: |
-          docker run -d --name app-smoke -p 3000:3000 "$SMOKE_IMAGE"
+          docker run -d --name app-smoke \
+            --network host \
+            -e DATABASE_URL="postgresql://gruenbilanz:gruenbilanz_dev@localhost:5432/gruenbilanz" \
+            -e AUTH_SECRET="smoke-test-secret-$(openssl rand -hex 16)" \
+            -p 3000:3000 \
+            "$SMOKE_IMAGE"
 
       - name: Wait for app to be ready
         if: steps.dockerfile_check.outputs.exists == 'true'
@@ -198,7 +231,7 @@ jobs:
             sleep 3
           done
           echo "❌ App failed to start within 90 s — container logs:"
-          docker logs green-ledger-smoke
+          docker logs app-smoke
           exit 1
 
       - name: Set up Python

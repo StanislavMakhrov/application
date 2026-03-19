@@ -21,9 +21,10 @@ services:
       - "3000:3000"
     environment:
       DATABASE_URL: postgresql://gruenbilanz:gruenbilanz_dev@db:5432/gruenbilanz
-      # AUTH_SECRET must be set in a .env file or in the host environment.
+      # AUTH_SECRET: set this in a .env file in the project root (docker-compose reads it automatically)
+      # or export it in your shell before running docker compose up.
       # Generate with: openssl rand -base64 48
-      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET must be set in .env or environment}
+      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET is required. Create a .env file with AUTH_SECRET=... or export it in your shell}
       NODE_ENV: production
     depends_on:
       db:

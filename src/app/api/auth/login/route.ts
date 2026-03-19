@@ -25,7 +25,8 @@ export async function POST(request: NextRequest) {
   // Always call bcrypt.compare to prevent timing-based user enumeration:
   // if user is null we compare against a dummy hash so the response time is
   // indistinguishable from a real (wrong-password) attempt.
-  const DUMMY_HASH = '$2b$12$invalidhashthatisneverusedXXXXXXXXXXXXXXXXXXX';
+  // The dummy hash is a valid bcrypt hash of a random string (never matches any real password).
+  const DUMMY_HASH = '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtGJ36dCPDe6jalmc8B8o5lTuSIu';
   const isValid = await bcrypt.compare(
     parsed.data.password,
     user?.passwordHash ?? DUMMY_HASH
