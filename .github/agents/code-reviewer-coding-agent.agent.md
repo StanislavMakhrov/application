@@ -176,6 +176,7 @@ Before approving any code, systematically answer these questions:
 - [ ] Tests pass (`cd src && npm test`)
 - [ ] No workspace problems after build/test
 - [ ] Docker image builds and app starts correctly (`docker build -t app:local ./src`)
+- [ ] `next build` output contains **zero deprecation warnings** (`⚠` lines) — any deprecation warning is a **Major** issue
 
 ### Code Quality
 - [ ] Follows TypeScript/Next.js coding conventions
@@ -185,6 +186,8 @@ Before approving any code, systematically answer these questions:
 - [ ] Uses `const` over `let`; never `var`
 - [ ] Named exports over default exports (except Next.js page/layout conventions)
 - [ ] Server components by default; `"use client"` only when needed
+- [ ] Uses `proxy.ts` for Next.js request interception — **never** the deprecated `middleware.ts` (see [docs/conventions.md](../../docs/conventions.md))
+- [ ] No deprecated npm packages introduced — verify against [docs/conventions.md § Deprecated Packages](../../docs/conventions.md)
 
 ### Code Comments
 - [ ] Comments explain "why" not just "what"

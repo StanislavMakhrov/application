@@ -154,7 +154,7 @@ C4Context
 |--------------|----------|-----------|
 | Data Privacy (DSGVO) | Supabase on EU region; Supabase Row-Level Security (RLS) for tenant isolation; Stripe handles PCI data; no third-party analytics tracking PII | Keeps all data in EU; minimises data exposure surface; delegates PCI compliance to Stripe |
 | Performance (PDF < 3 s) | Server-side PDF generation via React-PDF in a Next.js API route; calculation is pure in-memory function; emission factors bundled at build time | Eliminates cold-start overhead of external services; keeps critical path entirely in one function |
-| Security (tenant isolation) | Supabase RLS policies enforce `company_id = auth.uid()` at the database layer; Next.js middleware validates JWT on every request | Defence-in-depth: DB-level policy prevents data leakage even if application-layer checks are bypassed |
+| Security (tenant isolation) | Supabase RLS policies enforce `company_id = auth.uid()` at the database layer; Next.js proxy (`proxy.ts`) validates JWT on every request | Defence-in-depth: DB-level policy prevents data leakage even if application-layer checks are bypassed |
 | Reliability | Deterministic pure-function calculation engine with no I/O; emission factors as immutable constants; multi-year data immutable once saved | Calculations are always reproducible; no calculation drift from changing external data |
 | Maintainability | Emission factors isolated in `src/lib/emission-factors.ts`; calculation engine is a pure TypeScript module with full unit test coverage | Single edit point for annual UBA updates; engine can be tested without any infrastructure |
 
@@ -289,7 +289,7 @@ sequenceDiagram
     A-->>U: Confirmation email sent
     U->>A: Click email verification link
     A-->>W: Redirect to /onboarding (with session token)
-    W->>W: Validate JWT middleware
+    W->>W: Validate JWT (proxy)
     U->>W: POST /onboarding (Branche, Mitarbeiter, Standort)
     W->>DB: INSERT INTO companies (user_id, branche, …)
     DB-->>W: company_id
@@ -333,7 +333,7 @@ sequenceDiagram
     participant PDF as React-PDF Renderer
 
     U->>W: GET /api/report/[year]
-    W->>W: Validate JWT (middleware)
+    W->>W: Validate JWT (proxy)
     W->>DB: SELECT company + energy_entry for year
     DB-->>W: Data rows
     W->>Calc: calculateFootprint(inputs, UBA_2024_FACTORS)
@@ -459,7 +459,7 @@ erDiagram
 
 ### 8.2 Security
 
-- **Authentication:** Supabase Auth with email/password; JWT stored in httpOnly cookies via Next.js middleware
+- **Authentication:** Supabase Auth with email/password; JWT stored in httpOnly cookies via Next.js proxy (`proxy.ts`)
 - **Authorisation:** Supabase Row-Level Security (RLS) — every table has a policy `USING (company_id = auth.uid())`; no application-level bypass is possible
 - **Tenant Isolation:** Shared database, per-row isolation enforced at the PostgreSQL layer
 - **DSGVO:** EU data residency (Frankfurt); data minimisation (only energy data required for calculation); no unnecessary PII collected
