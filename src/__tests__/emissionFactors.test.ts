@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { Decimal } from '@prisma/client/runtime/library';
 
 // Mock the prisma module before importing emissionFactors
 vi.mock('../lib/prisma', () => ({
@@ -24,12 +25,12 @@ const VALID_FROM_2023 = new Date('2023-01-01');
 
 /** Sample emission factor records matching the UBA 2024 seed data */
 const mockFactors = [
-  { id: 1, year: 2024, category: 'Erdgas', subcategory: null, factorKgCo2ePerUnit: 2.0, unit: 'm³', source: 'UBA_2024', validFrom: VALID_FROM_2024 },
-  { id: 2, year: 2024, category: 'Strom', subcategory: null, factorKgCo2ePerUnit: 0.38, unit: 'kWh', source: 'UBA_2024', validFrom: VALID_FROM_2024 },
-  { id: 3, year: 2024, category: 'Pkw', subcategory: 'Diesel', factorKgCo2ePerUnit: 0.171, unit: 'km', source: 'UBA_2024', validFrom: VALID_FROM_2024 },
-  { id: 4, year: 2024, category: 'Pkw', subcategory: 'Benzin', factorKgCo2ePerUnit: 0.192, unit: 'km', source: 'UBA_2024', validFrom: VALID_FROM_2024 },
-  { id: 5, year: 2024, category: 'Flug', subcategory: 'Kurzstrecke', factorKgCo2ePerUnit: 0.255, unit: 'km', source: 'UBA_2024', validFrom: VALID_FROM_2024 },
-  { id: 6, year: 2023, category: 'Strom', subcategory: null, factorKgCo2ePerUnit: 0.434, unit: 'kWh', source: 'UBA_2023', validFrom: VALID_FROM_2023 },
+  { id: 1, year: 2024, category: 'Erdgas', subcategory: null, factorKgCo2ePerUnit: new Decimal(2.0), unit: 'm³', source: 'UBA_2024', validFrom: VALID_FROM_2024 },
+  { id: 2, year: 2024, category: 'Strom', subcategory: null, factorKgCo2ePerUnit: new Decimal(0.38), unit: 'kWh', source: 'UBA_2024', validFrom: VALID_FROM_2024 },
+  { id: 3, year: 2024, category: 'Pkw', subcategory: 'Diesel', factorKgCo2ePerUnit: new Decimal(0.171), unit: 'km', source: 'UBA_2024', validFrom: VALID_FROM_2024 },
+  { id: 4, year: 2024, category: 'Pkw', subcategory: 'Benzin', factorKgCo2ePerUnit: new Decimal(0.192), unit: 'km', source: 'UBA_2024', validFrom: VALID_FROM_2024 },
+  { id: 5, year: 2024, category: 'Flug', subcategory: 'Kurzstrecke', factorKgCo2ePerUnit: new Decimal(0.255), unit: 'km', source: 'UBA_2024', validFrom: VALID_FROM_2024 },
+  { id: 6, year: 2023, category: 'Strom', subcategory: null, factorKgCo2ePerUnit: new Decimal(0.434), unit: 'kWh', source: 'UBA_2023', validFrom: VALID_FROM_2023 },
 ];
 
 describe('getEmissionFactor', () => {
@@ -57,7 +58,7 @@ describe('getEmissionFactor', () => {
     const result = await getEmissionFactor(2024, 'Strom');
 
     expect(result).not.toBeNull();
-    expect(result?.factorKgCo2ePerUnit).toBe(0.38);
+    expect(result?.factorKgCo2ePerUnit).toEqual(new Decimal(0.38));
   });
 
   it('returns emission factor for Pkw with subcategory Diesel', async () => {
@@ -80,7 +81,7 @@ describe('getEmissionFactor', () => {
     const result = await getEmissionFactor(2024, 'Pkw', 'Benzin');
 
     expect(result?.subcategory).toBe('Benzin');
-    expect(result?.factorKgCo2ePerUnit).toBe(0.192);
+    expect(result?.factorKgCo2ePerUnit).toEqual(new Decimal(0.192));
   });
 
   it('returns null when no factor is found for a category', async () => {
@@ -118,7 +119,7 @@ describe('getEmissionFactor', () => {
     const result = await getEmissionFactor(2023, 'Strom');
 
     expect(result?.year).toBe(2023);
-    expect(result?.factorKgCo2ePerUnit).toBe(0.434);
+    expect(result?.factorKgCo2ePerUnit).toEqual(new Decimal(0.434));
   });
 });
 
