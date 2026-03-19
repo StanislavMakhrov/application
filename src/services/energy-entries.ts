@@ -8,7 +8,7 @@
  * Tenant isolation: all operations require a companyId that must already be
  * verified to belong to the authenticated user (enforced at the server action level).
  */
-import { prisma } from './companies';
+import { prisma } from '@/lib/prisma';
 import { calculateFootprint } from '@/lib/calculator';
 import { UBA_2024 } from '@/lib/emission-factors';
 

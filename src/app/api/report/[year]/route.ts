@@ -17,11 +17,12 @@ import { getEnergyEntryByYear } from '@/services/energy-entries';
 import ReportDocument from '@/components/report/ReportDocument';
 
 interface RouteParams {
-  params: { year: string };
+  params: Promise<{ year: string }>;
 }
 
 export async function GET(_request: NextRequest, { params }: RouteParams) {
-  const year = parseInt(params.year, 10);
+  const { year: yearParam } = await params;
+  const year = parseInt(yearParam, 10);
   if (isNaN(year)) {
     return new NextResponse('Ungültiges Jahr', { status: 400 });
   }

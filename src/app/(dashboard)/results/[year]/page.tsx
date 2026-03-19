@@ -16,11 +16,12 @@ import { getBenchmark, type Branche } from '@/lib/benchmarks';
 import BenchmarkChart from '@/components/BenchmarkChart';
 
 interface ResultsPageProps {
-  params: { year: string };
+  params: Promise<{ year: string }>;
 }
 
 export default async function ResultsPage({ params }: ResultsPageProps) {
-  const year = parseInt(params.year, 10);
+  const { year: yearParam } = await params;
+  const year = parseInt(yearParam, 10);
   if (isNaN(year)) notFound();
 
   const supabase = await createServerSupabaseClient();
@@ -42,17 +43,17 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
   const benchmark = getBenchmark(company.branche as Branche, 2024);
 
   // Determine performance label relative to benchmark median.
-  // Use explicit class names (not template literals) so Tailwind can statically detect them.
+  // Full class strings are defined here so Tailwind's static scanner can detect them.
   const performance =
     benchmark === undefined
       ? null
       : entry.co2TotalT < benchmark.p25_t
-        ? { label: 'Sehr gut', badgeClass: 'bg-white/20 text-green-200' }
+        ? { label: 'Sehr gut', badgeClass: 'bg-white/20 text-green-200' as const }
         : entry.co2TotalT < benchmark.median_t
-          ? { label: 'Gut', badgeClass: 'bg-white/20 text-green-100' }
+          ? { label: 'Gut', badgeClass: 'bg-white/20 text-green-100' as const }
           : entry.co2TotalT < benchmark.p75_t
-            ? { label: 'Durchschnittlich', badgeClass: 'bg-white/20 text-yellow-200' }
-            : { label: 'Verbesserungspotenzial', badgeClass: 'bg-white/20 text-red-200' };
+            ? { label: 'Durchschnittlich', badgeClass: 'bg-white/20 text-yellow-200' as const }
+            : { label: 'Verbesserungspotenzial', badgeClass: 'bg-white/20 text-red-200' as const };
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">

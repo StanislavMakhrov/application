@@ -5,15 +5,8 @@
  * Every operation is scoped to the authenticated user's ID (userId) to
  * enforce tenant isolation: one user cannot access another's company data.
  */
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import type { Branche } from '@/lib/benchmarks';
-
-// Singleton Prisma client — reused across server invocations in the same process.
-// In Next.js development the module is hot-reloaded; the global guard prevents
-// creating too many database connections.
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
-export const prisma = globalForPrisma.prisma ?? new PrismaClient();
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
 export interface CompanyInput {
   name: string;
