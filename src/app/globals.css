@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Mobile-first base styles for GrünBilanz */
+:root {
+  --brand-green: #16a34a;
+  --brand-green-dark: #14532d;
+}
+
+body {
+  @apply bg-gray-50 text-gray-900;
+}
+
+/* Utility: visually hidden (screen-reader accessible) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

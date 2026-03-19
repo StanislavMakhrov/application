@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: gruenbilanz
+      POSTGRES_USER: gruenbilanz
+      POSTGRES_PASSWORD: gruenbilanz
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gruenbilanz"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+
+  app:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://gruenbilanz:gruenbilanz@postgres:5432/gruenbilanz
+      TESSERACT_URL: http://tesseract:3001
+      NODE_ENV: production
+      SEED_DB: "true"  # Seed database with demo data on first startup
+    ports:
+      - "3000:3000"
+
+  tesseract:
+    build: ./tesseract
+    ports:
+      - "3001:3001"
+
+volumes:
+  pg_data:

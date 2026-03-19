@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Scope {
+  SCOPE1
+  SCOPE2
+  SCOPE3
+}
+
+enum SourceType {
+  MANUAL
+  OCR
+}
+
+model Company {
+  id               Int               @id @default(autoincrement())
+  name             String
+  industry         String
+  location         String
+  employeeCount    Int
+  reportingPeriods ReportingPeriod[]
+}
+
+model ReportingPeriod {
+  id        Int             @id @default(autoincrement())
+  companyId Int
+  year      Int
+  quarter   String          // Q1|Q2|Q3|Q4|ANNUAL
+  createdAt DateTime        @default(now())
+  company   Company         @relation(fields: [companyId], references: [id])
+  entries   EmissionEntry[]
+}
+
+model EmissionEntry {
+  id                Int             @id @default(autoincrement())
+  reportingPeriodId Int
+  scope             Scope
+  category          String
+  subcategory       String?
+  quantity          Decimal
+  unit              String
+  co2e              Decimal
+  sourceType        SourceType      @default(MANUAL)
+  createdAt         DateTime        @default(now())
+  reportingPeriod   ReportingPeriod @relation(fields: [reportingPeriodId], references: [id])
+}
+
+model EmissionFactor {
+  id                  Int      @id @default(autoincrement())
+  year                Int
+  category            String
+  subcategory         String?
+  factorKgCo2ePerUnit Decimal
+  unit                String
+  source              String   @default("UBA_2024")
+  validFrom           DateTime @default(now())
+
+  @@unique([year, category, subcategory])
+}
+
+model IndustryBenchmark {
+  id            Int     @id @default(autoincrement())
+  industry      String
+  year          Int
+  avgScope1Co2e Decimal
+  avgScope2Co2e Decimal
+  avgScope3Co2e Decimal
+  employeeCount Int
+}
