@@ -25,14 +25,12 @@ When the app is deployed **without** `NEXT_PUBLIC_SUPABASE_URL` /
 ### Production Mode (Supabase configured)
 
 When Supabase credentials are configured, full authentication is required.
+Register a new account at `/register`, or create a user via
+*Authentication → Users → Add user* in your Supabase project.
 
-| Field    | Value                          |
-|----------|-------------------------------|
-| Email    | `demo@gruenbilanz.de`         |
-| Password | `GruenBilanz2024!`            |
-
-> **Note:** Create this user in your Supabase project via
-> *Authentication → Users → Add user* before running UAT.
+> **Note:** The Docker image built from this repository is always in **Demo Mode** (no
+> Supabase credentials are set at build time). Production-mode testing requires a
+> separately configured Supabase project and a custom Docker run with the env vars set.
 
 ---
 
