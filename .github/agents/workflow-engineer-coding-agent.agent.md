@@ -34,10 +34,10 @@ Before handing off, **append your log entry** to the `## Agent Work Log` section
 - Use valid VS Code Copilot tool IDs (lookup from available tools)
 - Verify handoff agent names exist before committing
 - Create feature branches following `workflow/<description>` naming convention
-- Use conventional commit messages — **but NOT `feat:` or `fix:`** for workflow/agent-only changes, as these trigger Versionize version bumps. Use `workflow:`, `docs:`, `chore:`, `ci:`, or `refactor:` instead.
+- Use conventional commit messages — **but NOT `feat:` or `fix:`** for workflow/agent-only changes, as these trigger version bumps. Use `workflow:`, `docs:`, `chore:`, `ci:`, or `refactor:` instead.
 - Ensure Mermaid diagram reflects all agents and artifacts
 - Test proposed changes incrementally
-- Skip `dotnet test` when changes are limited to agent instructions / skills / documentation (e.g., `.github/agents/`, `.github/skills/`, `.github/copilot-instructions.md`, `docs/`) since the test suite doesn't validate those changes; use the `run-dotnet-tests` skill when C# code changes
+- Skip `npm test` when changes are limited to agent instructions / skills / documentation (e.g., `.github/agents/`, `.github/skills/`, `.github/copilot-instructions.md`, `docs/`) since the test suite doesn't validate those changes; run `npm test` when source code changes
 - **Commit Amending:** If you need to fix issues or apply feedback for the commit you just created, use `git commit --amend` instead of creating a new "fix" commit.
 
 ### ⚠️ Ask First
@@ -70,7 +70,8 @@ Before making changes, familiarize yourself with:
 - [.github/copilot-instructions.md](../copilot-instructions.md) - Project-wide Copilot instructions including tool naming conventions
 - [.github/gh-cli-instructions.md](../gh-cli-instructions.md) - **GitHub CLI fallback guidance for automated agents**
 - All existing agents in `.github/agents/*.agent.md` - Current agent definitions
-- [docs/spec.md](../../docs/spec.md) - Project specification
+- [docs/architecture.md](../../docs/architecture.md) - Project architecture and goals
+- [docs/conventions.md](../../docs/conventions.md) - Coding standards
 
 ## Reference Documentation
 
@@ -380,11 +381,11 @@ Help with development tasks
 **After:**
 ```markdown
 ## Your Goal
-Implement features and tests according to specifications, following C# coding conventions and test-first development.
+Implement features and tests according to specifications, following TypeScript coding conventions and test-first development.
 
 ## Boundaries
-✅ Always: Write tests before code; use `run-dotnet-tests` skill before committing when C# code changes
-⚠️ Ask First: Database schema changes, adding NuGet packages
+✅ Always: Write tests before code; run `npm test` before committing when source code changes
+⚠️ Ask First: Database schema changes, adding npm packages
 🚫 Never: Edit CHANGELOG.md (auto-generated), commit to main
 ```
 
@@ -397,9 +398,9 @@ Run tests to verify your changes.
 **After:**
 ```markdown
 ## Commands
-- **Build:** `dotnet build` - Compiles solution, check for errors
-- **Test:** Use the `run-dotnet-tests` skill - Runs all tests correctly; required when C# code changes (not needed for agent/docs-only changes)
-- **Format:** `dotnet format` - Auto-formats code to match .editorconfig
+- **Build:** `cd src && npm run build` - Compiles project, check for errors
+- **Test:** `cd src && npm test` - Runs all tests; required when source code changes (not needed for agent/docs-only changes)
+- **Lint:** `cd src && npm run lint` - Check code style
 ```
 
 ### ❌ Bad: Vague or Too General
@@ -408,9 +409,9 @@ Run tests to verify your changes.
 - "Improve code quality"
 
 ### ✅ Good: Task-Specific Agents
-- "Write unit tests for C# classes following xUnit patterns"
+- "Write unit tests for TypeScript modules following Vitest patterns"
 - "Update Markdown documentation in /docs based on code changes"
-- "Review pull requests for C# coding standards compliance"
+- "Review pull requests for TypeScript coding standards compliance"
 
 
 

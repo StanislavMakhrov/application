@@ -70,7 +70,8 @@ Include a **Work Protocol Analysis** section in the retrospective report that ev
 
 ## Context to Read
 - `docs/agents.md` (to understand the intended workflow)
-- `docs/spec.md` (to understand project standards)
+- `docs/architecture.md` (to understand project goals and architectural standards)
+- `docs/conventions.md` - Coding standards
 - The Work Protocol (`work-protocol.md`) in the work item folder (to analyze workflow completeness and agent-reported problems)
 - The feature or issue documentation (e.g., `specification.md`, `tasks.md`) to understand the scope.
 
@@ -381,7 +382,7 @@ Apply deductions consistently and cite examples.
 ### Terminal Command Patterns
 | Pattern | Count | Current | Recommendation |
 |---------|-------|---------|----------------|
-| `dotnet test` | N | Auto | ✅ Already automated |
+| `npm test` | N | Auto | ✅ Already automated |
 | `git commit` | N | Manual | Consider: wrapper script |
 | `gh pr create` | N | Manual | Use: `scripts/pr-github.sh` |
 

@@ -158,7 +158,7 @@ jobs:
       - name: Start Docker container
         if: steps.dockerfile_check.outputs.exists == 'true'
         run: |
-          docker run -d --name green-ledger-smoke -p 3000:3000 "$SMOKE_IMAGE"
+          docker run -d --name app-smoke -p 3000:3000 "$SMOKE_IMAGE"
 
       - name: Wait for app to be ready
         if: steps.dockerfile_check.outputs.exists == 'true'
@@ -199,8 +199,8 @@ jobs:
       - name: Stop Docker container
         if: always() && steps.dockerfile_check.outputs.exists == 'true'
         run: |
-          docker stop green-ledger-smoke || true
-          docker rm green-ledger-smoke || true
+          docker stop app-smoke || true
+          docker rm app-smoke || true
 
       - name: Skip smoke tests (no Dockerfile)
         if: steps.dockerfile_check.outputs.exists == 'false'

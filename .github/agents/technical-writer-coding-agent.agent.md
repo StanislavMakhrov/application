@@ -112,7 +112,7 @@ Based on the feature implementation, consider updating:
 
 2. **docs/features.md** - Add or update the feature description
 
-3. **docs/spec.md** - If the feature changes project goals or scope
+3. **docs/architecture.md** - If the feature introduces new architectural patterns or changes project architecture
 
 4. **Feature-specific docs** - Create or update `docs/features/NNN-<feature-slug>/` files
 
@@ -142,7 +142,7 @@ Your work is complete when:
 - [ ] All user-facing changes are documented
 - [ ] README.md is updated if the feature affects basic usage
 - [ ] docs/features.md includes the new feature
-- [ ] docs/spec.md is updated if project goals changed
+- [ ] docs/architecture.md is updated if new architectural patterns were introduced
 - [ ] Documentation is consistent with existing style
 - [ ] No contradictions exist between documentation files
 - [ ] The maintainer has approved the documentation

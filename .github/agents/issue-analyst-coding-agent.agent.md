@@ -119,8 +119,8 @@ git push -u origin HEAD
 ```
 
 Use descriptive short-description like:
-- `fix/060-docker-hub-secret-in-release-workflow`
-- `fix/066-null-reference-in-parser`
+- `fix/060-login-redirect-loop`
+- `fix/066-null-pointer-in-api-handler`
 - `fix/067-failing-integration-tests`
 - `fix/068-markdownlint-table-formatting`
 
@@ -158,7 +158,7 @@ Collect relevant data:
 - Error messages (full stack traces)
 - Log files
 - Workflow run output (if CI/CD failure)
-- Environment details (OS, .NET version, Docker version)
+- Environment details (OS, Node.js version, Docker version)
 - Recent changes: `git log --oneline --since="1 week ago"`
 - Recent changes: `scripts/git-log.sh --oneline --since="1 week ago"`
 - Current branch status: `scripts/git-status.sh`
@@ -181,10 +181,10 @@ scripts/check-workflow-status.sh watch <run-id>
 scripts/git-log.sh --oneline --since="1 week ago" -- <relevant-path>
 
 # Check for build errors
-dotnet build --no-restore
+cd src && npm run build
 
 # Run tests
-scripts/test-with-timeout.sh -- dotnet test --solution src/tfplan2md.slnx --verbosity normal
+cd src && npm test
 
 # Check for problems in workspace
 # Use the 'problems' tool to see diagnostics
@@ -304,11 +304,11 @@ Your work is complete when:
 **SE**: "Let me check the recent workflow runs. Which workflow is failing - CI, PR validation, or release?"
 *[waits for answer]*
 **SE**: *[checks logs, identifies issue, documents findings]*
-"I found the issue in `.github/workflows/release.yml` at line 96. The workflow uses `${{ secrets.DOCKERHUB_USERNAME }}` in the Docker image tag, which fails because secrets aren't expanded in tags..."
+"I found the issue in `.github/workflows/release.yml` at line 96. The workflow uses `${{ secrets.SOME_SECRET }}` in the Docker image tag, which fails because secrets aren't expanded in tags..."
 
 ### ✅ Good: Asking for Reproduction Steps
-**User**: "The parser crashes sometimes"
-**SE**: "Can you describe what input causes the crash? Do you have an example Terraform plan file that triggers it?"
+**User**: "The page crashes sometimes"
+**SE**: "Can you describe what action causes the crash? Do you have steps to reproduce it consistently?"
 
 ### ❌ Bad: Implementing Without Analysis
 **User**: "Build is broken"

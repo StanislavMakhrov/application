@@ -49,7 +49,7 @@ What this agent produces
 ## Key Principles
 
 - **Specific over general** - "Write unit tests for React components" beats "Help with testing"
-- **Commands over descriptions** - Include exact commands: `npm test`, `dotnet build`
+- **Commands over descriptions** - Include exact commands: `npm test`
 - **Examples over explanations** - Show real code examples, not abstract descriptions
 - **Boundaries first** - Clear rules prevent mistakes
 

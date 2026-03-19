@@ -254,7 +254,7 @@ jobs:
         id: tags
         run: |
           VERSION="${{ needs.release.outputs.version }}"
-          REPO="ghcr.io/${{ github.repository_owner }}/green-ledger"
+          REPO="ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}"
           REPO=$(echo "$REPO" | tr '[:upper:]' '[:lower:]')
           TAGS="${REPO}:${VERSION}"
           if [ "${{ needs.release.outputs.is_prerelease }}" != "true" ]; then
@@ -274,7 +274,7 @@ jobs:
             org.opencontainers.image.version=${{ needs.release.outputs.version }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.title=green-ledger
-            org.opencontainers.image.description=CSRD Climate Reporting for German SMEs
+            org.opencontainers.image.title=${{ github.event.repository.name }}
+            org.opencontainers.image.description=${{ github.event.repository.description }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

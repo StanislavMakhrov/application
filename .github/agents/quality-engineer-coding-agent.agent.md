@@ -76,7 +76,7 @@ This project uses:
 - **Test Location**: Test files co-located with source or in dedicated test directories under `src/`
 - **Docker Integration Tests**: For end-to-end app testing via `docker run`
 
-**Important constraint:** All tests must be fully automated. No manual testing steps are acceptable. Every test case must be executable via `dotnet test` without human intervention (typically executed via `scripts/test-with-timeout.sh -- dotnet test --solution src/tfplan2md.slnx` to prevent hangs). If a custom timeout is required, add `--timeout-seconds <seconds>`.
+**Important constraint:** All tests must be fully automated. No manual testing steps are acceptable. Every test case must be executable via `npm test` without human intervention.
 
 Follow the existing test naming convention: `methodName_scenario_expectedResult`
 

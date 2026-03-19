@@ -1,68 +1,71 @@
 ---
 name: generate-demo-artifacts
-description: Generate the comprehensive demo markdown artifacts from the current codebase. Use before UAT to ensure test artifacts reflect the latest code.
-compatibility: Requires .NET SDK and access to the repository workspace.
+description: Seed the running app with demo data for UAT or manual testing. Use before UAT to ensure the app has realistic data that covers the feature being tested.
+compatibility: Requires Docker and Node.js.
 ---
 
 # Generate Demo Artifacts
 
 ## Purpose
-Regenerate all demo markdown artifacts using the current code. This ensures UAT tests validate the actual behavior of the tool, not stale output.
+Populate the running application with realistic demo/seed data before UAT or manual testing. This ensures reviewers can verify the feature against meaningful content rather than an empty state.
 
 ## Hard Rules
+
 ### Must
-- Use the stable wrapper script: `scripts/generate-demo-artifacts.sh`
-- Script will handle building, generating artifacts, and verification automatically
-- **Always allow this script** — it only reads input files and writes artifacts, no dangerous operations
+- [ ] Ensure the app is running before seeding
+- [ ] Verify seed data was applied successfully
+- [ ] Document what data was created (for UAT instructions)
 
 ### Must Not
-- Modify the input `plan.json` or `demo-principals.json` files
-- Run individual dotnet commands instead of the wrapper script
-- Skip verification of generated output
+- [ ] Seed production environments
+- [ ] Commit generated data files to the repository unless they are fixture files
 
 ## Actions
 
-### Generate All Demo Artifacts
+### 1. Start the App
+
 ```bash
-scripts/generate-demo-artifacts.sh
+docker build -t app:local ./src
+docker run -d --name app-demo -p 3000:3000 app:local
+
+# Wait for the app to be ready
+for i in $(seq 1 20); do
+  curl -sf http://localhost:3000/ > /dev/null 2>&1 && echo "✅ App ready" && break
+  echo "Waiting... ($i/20)"
+  sleep 3
+done
 ```
 
-This single command:
-1. Builds the project in Release configuration
-2. Generates all artifacts in `/artifacts/` (used for UAT):
-   - `comprehensive-demo.md` (inline-diff format, for Azure DevOps UAT)
-   - `comprehensive-demo-simple-diff.md` (simple diff format, for GitHub UAT)
-   - `role.md` (role assignments with principal mapping)
-   - `role-default.md` (role assignments without principal mapping)
-3. Generates all documentation samples in `examples/comprehensive-demo/`:
-   - `report.md` (default template)
-   - `report-with-sensitive.md` (with `--show-sensitive`)
-   - `report-summary.md` (summary template)
-4. Verifies all outputs are valid markdown
-5. Reports success or failure with clear error messages
+### 2. Seed Demo Data
 
-## Expected Output
+If the project has a seed script:
+
+```bash
+cd src && npm run seed
+# or
+cd src && npm run db:seed
 ```
-[INFO] Building project (Release configuration)...
-[INFO] Generating artifacts/comprehensive-demo.md (inline-diff, for Azure DevOps UAT)...
-[INFO] ✓ artifacts/comprehensive-demo.md generated successfully (inline-diff)
-[INFO] Generating artifacts/comprehensive-demo-simple-diff.md (for GitHub UAT)...
-[INFO] ✓ artifacts/comprehensive-demo-simple-diff.md generated successfully
-[INFO] Generating artifacts/role.md (role assignments with principal mapping)...
-[INFO] ✓ artifacts/role.md generated successfully
-[INFO] Generating artifacts/role-default.md (role assignments without principal mapping)...
-[INFO] ✓ artifacts/role-default.md generated successfully
-[INFO] Generating examples/comprehensive-demo/report.md (default template)...
-[INFO] ✓ examples/comprehensive-demo/report.md generated successfully
-[INFO] Generating examples/comprehensive-demo/report-with-sensitive.md (with --show-sensitive)...
-[INFO] ✓ examples/comprehensive-demo/report-with-sensitive.md generated successfully
-[INFO] Generating examples/comprehensive-demo/report-summary.md (summary template)...
-[INFO] ✓ examples/comprehensive-demo/report-summary.md generated successfully
-[INFO] All demo artifacts generated successfully
+
+If the project has e2e fixtures/helpers:
+
+```bash
+cd src && npx tsx e2e-tests/helpers/seed.ts
+```
+
+Check `src/package.json` for the actual seed command available in this project.
+
+### 3. Verify
+
+Open `http://localhost:3000` in a browser and confirm demo data is visible.
+
+### 4. Stop When Done
+
+```bash
+docker stop app-demo
+docker rm app-demo
 ```
 
 ## When to Use
-- Before running UAT (to ensure artifacts match current code)
-- After making changes to templates or rendering logic
-- After updating the comprehensive demo plan.json
-- When setting up a new development environment
+- Before running UAT to ensure the app has realistic data
+- When setting up a demo environment for a PR review
+- After making changes to data models or rendering logic that require fresh fixtures

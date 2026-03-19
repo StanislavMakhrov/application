@@ -20,7 +20,7 @@ Create a GitHub pull request in a consistent, policy-compliant way, and include 
 - Ensure the working tree is clean before creating a PR
 - Push the branch to `origin` before creating the PR
 - Before creating the PR, post the **exact Title and Description** in chat
-- Use the standard PR body template (Problem / Change / Verification)
+- Use the standard PR body template (Problem / Change / Verification / Screenshots)
 - Use **Rebase and merge** for merging PRs to maintain a linear history (see `CONTRIBUTING.md`)
 
 ### Must Not
@@ -45,6 +45,11 @@ Before running any PR creation command, provide in chat:
 
 ## Verification
 <how was it validated?>
+
+## Screenshots
+<!-- Optional: include if docs/features/NNN-.../screenshots/ exists.
+     Use relative paths — GitHub renders them correctly in PR body from the branch.
+     Omit this section entirely for non-visual changes. -->
 ```
 
 ### 1. Pre-flight Checks

@@ -64,7 +64,7 @@ This includes both:
 
 ### ⚠️ Ask First
 - If the request seems like a bug fix rather than a feature
-- If the feature conflicts with project goals in docs/spec.md
+- If the feature conflicts with project goals in docs/architecture.md
 - If the feature requires significant architecture changes
 - If the scope seems too large for one feature
 

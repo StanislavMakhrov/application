@@ -61,8 +61,7 @@ Security issues related to:
 ### Out of Scope
 
 The following are generally **not** considered security vulnerabilities:
-- Issues in Terraform itself (report to HashiCorp)
-- Infrastructure security configurations shown in plan files (report to your team)
+- Issues in third-party services or infrastructure configurations used with the app (report to the respective vendor)
 - DoS through extremely large plan files (resource exhaustion is expected)
 - Issues requiring physical access to the system running <project-name>
 
@@ -72,7 +71,7 @@ When using <project-name>:
 - ✅ Use `--show-sensitive` only in secure environments
 - ✅ Review generated reports before sharing publicly
 - ✅ Keep <project-name> updated to the latest version
-- ✅ Use the official Docker image from Docker Hub
+- ✅ Use the official Docker image from GitHub Container Registry (GHCR)
 - ✅ Validate plan files come from trusted sources
 
 ## Security Update Process

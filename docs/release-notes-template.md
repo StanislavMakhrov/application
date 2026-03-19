@@ -20,32 +20,16 @@ Include this section only if you have screenshots.
 
 If you list anything under ✨ Features and it changes rendered output, you should include screenshots.
 
-PREREQUISITE: Install Playwright before generating screenshots:
+Generate screenshots by running the app locally:
 ```bash
-dotnet build src/tools/Oocx.TfPlan2Md.ScreenshotGenerator/
-pwsh src/tools/Oocx.TfPlan2Md.ScreenshotGenerator/bin/Debug/net10.0/playwright.ps1 install chromium --with-deps
-```
-NOTE: Do NOT use `npx playwright install` — the npm version differs from the .NET package.
-
-Generate screenshots using:
-
-```bash
-# For release notes (recommended - single 580×400 screenshot)
-scripts/generate-release-screenshots.sh \
-  --plan examples/example-demo/plan.json \
-  --output-prefix feature-name \
-  --output-dir docs/features/NNN-feature-name \
-  --selector "summary:has-text('resource_name')"
-
-# For website (full control - all variants)
-scripts/generate-screenshot.sh --plan ... --output-prefix ... --selector ...
+docker build -t app:local ./src
+docker run --rm -p 3000:3000 app:local
+# Take screenshots via browser or Playwright
 ```
 
 Constraints for release notes:
 - Max screenshot size: 580×400
-- Use the generated `*-crop*.png` files (not `*-lightbox*` or `*-full*`)
-- Focus screenshots using `--selector` / `--target-resource-id` so the image shows the relevant part of the plan
-- Choose selectors that match the visual change (see generate-release-screenshots skill's Selector Guide)
+- Focus on the relevant UI area
 
 ## 📸 Screenshots
 
@@ -76,6 +60,5 @@ Constraints for release notes:
 > Include this section only when there are changes to how users run the tool (new flags, changed defaults, new required config, etc.).
 
 ```bash
-# Example
-# <project-name> plan.json > plan.md
+# Example: show new usage or changed flags
 ```

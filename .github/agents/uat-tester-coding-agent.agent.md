@@ -50,8 +50,9 @@ Before handing off, **append your log entry** to the `work-protocol.md` file in 
 - Place E2E tests at `e2e-tests/<feature-slug>/e2e.spec.ts` (repo root, not inside `src/`)
 - Use the shared Playwright config from `e2e-tests/playwright.config.ts`
 - Cover **every scenario** from the test plan — the automated tests replace the need for the Maintainer to manually test each scenario
-- Commit e2e tests so the CI `e2e-tests` job runs them automatically
-- Also post a manual verification checklist as a PR comment (optional additional check for the Maintainer)
+- **Capture screenshots** using the `generate-release-screenshots` skill (Option A) and save to `docs/features/NNN-<feature-slug>/screenshots/`
+- Commit e2e tests and screenshots so the CI `e2e-tests` job runs them automatically
+- Also post a manual verification checklist as a PR comment (optional additional check for the Maintainer), **including the captured screenshots**
 - Wait for explicit PASS/FAIL from the Maintainer on the manual check before writing the UAT report
 - Document results in the UAT report
 
@@ -120,6 +121,10 @@ test.describe("<Feature Name>", () => {
 - For navigation: assert the correct page loads and key content is visible
 - Use `page.locator("body")` to check for content when no specific selector is available
 
+### 2b. Capture screenshots
+
+Load and follow the `generate-release-screenshots` skill (Option A — via Playwright in e2e tests). Save to `docs/features/NNN-<feature-slug>/screenshots/` and commit alongside the e2e tests.
+
 ### 3. Post PR comment with manual verification instructions
 
 ````markdown
@@ -127,6 +132,10 @@ test.describe("<Feature Name>", () => {
 
 TypeScript Playwright e2e tests have been added and will run in CI (e2e-tests job),
 covering all user-facing scenarios from the test plan.
+
+### 📸 Screenshots
+
+<!-- Insert screenshots from docs/features/NNN-<feature-slug>/screenshots/ here -->
 
 The Maintainer may optionally also verify the feature manually:
 
@@ -173,6 +182,11 @@ Create `docs/features/NNN-<feature-slug>/uat-report.md`:
 - **Scenarios covered:**
   - [ ] Scenario 1: ...
   - [ ] Scenario 2: ...
+
+## Screenshots
+
+<!-- Screenshots captured during e2e tests — used in PR body and release notes -->
+![<description>](screenshots/<state-name>.png)
 
 ## Manual UAT (Optional Additional Check)
 

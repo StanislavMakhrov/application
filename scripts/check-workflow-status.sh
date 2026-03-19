@@ -34,28 +34,28 @@ Options:
 
 Examples:
   # List latest run on main branch
-  scripts/check-workflow-status.sh --repo StanislavMakhrov/green-ledger list --branch main --limit 1
+  scripts/check-workflow-status.sh --repo StanislavMakhrov/application list --branch main --limit 1
 
   # List latest release workflow run
-  scripts/check-workflow-status.sh --repo StanislavMakhrov/green-ledger list --workflow release.yml --limit 1
+  scripts/check-workflow-status.sh --repo StanislavMakhrov/application list --workflow release.yml --limit 1
 
   # Watch a specific run (verbose)
-  scripts/check-workflow-status.sh --repo StanislavMakhrov/green-ledger watch 12345678
+  scripts/check-workflow-status.sh --repo StanislavMakhrov/application watch 12345678
 
   # Watch a specific run (quiet, agent-friendly)
-  scripts/check-workflow-status.sh --repo StanislavMakhrov/green-ledger watch 12345678 --quiet
+  scripts/check-workflow-status.sh --repo StanislavMakhrov/application watch 12345678 --quiet
 
   # View run details
-  scripts/check-workflow-status.sh --repo StanislavMakhrov/green-ledger view 12345678
+  scripts/check-workflow-status.sh --repo StanislavMakhrov/application view 12345678
 
   # View all logs for a run
-  scripts/check-workflow-status.sh --repo StanislavMakhrov/green-ledger logs 12345678
+  scripts/check-workflow-status.sh --repo StanislavMakhrov/application logs 12345678
 
   # View logs for a specific step
-  scripts/check-workflow-status.sh --repo StanislavMakhrov/green-ledger logs 12345678 --step "Build"
+  scripts/check-workflow-status.sh --repo StanislavMakhrov/application logs 12345678 --step "Build"
 
   # Trigger release workflow with tag
-  scripts/check-workflow-status.sh --repo StanislavMakhrov/green-ledger trigger release.yml --field tag=v1.0.0
+  scripts/check-workflow-status.sh --repo StanislavMakhrov/application trigger release.yml --field tag=v1.0.0
 
 Notes:
   - All commands suppress interactive pagers (GH_PAGER=cat, GH_FORCE_TTY=false)

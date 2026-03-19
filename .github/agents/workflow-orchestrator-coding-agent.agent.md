@@ -133,7 +133,8 @@ task({
 Before starting orchestration:
 - [docs/agents.md](../../docs/agents.md) - Complete workflow documentation and agent sequence
 - The GitHub issue assigned to you (if running in cloud mode)
-- [docs/spec.md](../../docs/spec.md) - Project specification
+- [docs/architecture.md](../../docs/architecture.md) - Project architecture and goals
+- [docs/conventions.md](../../docs/conventions.md) - Coding standards
 - [.github/copilot-instructions.md](../copilot-instructions.md) - General guidelines
 
 ## Orchestration Workflow
