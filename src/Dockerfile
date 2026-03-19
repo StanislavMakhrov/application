@@ -12,7 +12,7 @@ RUN npm ci
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 # Generate the Prisma Client so it is embedded in the standalone output
-RUN npx prisma generate
+RUN node_modules/.bin/prisma generate
 RUN npm run build
 # Ensure the public directory exists even if no static assets are present
 RUN mkdir -p /app/public
@@ -29,15 +29,18 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-# Prisma migration files and generated client needed at runtime
+# Prisma migration files, generated client, and CLI needed at runtime
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# Copy the prisma CLI so we use the pinned v5 version (not npx which fetches latest)
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Apply any pending migrations then start the Next.js standalone server
-CMD sh -c "npx prisma migrate deploy && node server.js"
+# Apply any pending migrations using the pinned prisma CLI, then start the server
+CMD sh -c "./node_modules/.bin/prisma migrate deploy && node server.js"
