@@ -92,6 +92,7 @@ jobs:
         with:
           context: ./src
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/${{ steps.repo.outputs.name }}:pr-${{ github.event.pull_request.number }}-${{ steps.repo.outputs.sha }}
 
