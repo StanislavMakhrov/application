@@ -75,7 +75,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 
   const filename = `GruenBilanz_${company.name.replace(/[^a-zA-Z0-9]/g, '_')}_${year}.pdf`;
 
-  return new NextResponse(buffer, {
+  return new NextResponse(new Uint8Array(buffer), {
     status: 200,
     headers: {
       'Content-Type': 'application/pdf',
