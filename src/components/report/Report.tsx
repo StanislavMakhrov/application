@@ -149,10 +149,10 @@ const styles = StyleSheet.create({
 });
 
 /**
- * GreenBilanzReport — the top-level PDF document component.
+ * GruenBilanzReport — the top-level PDF document component.
  * Named export so it can be imported by the API route without default export conflicts.
  */
-export function GreenBilanzReport({ company, entry, year }: ReportProps) {
+export function GruenBilanzReport({ company, entry, year }: ReportProps) {
   // Scope 1 sub-values using UBA 2024 factors (kg → t)
   const erdgasCO2 = (entry.erdgas_m3 * UBA_2024.erdgas_m3) / 1000;
   const dieselCO2 = (entry.diesel_l * UBA_2024.diesel_l) / 1000;

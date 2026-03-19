@@ -11,7 +11,7 @@ import type { DocumentProps } from '@react-pdf/renderer';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { getCompany } from '@/services/companies';
 import { getEnergyEntry } from '@/services/energy-entries';
-import { GreenBilanzReport } from '@/components/report/Report';
+import { GruenBilanzReport } from '@/components/report/Report';
 import { createElement, type ReactElement } from 'react';
 
 interface RouteParams {
@@ -46,9 +46,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
   try {
     // Render PDF server-side using react-pdf
-    // Type assertion needed: GreenBilanzReport returns Document (DocumentProps) internally
+    // Type assertion needed: GruenBilanzReport returns Document (DocumentProps) internally
     const pdfBuffer = await renderToBuffer(
-      createElement(GreenBilanzReport, { company, entry, year }) as ReactElement<DocumentProps>,
+      createElement(GruenBilanzReport, { company, entry, year }) as ReactElement<DocumentProps>,
     );
 
     return new NextResponse(Buffer.from(pdfBuffer), {
