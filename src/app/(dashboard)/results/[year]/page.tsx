@@ -10,15 +10,17 @@ import { getEnergyEntry } from '@/services/energy-entries';
 import { getBenchmark } from '@/lib/benchmarks';
 
 interface ResultsPageProps {
-  params: { year: string };
+  params: Promise<{ year: string }>;
 }
 
 export async function generateMetadata({ params }: ResultsPageProps) {
-  return { title: `CO₂-Bilanz ${params.year} – GrünBilanz` };
+  const { year } = await params;
+  return { title: `CO₂-Bilanz ${year} – GrünBilanz` };
 }
 
 export default async function ResultsPage({ params }: ResultsPageProps) {
-  const year = parseInt(params.year, 10);
+  const { year: yearStr } = await params;
+  const year = parseInt(yearStr, 10);
   if (isNaN(year)) notFound();
 
   const supabase = createServerSupabaseClient();

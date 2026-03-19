@@ -1,4 +1,4 @@
-# Multi-stage Docker build for GrünBilanz (Next.js 14 standalone)
+# Multi-stage Docker build for GrünBilanz (Next.js 16 standalone)
 # Stage 1: Install dependencies
 FROM node:20-alpine AS deps
 WORKDIR /app

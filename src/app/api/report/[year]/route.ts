@@ -15,11 +15,12 @@ import { GruenBilanzReport } from '@/components/report/Report';
 import { createElement, type ReactElement } from 'react';
 
 interface RouteParams {
-  params: { year: string };
+  params: Promise<{ year: string }>;
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
-  const year = parseInt(params.year, 10);
+  const { year: yearStr } = await params;
+  const year = parseInt(yearStr, 10);
   if (isNaN(year)) {
     return NextResponse.json({ error: 'Ungültiges Jahr' }, { status: 400 });
   }

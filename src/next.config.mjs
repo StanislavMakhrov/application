@@ -2,9 +2,7 @@
 const nextConfig = {
   output: 'standalone',
   // Use external packages for PDF generation (server-only, avoids bundling issues)
-  experimental: {
-    serverComponentsExternalPackages: ['@react-pdf/renderer'],
-  },
+  serverExternalPackages: ['@react-pdf/renderer'],
 };
 
 export default nextConfig;
