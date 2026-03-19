@@ -1,36 +1,13 @@
-import { createSupabaseServerClient, isDemoMode } from '@/lib/supabase';
+import { redirect } from 'next/navigation';
+import { getUser } from '@/lib/auth';
 import { getCompanyByUserId } from '@/services/companies';
 import { getEnergyEntryByYear } from '@/services/energy-entries';
 import { getBenchmark } from '@/lib/benchmarks';
 import { BenchmarkChart } from '@/components/charts/BenchmarkChart';
 import { UBA_2024 } from '@/lib/emission-factors';
 import Link from 'next/link';
-import type { EnergyEntry, Company } from '@/types';
 
 export const metadata = { title: 'CO₂-Ergebnisse – GrünBilanz' };
-
-/** Demo data shown when Supabase is not configured */
-const DEMO_ENTRY: EnergyEntry = {
-  id: 'demo',
-  company_id: 'demo',
-  year: 2023,
-  strom_kwh: 25000,
-  erdgas_m3: 3000,
-  diesel_l: 1500,
-  heizoel_l: 0,
-  co2_scope1_t: 9.975,
-  co2_scope2_t: 9.5,
-  co2_total_t: 19.475,
-};
-
-const DEMO_COMPANY: Company = {
-  id: 'demo',
-  user_id: 'demo',
-  name: 'Musterbetrieb GmbH',
-  branche: 'Elektrotechnik',
-  mitarbeiter: 5,
-  standort: 'Berlin',
-};
 
 interface PageProps {
   params: Promise<{ year: string }>;
@@ -38,28 +15,20 @@ interface PageProps {
 
 /**
  * Results page: displays CO₂ totals, breakdown, and benchmark comparison.
+ * Requires both an authenticated session and a completed energy entry for the year.
  */
 export default async function ResultsPage({ params }: PageProps) {
   const { year: yearParam } = await params;
   const year = parseInt(yearParam, 10);
 
-  let entry: EnergyEntry = DEMO_ENTRY;
-  let company: Company = DEMO_COMPANY;
+  const user = await getUser();
+  if (!user) redirect('/login');
 
-  if (!isDemoMode) {
-    const supabase = await createSupabaseServerClient();
-    if (supabase) {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const comp = await getCompanyByUserId(supabase, session.user.id).catch(() => null);
-        if (comp) {
-          company = comp;
-          const e = await getEnergyEntryByYear(supabase, comp.id, year).catch(() => null);
-          if (e) entry = e;
-        }
-      }
-    }
-  }
+  const company = await getCompanyByUserId(user.id).catch(() => null);
+  if (!company) redirect('/onboarding');
+
+  const entry = await getEnergyEntryByYear(company.id, year).catch(() => null);
+  if (!entry) redirect('/energy');
 
   const benchmark = getBenchmark(company.branche);
 
@@ -134,7 +103,12 @@ export default async function ResultsPage({ params }: PageProps) {
             unit="t CO₂"
             color="yellow"
           />
-          <BreakdownRow label="Strom (Scope 2)" value={entry.co2_scope2_t} unit="t CO₂" color="blue" />
+          <BreakdownRow
+            label="Strom (Scope 2)"
+            value={entry.co2_scope2_t}
+            unit="t CO₂"
+            color="blue"
+          />
         </div>
       </div>
 

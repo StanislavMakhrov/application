@@ -1,4 +1,4 @@
-import { createSupabaseServerClient, isDemoMode } from '@/lib/supabase';
+import { getUser } from '@/lib/auth';
 import { getCompanyByUserId } from '@/services/companies';
 import { EnergyForm } from '@/components/forms/EnergyForm';
 import { redirect } from 'next/navigation';
@@ -7,26 +7,16 @@ export const metadata = { title: 'Energiedaten – GrünBilanz' };
 
 /**
  * Energy data input page.
- * Requires completed company profile before proceeding.
+ * Requires a completed company profile — redirects to /onboarding if missing.
  */
 export default async function EnergyPage() {
-  let companyId: string | null = null;
-  const currentYear = new Date().getFullYear() - 1; // Default to previous year
+  const user = await getUser();
+  if (!user) redirect('/login');
 
-  if (!isDemoMode) {
-    const supabase = await createSupabaseServerClient();
-    if (supabase) {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const company = await getCompanyByUserId(supabase, session.user.id).catch(() => null);
-        if (!company) {
-          // Must complete onboarding first
-          redirect('/onboarding');
-        }
-        companyId = company.id;
-      }
-    }
-  }
+  const company = await getCompanyByUserId(user.id).catch(() => null);
+  if (!company) redirect('/onboarding');
+
+  const currentYear = new Date().getFullYear() - 1; // Default to previous calendar year
 
   return (
     <div>
@@ -37,7 +27,7 @@ export default async function EnergyPage() {
         </p>
       </div>
       <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
-        <EnergyForm companyId={companyId} defaultYear={currentYear} />
+        <EnergyForm companyId={company.id} defaultYear={currentYear} />
       </div>
     </div>
   );

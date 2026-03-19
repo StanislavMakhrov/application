@@ -3,15 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-interface DashboardNavProps {
-  demoMode?: boolean;
-}
-
 /**
  * Navigation bar for the authenticated dashboard area.
  * Shows links to the main sections of the app.
+ * Logout uses a regular form POST to /api/auth/logout which clears the session cookie.
  */
-export function DashboardNav({ demoMode = false }: DashboardNavProps) {
+export function DashboardNav() {
   const pathname = usePathname();
 
   const links = [
@@ -28,11 +25,6 @@ export function DashboardNav({ demoMode = false }: DashboardNavProps) {
           <Link href="/onboarding" className="flex items-center gap-2">
             <span className="text-xl">🌱</span>
             <span className="font-bold text-green-800 text-lg">GrünBilanz</span>
-            {demoMode && (
-              <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full ml-1">
-                Demo
-              </span>
-            )}
           </Link>
 
           {/* Nav links */}
@@ -51,16 +43,14 @@ export function DashboardNav({ demoMode = false }: DashboardNavProps) {
               </Link>
             ))}
 
-            {!demoMode && (
-              <form action="/api/auth/logout" method="POST" className="ml-2">
-                <button
-                  type="submit"
-                  className="px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-100 transition-colors"
-                >
-                  Abmelden
-                </button>
-              </form>
-            )}
+            <form action="/api/auth/logout" method="POST" className="ml-2">
+              <button
+                type="submit"
+                className="px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-100 transition-colors"
+              >
+                Abmelden
+              </button>
+            </form>
           </div>
         </div>
       </div>

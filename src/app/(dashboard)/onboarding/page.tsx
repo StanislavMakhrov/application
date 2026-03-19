@@ -1,4 +1,4 @@
-import { createSupabaseServerClient, isDemoMode } from '@/lib/supabase';
+import { getUser } from '@/lib/auth';
 import { getCompanyByUserId } from '@/services/companies';
 import { OnboardingForm } from '@/components/forms/OnboardingForm';
 
@@ -6,20 +6,11 @@ export const metadata = { title: 'Unternehmensprofil – GrünBilanz' };
 
 /**
  * Onboarding page: company profile setup.
- * Pre-fills form with existing data if profile already exists.
+ * Pre-fills the form with existing data if the user has already completed onboarding.
  */
 export default async function OnboardingPage() {
-  let existingCompany = null;
-
-  if (!isDemoMode) {
-    const supabase = await createSupabaseServerClient();
-    if (supabase) {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        existingCompany = await getCompanyByUserId(supabase, session.user.id).catch(() => null);
-      }
-    }
-  }
+  const user = await getUser();
+  const existingCompany = user ? await getCompanyByUserId(user.id).catch(() => null) : null;
 
   return (
     <div>

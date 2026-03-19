@@ -1,16 +1,9 @@
 import { NextResponse } from 'next/server';
-import { createSupabaseServerClient, isDemoMode } from '@/lib/supabase';
+import { clearSessionCookieOptions } from '@/lib/auth';
 
-/** POST /api/auth/logout — sign out the current user */
+/** POST /api/auth/logout — clear the session cookie */
 export async function POST() {
-  if (isDemoMode) {
-    return NextResponse.redirect(new URL('/login', process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'));
-  }
-
-  const supabase = await createSupabaseServerClient();
-  if (supabase) {
-    await supabase.auth.signOut();
-  }
-
-  return NextResponse.json({ success: true });
+  const response = NextResponse.json({ success: true });
+  response.cookies.set(clearSessionCookieOptions());
+  return response;
 }

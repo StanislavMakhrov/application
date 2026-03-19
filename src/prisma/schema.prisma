@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  company      Company?
+
+  @@map("users")
+}
+
+model Company {
+  id            String        @id @default(uuid())
+  userId        String        @unique @map("user_id")
+  name          String
+  branche       String
+  mitarbeiter   Int
+  standort      String
+  createdAt     DateTime      @default(now()) @map("created_at")
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  energyEntries EnergyEntry[]
+
+  @@map("companies")
+}
+
+model EnergyEntry {
+  id         String   @id @default(uuid())
+  companyId  String   @map("company_id")
+  year       Int
+  stromKwh   Float    @map("strom_kwh")
+  erdgasM3   Float    @map("erdgas_m3")
+  dieselL    Float    @map("diesel_l")
+  heizoelL   Float    @map("heizoel_l")
+  co2Scope1T Float    @map("co2_scope1_t")
+  co2Scope2T Float    @map("co2_scope2_t")
+  co2TotalT  Float    @map("co2_total_t")
+  createdAt  DateTime @default(now()) @map("created_at")
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, year])
+  @@map("energy_entries")
+}

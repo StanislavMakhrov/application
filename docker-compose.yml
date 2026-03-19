@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: gruenbilanz
+      POSTGRES_USER: gruenbilanz
+      POSTGRES_PASSWORD: gruenbilanz_dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gruenbilanz"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://gruenbilanz:gruenbilanz_dev@db:5432/gruenbilanz
+      # AUTH_SECRET must be set in a .env file or in the host environment.
+      # Generate with: openssl rand -base64 48
+      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET must be set in .env or environment}
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

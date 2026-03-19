@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createSupabaseServerClient, isDemoMode } from '@/lib/supabase';
+import { prisma } from '@/lib/prisma';
+import { createSession, sessionCookieOptions } from '@/lib/auth';
 import { z } from 'zod';
+import bcrypt from 'bcryptjs';
 
 const registerSchema = z.object({
   email: z.string().email('Ungültige E-Mail-Adresse'),
@@ -11,18 +13,10 @@ const registerSchema = z.object({
     .regex(/[0-9]/, 'Passwort muss mindestens eine Zahl enthalten'),
 });
 
-/** POST /api/auth/register — create a new Supabase user */
+/** POST /api/auth/register — create a new user account */
 export async function POST(request: NextRequest) {
-  if (isDemoMode) {
-    return NextResponse.json(
-      { error: 'Demo-Modus: Keine Supabase-Zugangsdaten konfiguriert.' },
-      { status: 503 }
-    );
-  }
-
   const body = await request.json().catch(() => ({}));
   const parsed = registerSchema.safeParse(body);
-
   if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.errors[0]?.message ?? 'Ungültige Eingabe' },
@@ -30,19 +24,20 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) {
-    return NextResponse.json({ error: 'Datenbankverbindung nicht verfügbar' }, { status: 503 });
+  const existing = await prisma.user.findUnique({ where: { email: parsed.data.email } });
+  if (existing) {
+    return NextResponse.json(
+      { error: 'Diese E-Mail-Adresse ist bereits registriert.' },
+      { status: 409 }
+    );
   }
 
-  const { data, error } = await supabase.auth.signUp({
-    email: parsed.data.email,
-    password: parsed.data.password,
-  });
+  // bcrypt cost factor 12 — good balance of security and latency (~300 ms)
+  const passwordHash = await bcrypt.hash(parsed.data.password, 12);
+  const user = await prisma.user.create({ data: { email: parsed.data.email, passwordHash } });
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
-  }
-
-  return NextResponse.json({ user: data.user?.email, success: true });
+  const token = await createSession({ id: user.id, email: user.email });
+  const response = NextResponse.json({ user: user.email, success: true });
+  response.cookies.set(sessionCookieOptions(token));
+  return response;
 }
