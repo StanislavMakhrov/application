@@ -25,8 +25,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Copy standalone build output (includes only required server files)
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-# public/ directory is optional — don't fail if it doesn't exist
-COPY --from=builder /app/public ./public 2>/dev/null || true
+COPY --from=builder /app/public ./public
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
