@@ -52,7 +52,8 @@ Before handing off, **append your log entry** to the `work-protocol.md` file in 
 - Cover **every scenario** from the test plan — the automated tests replace the need for the Maintainer to manually test each scenario
 - **Capture screenshots** using the `generate-release-screenshots` skill (Option A) and save to `docs/features/NNN-<feature-slug>/screenshots/`
 - Commit e2e tests and screenshots so the CI `e2e-tests` job runs them automatically
-- Also post a manual verification checklist as a PR comment (optional additional check for the Maintainer), **including the captured screenshots**
+- Also post a manual verification checklist as a PR comment (optional additional check for the Maintainer), **including the captured screenshots and demo login credentials**
+- Include demo login credentials (email and password from the seed script or docs) in the PR comment so the Maintainer can log in without guessing
 - Wait for explicit PASS/FAIL from the Maintainer on the manual check before writing the UAT report
 - Document results in the UAT report
 
@@ -125,6 +126,17 @@ test.describe("<Feature Name>", () => {
 
 Load and follow the `generate-release-screenshots` skill (Option A — via Playwright in e2e tests). Save to `docs/features/NNN-<feature-slug>/screenshots/` and commit alongside the e2e tests.
 
+### 2c. Look up demo login credentials
+
+Before posting the PR comment, find the demo user credentials so the Maintainer can log in:
+
+1. Check seed scripts (e.g. `scripts/seed.ts`, `src/prisma/seed.ts`, `src/scripts/seed.ts`)
+2. Check `docs/architecture.md` for any documented demo accounts
+3. Check `README.md` for login instructions
+4. If none found, check `package.json` for a `seed` or `db:seed` script and inspect it
+
+Record the demo email and password to include in the PR comment below.
+
 ### 3. Post PR comment with manual verification instructions
 
 ````markdown
@@ -149,6 +161,13 @@ docker run --rm -p 3000:3000 ghcr.io/<repo>:pr-<N>
 Then open `http://localhost:3000`
 
 > Demo data is pre-loaded automatically on first start.
+
+### Demo Login
+
+<!-- Look up demo credentials from the seed script (e.g. scripts/seed.ts, src/prisma/seed.ts) or docs/architecture.md and fill in below -->
+
+- **Email:** `<demo-email>`
+- **Password:** `<demo-password>`
 
 ### Checklist
 

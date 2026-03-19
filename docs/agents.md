@@ -362,7 +362,7 @@ _Agents produce and consume artifacts. Arrows show artifact creation and consump
 - **Goal:** Validate user-facing features by writing automated TypeScript Playwright e2e tests covering all user-facing scenarios, and providing optional manual UAT instructions for the Maintainer.
 - **Deliverables:**
   1. Playwright e2e tests at `e2e-tests/<feature-slug>/e2e.spec.ts`, committed so the CI `e2e-tests` job runs them automatically.
-  2. A PR comment with an optional manual verification checklist and `docker run` instructions for the Maintainer.
+  2. A PR comment with an optional manual verification checklist, demo login credentials, and `docker run` instructions for the Maintainer.
   3. A UAT report at `docs/features/NNN-<feature-slug>/uat-report.md` after Maintainer confirms PASS/FAIL.
 - **E2E test location:** `e2e-tests/<feature-slug>/e2e.spec.ts` (repo root, not inside `src/`). Uses shared config from `e2e-tests/playwright.config.ts`.
 - **BLOCKER:** If the feature has no user-facing UI changes (e.g. pure background job or API-only), the agent must ask the Maintainer before proceeding.
