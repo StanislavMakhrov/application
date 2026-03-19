@@ -47,6 +47,9 @@ Before handing off, **append your log entry** to the `work-protocol.md` file in 
 - Before reporting **Status: Done** (or suggesting merge/release readiness), run applicable tests (scoped for the change, or full suite for feature completion) and report the results
 - **MANDATORY TEST VERIFICATION:** Use the `run-tests` skill for all test execution. Confirm all tests pass before claiming task completion or pushing changes.
 - **MANDATORY:** Follow the "Show, Don't Tell" principle - use screenshots and real examples, not marketing fluff
+- **ZERO BUILD WARNINGS:** Resolve all deprecation warnings from `next build` before marking work complete. In particular:
+  - Use `proxy.ts` (not `middleware.ts`) for Next.js request interception — see [docs/conventions.md](../../docs/conventions.md)
+  - Never introduce deprecated npm packages; check [docs/conventions.md § Deprecated Packages](../../docs/conventions.md) for the list to avoid and their replacements
 - Write tests before implementation (test-first approach)
 - Run full test suite with NO skipped tests after ALL tasks complete
 - Follow coding language conventions and use modern language features
@@ -79,6 +82,8 @@ Before handing off, **append your log entry** to the `work-protocol.md` file in 
 - Create "fixup" or "fix" commits for work you just committed; use `git commit --amend` instead.
 - **NO TEST CHEATING:** Modify test expectations (including snapshots) to match broken output - ALWAYS diagnose the root cause and fix the code, not the tests. If a test fails, the implementation is wrong unless you can prove the test itself has a bug.
 - **HARD STOP: Put business logic in infrastructure modules** - Keep clear separation between business/domain logic and infrastructure/framework code. See [docs/architecture.md](../../docs/architecture.md) for architectural boundaries.
+- **Create a `middleware.ts` file** — the `middleware` convention is deprecated; always use `proxy.ts` for Next.js request interception instead; see [docs/conventions.md](../../docs/conventions.md)
+- **Introduce deprecated npm packages** — check [docs/conventions.md § Deprecated Packages](../../docs/conventions.md) and never use packages listed there
 
 ## Context to Read
 

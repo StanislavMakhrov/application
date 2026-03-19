@@ -21,6 +21,7 @@
 - Use named exports over default exports (except for Next.js page/layout conventions)
 - Prefer async/await over raw Promises
 - Use Prisma for all database access (no raw SQL)
+- **Next.js request interception:** Use `proxy.ts` (not the deprecated `middleware.ts`) — see [Next.js middleware-to-proxy migration](https://nextjs.org/docs/messages/middleware-to-proxy)
 
 ### Code Quality
 
@@ -28,6 +29,19 @@
 - **Pre-commit Hooks:** Husky (npm) runs lint + type check before commit
 - **Dependency Updates:** Dependabot configured for npm and GitHub Actions
 - **File Length:** Keep files under 200–300 lines; refactor at that point
+- **No build warnings:** Resolve all deprecation warnings before marking work complete; do not leave deprecation (`⚠`) warnings in `next build` output
+
+### Deprecated Packages to Avoid
+
+When adding or updating npm dependencies, **never introduce** the following deprecated packages (use the replacements instead):
+
+| Deprecated | Replacement | Reason |
+|------------|-------------|--------|
+| `rimraf@<4` | `rimraf@^4` | Versions prior to v4 are no longer supported |
+| `@humanwhocodes/object-schema` | `@eslint/object-schema` | Package renamed under the ESLint org |
+| `@humanwhocodes/config-array` | `@eslint/config-array` | Package renamed under the ESLint org |
+
+If these appear as **transitive dependencies** (pulled in by another package), upgrade the direct dependency that brings them in, or pin overrides in `package.json` using the `overrides` field.
 
 ## CI/CD and Versioning
 
