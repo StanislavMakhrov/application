@@ -345,8 +345,8 @@ _Agents produce and consume artifacts. Arrows show artifact creation and consump
 
 ### 6. Developer
 - **Goal:** Implement features and tests as specified.
-- **Deliverables:** Code, tests, passing CI.
-- **Definition of Done:** Code and tests meet requirements and pass all checks.
+- **Deliverables:** Code, tests, passing CI. If no `Dockerfile` exists in `src/`, the Developer creates one as part of the first implementation task.
+- **Definition of Done:** Code and tests meet requirements and pass all checks. Docker image builds and runs correctly (`docker build -t app:local ./src`).
 
 ### 7. Technical Writer
 - **Goal:** Update and maintain all relevant documentation.

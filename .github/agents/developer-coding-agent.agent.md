@@ -125,7 +125,9 @@ Follow the project's coding conventions strictly:
 
 2. **Review all inputs** - Read the specification, architecture, tasks, and test plan thoroughly.
 
-3. **Verify the app runs with Docker** (required before marking work complete):
+3. **Ensure a Dockerfile exists in `src/`** — the release pipeline builds the Docker image from `./src` context. If `src/Dockerfile` does not exist, **you must create it** as the first implementation step before writing any other code. The Dockerfile should be appropriate for the application stack (e.g., a multi-stage Next.js build). Commit it with `build: add Dockerfile for application`.
+
+4. **Verify the app runs with Docker** (required before marking work complete):
    ```bash
    docker build -t app:local ./src
    docker run --rm -p 3000:3000 app:local
@@ -134,7 +136,7 @@ Follow the project's coding conventions strictly:
    - Smoke tests also run automatically in CI — the pipeline builds the image, starts a container, and runs `pytest smoke-tests/` against it
    - If the CI `smoke-tests` job fails after your push, check the container logs in the workflow output
 
-4. **Implement ONE task at a time** - Work on a single task from the tasks document:
+5. **Implement ONE task at a time** - Work on a single task from the tasks document:
    
    a. **Write tests first** for the current task:
       - Implement the test cases from the test plan for THIS task only
@@ -165,9 +167,9 @@ Follow the project's coding conventions strictly:
         git commit -m "docs: mark task <task-name> as complete"
         ```
    
-   f. **Repeat for next task** - Return to step 4a for the next task
+   f. **Repeat for next task** - Return to step 5a for the next task
 
-5. **After ALL tasks complete** - Final verification:
+6. **After ALL tasks complete** - Final verification:
    
    a. **Run full test suite**:
       ```bash
@@ -193,7 +195,7 @@ Follow the project's coding conventions strictly:
       - If CI fails, inspect logs, fix the issue, re-run pre-push validation, and push again
       - The PR must have green CI checks before handoff to the next agent
 
-6. **Ask one question at a time** - If clarification is needed, ask focused questions.
+7. **Ask one question at a time** - If clarification is needed, ask focused questions.
 
 ## Commands
 
