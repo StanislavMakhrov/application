@@ -269,6 +269,7 @@ jobs:
         with:
           context: ./src
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.tags.outputs.tags }}
           labels: |
             org.opencontainers.image.version=${{ needs.release.outputs.version }}
