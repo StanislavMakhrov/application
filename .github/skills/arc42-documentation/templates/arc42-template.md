@@ -24,7 +24,6 @@ This document follows the [arc42 template](https://arc42.org/) for architecture 
 - [Requirement 3]
 
 **Links to detailed requirements:**
-- [docs/spec.md](../../spec.md)
 - [Feature specifications in docs/features/](../../features/)
 
 ### 1.2 Quality Goals
@@ -56,7 +55,7 @@ This document follows the [arc42 template](https://arc42.org/) for architecture 
 
 | Constraint | Background / Motivation |
 |------------|------------------------|
-| [e.g., Must use .NET 8] | [e.g., Organizational standard] |
+| [e.g., Must use Node.js 20+] | [e.g., Organizational standard] |
 | [e.g., Deploy on Linux containers] | [e.g., Infrastructure requirement] |
 | [e.g., Use PostgreSQL] | [e.g., Existing database platform] |
 
@@ -72,7 +71,7 @@ This document follows the [arc42 template](https://arc42.org/) for architecture 
 
 | Convention | Description |
 |------------|-------------|
-| [e.g., C# Coding Standards] | [e.g., Microsoft conventions, enforced by .editorconfig] |
+| [e.g., TypeScript Coding Standards] | [e.g., Strict mode, ESLint + Prettier, enforced by pre-commit hooks] |
 | [e.g., Git workflow] | [e.g., Feature branches, rebase-merge strategy] |
 | [e.g., Documentation] | [e.g., Markdown in docs/, ADRs for decisions] |
 
@@ -151,15 +150,13 @@ C4Container
     
     Person(user, "User")
     
-    Container(web, "Web Application", ".NET, ASP.NET Core", "Handles HTTP requests")
-    Container(api, "API", ".NET, ASP.NET Core", "Business logic and data access")
+    Container(web, "Web Application", "Next.js / TypeScript", "Handles HTTP requests, renders UI")
     ContainerDb(db, "Database", "PostgreSQL", "Stores data")
     Container(cache, "Cache", "Redis", "Caching layer")
     
     Rel(user, web, "Uses", "HTTPS")
-    Rel(web, api, "Calls", "HTTP/REST")
-    Rel(api, db, "Reads/Writes", "SQL")
-    Rel(api, cache, "Reads/Writes", "Redis Protocol")
+    Rel(web, db, "Reads/Writes", "SQL")
+    Rel(web, cache, "Reads/Writes", "Redis Protocol")
 ```
 
 **Components:**
@@ -267,7 +264,7 @@ graph TB
 
 | Environment | Purpose | Configuration |
 |-------------|---------|---------------|
-| Development | Local development | Docker Compose on developer machines |
+| Development | Local development | `docker build` + `docker run` on developer machines |
 | Staging | Pre-production testing | Cloud-hosted, mirrors production |
 | Production | Live system | Cloud-hosted, scaled for load |
 
@@ -294,7 +291,7 @@ graph TB
 
 **How errors are handled consistently.**
 
-- **Logging:** [e.g., Structured logging with Serilog, centralized in ELK stack]
+- **Logging:** [e.g., Structured logging, centralized log aggregation]
 - **Error Responses:** [e.g., Standard error format with HTTP status codes]
 - **Monitoring:** [e.g., Health checks, alerting on critical errors]
 
@@ -302,18 +299,18 @@ graph TB
 
 **Testing strategies and conventions.**
 
-- **Unit Tests:** [e.g., xUnit, mocked dependencies]
-- **Integration Tests:** [e.g., TestContainers for database]
-- **End-to-End Tests:** [e.g., Selenium/Playwright for UI]
+- **Unit Tests:** [e.g., Vitest, mocked dependencies]
+- **Integration Tests:** [e.g., Vitest with test database]
+- **End-to-End Tests:** [e.g., Playwright for UI]
 - **Coverage Goal:** [e.g., >80% for critical paths]
 
 ### 8.5 Configuration Management
 
 **How configuration is managed.**
 
-- **Approach:** [e.g., Environment variables, appsettings.json]
-- **Secrets:** [e.g., Azure Key Vault, never in source control]
-- **Feature Flags:** [e.g., LaunchDarkly for gradual rollouts]
+- **Approach:** [e.g., Environment variables via `.env`]
+- **Secrets:** [e.g., Never in source control, injected at runtime]
+- **Feature Flags:** [e.g., Environment variable toggles]
 
 ---
 
@@ -393,7 +390,7 @@ Quality
 | Item | Description | Impact | Priority | Plan |
 |------|-------------|--------|----------|------|
 | [e.g., Legacy module not covered by tests] | [e.g., Module X has 0% test coverage] | High | High | [e.g., Add tests incrementally during maintenance] |
-| [e.g., Outdated framework version] | [e.g., Using .NET 6, latest is .NET 8] | Medium | Medium | [e.g., Upgrade in Q2 2025] |
+| [e.g., Outdated framework version] | [e.g., Using older version of a dependency] | Medium | Medium | [e.g., Upgrade in next quarter] |
 | [e.g., Tight coupling between layers] | [e.g., Controllers directly access DB] | Medium | Low | [e.g., Refactor to use repository pattern] |
 
 ---
@@ -416,7 +413,7 @@ Quality
 
 ### A. References
 
-- [Project Specification](../../spec.md)
+- [Architecture Documentation](../../architecture.md)
 - [Existing ADRs](../../)
 - [arc42 Template](https://arc42.org/)
 - [C4 Model](https://c4model.com/)

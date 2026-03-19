@@ -94,7 +94,7 @@ Use `edit/createFile` tool (not terminal commands) to create the directory and i
 Update your todo list as you complete each section.
 
 Work through sections in recommended order:
-1. Use `search/*` tools to find relevant content in `docs/spec.md` and feature specifications
+1. Use `search/*` tools to find relevant content in `docs/architecture.md` and feature specifications
 2. Start with **Section 1** (Introduction and Goals) - easiest to fill from spec.md
 3. Add **Section 3** (Context and Scope) - define system boundaries
 4. Document **Section 4** (Solution Strategy) - key architectural decisions

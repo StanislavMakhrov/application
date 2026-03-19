@@ -80,7 +80,7 @@ The YAML frontmatter at the top of each agent file must include:
 
 ### Context to Read
 - List of documentation files the agent should review before starting work
-- Use relative paths with links (e.g., `[docs/spec.md](../../docs/spec.md)`)
+- Use relative paths with links (e.g., `[docs/conventions.md](../../docs/conventions.md)`)
 
 ### Workflow
 - Numbered steps in logical sequence

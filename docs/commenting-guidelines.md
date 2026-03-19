@@ -247,7 +247,7 @@ const index = binarySearch(roleDefinitions, targetId);
 // See: https://github.com/vercel/next.js/issues/XXXXX
 <img src={svgDataUri} alt={alt} />;
 
-// Debounce delay matches the UX spec (docs/features/011-search/spec.md §3.2).
+// Debounce delay matches the UX spec (docs/features/011-search/specification.md §3.2).
 // Do not lower this — it causes excessive API calls on slow connections.
 const SEARCH_DEBOUNCE_MS = 350;
 ```
