@@ -1,0 +1,7 @@
+/**
+ * Global CSS — imports Tailwind base, components, and utilities.
+ * Keep additional global styles minimal; prefer Tailwind utility classes.
+ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

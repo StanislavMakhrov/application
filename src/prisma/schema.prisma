@@ -1,0 +1,48 @@
+// GrünBilanz Prisma schema
+// Providers: PostgreSQL via Supabase (EU Frankfurt region for DSGVO compliance)
+// Two models: Company (one per user/tenant) and EnergyEntry (one per company per year)
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// One Company per authenticated Supabase user.
+// userId is the Supabase auth.users.id — enforces tenant isolation.
+model Company {
+  id            String        @id @default(uuid())
+  userId        String        @unique @map("user_id")
+  name          String
+  branche       String
+  mitarbeiter   Int
+  standort      String
+  createdAt     DateTime      @default(now()) @map("created_at")
+  energyEntries EnergyEntry[]
+
+  @@map("companies")
+}
+
+// Annual energy consumption figures and the derived CO₂ values.
+// Unique constraint on (companyId, year) ensures one entry per year per company.
+model EnergyEntry {
+  id         String   @id @default(uuid())
+  companyId  String   @map("company_id")
+  year       Int
+  stromKwh   Float    @map("strom_kwh")
+  erdgasM3   Float    @map("erdgas_m3")
+  dieselL    Float    @map("diesel_l")
+  heizoeL    Float    @map("heizoel_l")
+  co2Scope1T Float    @map("co2_scope1_t")
+  co2Scope2T Float    @map("co2_scope2_t")
+  co2TotalT  Float    @map("co2_total_t")
+  createdAt  DateTime @default(now()) @map("created_at")
+  company    Company  @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, year])
+  @@map("energy_entries")
+}
