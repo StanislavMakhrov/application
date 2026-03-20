@@ -23,11 +23,10 @@ WORKDIR /app
 ENV NODE_ENV=production
 # Bind to all interfaces so the container is reachable from the host
 ENV HOSTNAME=0.0.0.0
-# Ensure locally-installed CLI tools (prisma, tsx) are on PATH for subprocesses
-ENV PATH="/app/node_modules/.bin:$PATH"
 
-# Prisma migration engine requires OpenSSL
-RUN apk add --no-cache openssl
+# OpenSSL is required by the Prisma migration engine.
+# postgresql + su-exec provide the embedded database for standalone `docker run` usage.
+RUN apk add --no-cache openssl postgresql su-exec
 
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
@@ -41,9 +40,13 @@ COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 # avoiding the unreliable node_modules/.bin symlink creation in the presence of standalone node_modules
 RUN npm install -g prisma@5 tsx
 
+# Copy the entrypoint script that handles embedded Postgres startup + migrations
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 EXPOSE 3000
 
-# Run migrations, seed, and start the server.
-# Migrations/seed are skipped when DATABASE_URL is not set (so the container starts without
-# a database, e.g. during a quick manual smoke-test with `docker run --rm -p 3000:3000 …`).
-CMD ["sh", "-c", "if [ -n \"$DATABASE_URL\" ]; then prisma migrate deploy && if [ \"$SEED_DB\" = \"true\" ]; then prisma db seed; fi; fi && node server.js"]
+# entrypoint.sh starts embedded Postgres (when DATABASE_URL is absent), runs migrations/seed,
+# then starts the Next.js server. When DATABASE_URL is supplied externally (e.g. docker-compose)
+# the embedded Postgres is skipped and the external database is used directly.
+CMD ["/entrypoint.sh"]
