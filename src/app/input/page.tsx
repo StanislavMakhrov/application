@@ -24,7 +24,7 @@ export default async function InputPage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center py-12">
           <p className="text-gray-500 mb-2">Keine Datenbankverbindung konfiguriert.</p>
           <p className="text-sm text-gray-400">
-            Starten Sie die Anwendung mit <code className="bg-gray-100 px-1 rounded">docker compose up</code> um die Dateneingabe zu nutzen.
+            Starten Sie die Anwendung mit <code className="bg-gray-100 px-1 rounded">docker compose up</code>, um die Dateneingabe zu nutzen.
           </p>
         </div>
       </div>
