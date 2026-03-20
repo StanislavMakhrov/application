@@ -31,6 +31,22 @@ function toNum(val: unknown): number {
 }
 
 export default async function DashboardPage() {
+  // Guard: if DATABASE_URL is not configured, show a friendly placeholder
+  if (!process.env.DATABASE_URL) {
+    return (
+      <div className="text-center py-16">
+        <h1 className="text-2xl font-bold text-gray-700 mb-4">GrünBilanz</h1>
+        <p className="text-gray-500 mb-2">Keine Datenbankverbindung konfiguriert.</p>
+        <p className="text-sm text-gray-400">
+          Starten Sie die Anwendung mit einer PostgreSQL-Datenbank:
+        </p>
+        <pre className="mt-4 inline-block bg-gray-100 rounded px-4 py-2 text-sm text-gray-700">
+          docker compose up
+        </pre>
+      </div>
+    );
+  }
+
   // Load the first company (Musterbetrieb GmbH in production, first available in dev)
   const company = await prisma.company.findFirst({
     include: {

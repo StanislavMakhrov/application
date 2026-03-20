@@ -10,6 +10,27 @@ import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 
 export default async function InputPage() {
+  // Guard: if DATABASE_URL is not configured, show a friendly placeholder
+  if (!process.env.DATABASE_URL) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-4">
+        <nav className="text-sm text-gray-500 flex items-center gap-2">
+          <Link href="/dashboard" className="hover:text-green-700 transition-colors">
+            Dashboard
+          </Link>
+          <span>›</span>
+          <span className="text-gray-700">Daten eingeben</span>
+        </nav>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center py-12">
+          <p className="text-gray-500 mb-2">Keine Datenbankverbindung konfiguriert.</p>
+          <p className="text-sm text-gray-400">
+            Starten Sie die Anwendung mit <code className="bg-gray-100 px-1 rounded">docker compose up</code> um die Dateneingabe zu nutzen.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // Load available emission factors from DB for the current year
   const currentYear = new Date().getFullYear();
   const factors = await prisma.emissionFactor.findMany({
