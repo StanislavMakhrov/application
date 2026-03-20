@@ -7,6 +7,10 @@ RUN npm ci
 # Stage 2: Build the application
 FROM node:20-alpine AS builder
 WORKDIR /app
+# OpenSSL is required so Prisma generates the openssl-3.0.x query engine
+# (without it Prisma defaults to openssl-1.1.x which requires libssl.so.1.1,
+# a file absent from node:20-alpine's OpenSSL 3 installation)
+RUN apk add --no-cache openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN mkdir -p /app/public
