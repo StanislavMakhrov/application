@@ -17,6 +17,8 @@ RUN npm run build
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+# Ensure locally-installed CLI tools (prisma, tsx) are on PATH for subprocesses
+ENV PATH="/app/node_modules/.bin:$PATH"
 
 # Prisma migration engine requires OpenSSL
 RUN apk add --no-cache openssl
