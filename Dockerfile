@@ -41,6 +41,7 @@ RUN npm install -g prisma@5 tsx
 
 EXPOSE 3000
 
-# Run migrations, seed, and start the server
-# Run migrations always; seed only when SEED_DB=true (set in docker-compose for dev/demo)
-CMD ["sh", "-c", "prisma migrate deploy && if [ \"$SEED_DB\" = \"true\" ]; then prisma db seed; fi && node server.js"]
+# Run migrations, seed, and start the server.
+# Migrations/seed are skipped when DATABASE_URL is not set (so the container starts without
+# a database, e.g. during a quick manual smoke-test with `docker run --rm -p 3000:3000 …`).
+CMD ["sh", "-c", "if [ -n \"$DATABASE_URL\" ]; then prisma migrate deploy && if [ \"$SEED_DB\" = \"true\" ]; then prisma db seed; fi; fi && node server.js"]
