@@ -31,11 +31,12 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
-# Install pinned CLI tools for startup (migrate + seed); avoids pulling Prisma 7 via bare npx
-RUN npm install --no-save --no-package-lock prisma@5 tsx
+# Install pinned CLI tools globally — global installs land in /usr/local/bin and are always on PATH,
+# avoiding the unreliable node_modules/.bin symlink creation in the presence of standalone node_modules
+RUN npm install -g prisma@5 tsx
 
 EXPOSE 3000
 
 # Run migrations, seed, and start the server
 # Run migrations always; seed only when SEED_DB=true (set in docker-compose for dev/demo)
-CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && if [ \"$SEED_DB\" = \"true\" ]; then ./node_modules/.bin/prisma db seed; fi && node server.js"]
+CMD ["sh", "-c", "prisma migrate deploy && if [ \"$SEED_DB\" = \"true\" ]; then prisma db seed; fi && node server.js"]
