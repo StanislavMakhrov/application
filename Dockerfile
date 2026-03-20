@@ -21,6 +21,8 @@ RUN npm run build
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+# Bind to all interfaces so the container is reachable from the host
+ENV HOSTNAME=0.0.0.0
 # Ensure locally-installed CLI tools (prisma, tsx) are on PATH for subprocesses
 ENV PATH="/app/node_modules/.bin:$PATH"
 
