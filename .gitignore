@@ -39,3 +39,6 @@ next-env.d.ts
 
 # Prisma
 prisma/dev.db
+
+# Tesseract service dependencies
+tesseract/node_modules/
