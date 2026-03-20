@@ -22,11 +22,15 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+
+# Install pinned CLI tools for startup (migrate + seed); avoids pulling Prisma 7 via bare npx
+RUN npm install --no-save --no-package-lock prisma@5 tsx
 
 EXPOSE 3000
 
 # Run migrations, seed, and start the server
 # Run migrations always; seed only when SEED_DB=true (set in docker-compose for dev/demo)
-CMD ["sh", "-c", "npx prisma migrate deploy && if [ \"$SEED_DB\" = \"true\" ]; then npx prisma db seed; fi && node server.js"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && if [ \"$SEED_DB\" = \"true\" ]; then ./node_modules/.bin/prisma db seed; fi && node server.js"]
