@@ -31,3 +31,4 @@ services:
 volumes:
   gruenbilanz_pgdata:
 
+
