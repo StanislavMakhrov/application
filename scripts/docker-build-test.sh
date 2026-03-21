@@ -17,7 +17,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-IMAGE_TAG="grunbilanz-local:ci-test"
+IMAGE_TAG="app-local:ci-test"
 RUN_SMOKE=false
 
 usage() {
@@ -58,7 +58,7 @@ if [ "$RUN_SMOKE" = "true" ]; then
   echo " Smoke Tests"
   echo "──────────────────────────────────────"
 
-  CONTAINER_NAME="grunbilanz-smoke-local"
+  CONTAINER_NAME="app-smoke-local"
   # Clean up any previous container
   docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
 
