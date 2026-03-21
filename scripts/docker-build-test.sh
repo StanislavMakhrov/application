@@ -45,6 +45,7 @@ echo ""
 # Build for linux/amd64 only (fast; CI also builds arm64 but that's slower)
 docker buildx build \
   --platform linux/amd64 \
+  --file src/Dockerfile \
   --tag "$IMAGE_TAG" \
   --load \
   .

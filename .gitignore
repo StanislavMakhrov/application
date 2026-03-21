@@ -41,21 +41,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# nested project files accidentally created in src/
+# Next.js generated files inside src/ (project root)
 src/node_modules/
 src/.next/
-src/package.json
-src/package-lock.json
-src/next.config.js
-src/tsconfig.json
-src/tailwind.config.ts
-src/postcss.config.js
-src/vitest.config.ts
-src/.eslintrc.json
-src/Dockerfile
-src/docker/
-src/prisma/
-src/.env
-src/.env.example
 src/next-env.d.ts
 src/tsconfig.tsbuildinfo

@@ -1,15 +1,19 @@
 # Stage 1: Install only production dependencies
 FROM node:20-alpine AS deps
 WORKDIR /app
-COPY package*.json ./
+COPY src/package*.json ./
 RUN npm ci --only=production
 
 # Stage 2: Build the Next.js application
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY package*.json ./
+COPY src/package*.json ./
 RUN npm ci
-COPY . .
+# Copy src/ contents as the project root (next.config.js, app/, components/, etc.)
+COPY src/ .
+# Copy Prisma and public from repo root
+COPY prisma/ ./prisma/
+COPY public/ ./public/
 # Generate Prisma client for all binary targets
 RUN npx prisma generate
 RUN npm run build

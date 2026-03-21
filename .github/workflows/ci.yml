@@ -82,7 +82,7 @@ jobs:
         id: bump
         if: steps.release_needed.outputs.release_needed == 'true'
         run: |
-          commit-and-tag-version --skip.changelog --packageFiles package.json --bumpFiles package.json || { echo "No releasable commits; skipping."; exit 0; }
+          commit-and-tag-version --skip.changelog --packageFiles src/package.json --bumpFiles src/package.json || { echo "No releasable commits; skipping."; exit 0; }
           echo "version_bumped=true" >> $GITHUB_OUTPUT
 
       - name: Amend commit message with [skip ci]

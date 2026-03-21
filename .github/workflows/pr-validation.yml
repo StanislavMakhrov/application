@@ -61,9 +61,7 @@ jobs:
       - name: Check for Dockerfile
         id: dockerfile_check
         run: |
-          if [ -f "Dockerfile" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          elif [ -f "src/Dockerfile" ]; then
+          if [ -f "src/Dockerfile" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -93,6 +91,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
+          file: src/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
@@ -129,7 +128,7 @@ jobs:
       - name: Check for Dockerfile
         id: dockerfile_check
         run: |
-          if [ -f "Dockerfile" ] || [ -f "src/Dockerfile" ]; then
+          if [ -f "src/Dockerfile" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT

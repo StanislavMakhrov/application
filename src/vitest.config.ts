@@ -8,13 +8,13 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      include: ['src/lib/**/*.ts'],
-      exclude: ['src/lib/__tests__/**', 'src/lib/prisma.ts'],
+      include: ['lib/**/*.ts'],
+      exclude: ['lib/__tests__/**', 'lib/prisma.ts'],
     },
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(__dirname, '.'),
     },
   },
 });
