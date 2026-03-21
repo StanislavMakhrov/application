@@ -31,7 +31,7 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        # package.json lives at the repo root, not in src/
+        working-directory: src
         run: npm ci || echo "No package-lock.json yet; skipping npm ci"
 
       - name: Set up Docker Buildx

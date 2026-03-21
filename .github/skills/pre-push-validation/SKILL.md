@@ -32,7 +32,7 @@ Run the same checks that the `PR Validation` GitHub Actions workflow executes, *
 - Run **all** validation steps in order before pushing
 - Fix any failures before pushing — do not push code that fails validation
 - Re-run validation after fixing failures to confirm the fix works
-- Run all npm commands from the **repository root** (where `package.json` lives — not `src/`)
+- Run all npm commands from the `src/` directory (where the source code lives)
 
 ### Must Not
 
@@ -48,16 +48,15 @@ Run these steps **in order**. Stop at the first failure, fix it, then restart fr
 ### 1. Install Dependencies (if needed)
 
 ```bash
-npm ci
+cd src && npm ci
 ```
 
 Only needed if `package-lock.json` changed or `node_modules/` is missing.
-Run from the repository root.
 
 ### 2. Lint
 
 ```bash
-npm run lint
+cd src && npm run lint
 ```
 
 Checks ESLint rules. Fix any lint errors before proceeding.
@@ -65,7 +64,7 @@ Checks ESLint rules. Fix any lint errors before proceeding.
 ### 3. Type Check
 
 ```bash
-npm run type-check
+cd src && npm run type-check
 ```
 
 Validates TypeScript types. Fix any type errors before proceeding.
@@ -73,7 +72,7 @@ Validates TypeScript types. Fix any type errors before proceeding.
 ### 4. Test
 
 ```bash
-npm test
+cd src && npm test
 ```
 
 Runs the Vitest test suite. All tests must pass. Fix any test failures before proceeding.
@@ -81,7 +80,7 @@ Runs the Vitest test suite. All tests must pass. Fix any test failures before pr
 ### 5. Build
 
 ```bash
-npm run build
+cd src && npm run build
 ```
 
 Runs `next build` to validate the production build. Fix any build errors before proceeding.
@@ -116,16 +115,16 @@ lint errors before proceeding.
 
 ## Quick Reference (Copy-Paste)
 
-Run all checks in sequence (from repo root):
+Run all checks in sequence (from `src/`):
 
 ```bash
-npm run lint && npm run type-check && npm test && npm run build
+cd src && npm run lint && npm run type-check && npm test && npm run build
 ```
 
 With Docker build validation (when Dockerfile or docker/ changed):
 
 ```bash
-npm run lint && npm run type-check && npm test && npm run build && scripts/docker-build-test.sh
+cd src && npm run lint && npm run type-check && npm test && npm run build && cd .. && scripts/docker-build-test.sh
 ```
 
 With markdown lint (when .md files changed):
@@ -152,15 +151,15 @@ scripts/git-status.sh --short
 
 ### Lint fails with unfixable errors
 
-Run `npx eslint --fix .` from the repo root to auto-fix what's possible, then manually fix the rest.
+Run `cd src && npx eslint --fix .` to auto-fix what's possible, then manually fix the rest.
 
 ### Type check fails but tests pass
 
-Type errors can exist without causing runtime failures. Run `npm run type-check` independently to see the full error list.
+Type errors can exist without causing runtime failures. Run `cd src && npm run type-check` independently to see the full error list.
 
 ### Build fails with "Module not found"
 
-Ensure all imports are correct and new dependencies are in `package.json`. Run `npm ci` to refresh.
+Ensure all imports are correct and new dependencies are in `src/package.json`. Run `cd src && npm ci` to refresh.
 
 ### Docker build fails with Alpine package errors
 

@@ -145,10 +145,10 @@ scripts/check-workflow-status.sh --repo <owner/repo> logs <run-id>
 2. Run **`pre-push-validation`** skill locally to confirm the fix:
 
    ```bash
-   # From repo root:
-   npm run lint && npm run type-check && npm test && npm run build
+   # From src/:
+   cd src && npm run lint && npm run type-check && npm test && npm run build
    # If Dockerfile or docker/** changed:
-   scripts/docker-build-test.sh
+   cd .. && scripts/docker-build-test.sh
    # If markdown files changed:
    npx markdownlint-cli2 "**/*.md" "#node_modules" "#CHANGELOG.md"
    ```
