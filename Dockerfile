@@ -14,11 +14,11 @@ COPY . .
 RUN npx prisma generate
 RUN npm run build
 
-# Stage 3: Production runner with embedded PostgreSQL 15
+# Stage 3: Production runner with embedded PostgreSQL
 FROM node:20-alpine AS runner
 
-# Install PostgreSQL 15 and supervisor
-RUN apk add --no-cache postgresql15 postgresql15-client supervisor
+# Install PostgreSQL and supervisor (postgresql = default version for this Alpine)
+RUN apk add --no-cache postgresql postgresql-client supervisor
 
 # Create postgres directories and set ownership
 RUN mkdir -p /var/lib/postgresql/data /run/postgresql && \
