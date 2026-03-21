@@ -14,6 +14,7 @@ Usage:
   scripts/check-workflow-status.sh [--repo <owner/repo>] trigger <workflow-file> [--field key=value ...]
   scripts/check-workflow-status.sh [--repo <owner/repo>] view <run-id>
   scripts/check-workflow-status.sh [--repo <owner/repo>] logs <run-id> [--step <step-name>]
+  scripts/check-workflow-status.sh [--repo <owner/repo>] rerun <run-id> [--failed-only]
 
 Commands:
   list      List workflow runs (default: all runs)
@@ -23,6 +24,8 @@ Commands:
   view      View details of a specific workflow run
   logs      View logs for a workflow run
             --step: Optional step name to filter logs (uses gh run view --log for interactive selection if omitted)
+  rerun     Re-run a workflow run (all jobs or failed jobs only)
+            --failed-only: Only re-run failed jobs (default: re-run all jobs)
 
 Options:
   --repo <owner/repo>       Target repository (overrides GH_REPO)
@@ -247,6 +250,42 @@ cmd_logs() {
   fi
 }
 
+cmd_rerun() {
+  local run_id=""
+  local failed_only=false
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --failed-only)
+        failed_only=true
+        shift
+        ;;
+      *)
+        if [[ -z "$run_id" ]]; then
+          run_id="$1"
+          shift
+        else
+          echo "Error: Unknown argument '$1' for rerun command" >&2
+          usage
+          exit 1
+        fi
+        ;;
+    esac
+  done
+
+  if [[ -z "$run_id" ]]; then
+    echo "Error: rerun command requires exactly one argument (run-id)" >&2
+    usage
+    exit 1
+  fi
+
+  if [[ "$failed_only" == "true" ]]; then
+    gh_safe run rerun "$run_id" --failed
+  else
+    gh_safe run rerun "$run_id"
+  fi
+}
+
 main() {
   if [[ $# -eq 0 ]]; then
     usage
@@ -283,6 +322,9 @@ main() {
       ;;
     logs)
       cmd_logs "$@"
+      ;;
+    rerun)
+      cmd_rerun "$@"
       ;;
     -h|--help|help)
       usage
