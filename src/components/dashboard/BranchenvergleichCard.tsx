@@ -18,7 +18,6 @@ export function BranchenvergleichCard({
   brancheLabel,
   mitarbeiter,
 }: BranchenvergleichCardProps) {
-  const percent = benchmarkValue > 0 ? (companyValue / benchmarkValue) * 100 : 0;
   const isBetter = companyValue < benchmarkValue;
   const diff = Math.abs(companyValue - benchmarkValue);
   const diffPercent = benchmarkValue > 0 ? Math.abs(((companyValue - benchmarkValue) / benchmarkValue) * 100).toFixed(0) : '—';

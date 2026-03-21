@@ -40,7 +40,7 @@ export function YearOverYearChart({ year1, totals1, year2, totals2 }: YearOverYe
   ];
 
   const delta = totals2.total - totals1.total;
-  const deltaPercent = totals1.total > 0 ? ((delta / totals1.total) * 100).toFixed(1) : '—';
+  const deltaPercent = totals1.total > 0 ? Math.abs((delta / totals1.total) * 100).toFixed(1) : '—';
   const improved = delta < 0;
 
   return (

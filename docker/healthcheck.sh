@@ -14,9 +14,6 @@ if [ ! -f /var/lib/postgresql/data/PG_VERSION ]; then
   su postgres -c "psql -c \"CREATE USER gruenbilanz WITH PASSWORD 'gruenbilanz';\""
   su postgres -c "psql -c \"CREATE DATABASE gruenbilanz OWNER gruenbilanz;\""
 
-  # Run init.sql (minimal, tables come from Prisma migrations)
-  su postgres -c "psql -d gruenbilanz -f /docker-entrypoint-initdb.d/init.sql"
-
   su postgres -c "pg_ctl stop -D /var/lib/postgresql/data"
   echo "PostgreSQL initialized."
 fi
@@ -32,7 +29,15 @@ echo "PostgreSQL is ready."
 # Run Prisma migrations (idempotent — safe to run on every startup)
 cd /app
 echo "Running Prisma migrations..."
-npx prisma migrate deploy 2>/dev/null || echo "Migration skipped (may already be up to date)"
+npx prisma migrate deploy
+
+# Run seed script on first startup (detected by absence of seed marker)
+if [ ! -f /var/lib/postgresql/data/.seeded ]; then
+  echo "Running database seed (first startup)..."
+  npx tsx prisma/seed.ts && touch /var/lib/postgresql/data/.seeded && echo "Seed complete."
+else
+  echo "Database already seeded, skipping."
+fi
 
 # Start Next.js server
 echo "Starting Next.js server..."

@@ -32,14 +32,15 @@ COPY --from=builder /app/.next/static ./.next/static
 RUN mkdir -p /app/public
 COPY --from=builder /app/public ./public
 
-# Copy Prisma client binaries and schema
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# Copy full node_modules from builder (needed for prisma, tsx, seed script)
+COPY --from=builder /app/node_modules ./node_modules
+
+# Copy Prisma schema and seed files
 COPY prisma/migrations ./prisma/migrations
 COPY prisma/schema.prisma ./prisma/schema.prisma
+COPY prisma/seed.ts ./prisma/seed.ts
 
 # Copy Docker infrastructure files
-COPY docker/init.sql /docker-entrypoint-initdb.d/init.sql
 COPY docker/supervisord.conf /etc/supervisord.conf
 COPY docker/healthcheck.sh /docker/healthcheck.sh
 RUN chmod +x /docker/healthcheck.sh
