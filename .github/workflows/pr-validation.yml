@@ -176,7 +176,7 @@ jobs:
             sleep 3
           done
           echo "❌ App failed to start within 90 s — container logs:"
-          docker logs green-ledger-smoke
+          docker logs app-smoke
           exit 1
 
       - name: Set up Python
