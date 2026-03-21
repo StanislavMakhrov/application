@@ -76,3 +76,4 @@ npm run test:coverage
 ## Lizenz
 
 MIT — siehe LICENSE
+
