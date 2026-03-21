@@ -24,7 +24,7 @@ RUN mkdir -p /app/public
 FROM node:20-alpine AS runner
 
 # Install PostgreSQL and supervisor (postgresql = default version for this Alpine)
-RUN apk add --no-cache postgresql postgresql-client supervisor
+RUN apk add --no-cache postgresql postgresql-client supervisor openssl
 
 # Create postgres directories and set ownership
 RUN mkdir -p /var/lib/postgresql/data /run/postgresql && \
