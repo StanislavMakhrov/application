@@ -13,6 +13,8 @@ COPY . .
 # Generate Prisma client for all binary targets
 RUN npx prisma generate
 RUN npm run build
+# Ensure public directory exists (Next.js standalone requires it)
+RUN mkdir -p /app/public
 
 # Stage 3: Production runner with embedded PostgreSQL
 FROM node:20-alpine AS runner
@@ -29,7 +31,6 @@ WORKDIR /app
 # Copy built Next.js standalone output
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-RUN mkdir -p /app/public
 COPY --from=builder /app/public ./public
 
 # Copy full node_modules from builder (needed for prisma, tsx, seed script)
