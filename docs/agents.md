@@ -142,6 +142,7 @@ Format:
 | `agent-file-structure`         | Standard structure and key principles for agent definition markdown files.                                                                                                                                                                                |
 | `agent-model-selection`        | Guidelines for selecting appropriate language models for agents based on task-specific benchmarks, availability, and cost efficiency.                                                                                                                     |
 | `validate-agent`               | Validate agent definitions for consistency, model availability, handoff integrity, and tool existence.                                                                                                                                                    |
+| `watch-pr-validation`          | After finishing work and pushing changes, automatically find and watch the PR Validation pipeline, then read errors and fix failures if the build is red. Use this after every report_progress call.                                                      |
 
 ## Workflow Overview
 

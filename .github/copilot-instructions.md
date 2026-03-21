@@ -43,7 +43,7 @@ For project-specific instructions, refer to the `docs/architecture.md` and `docs
 **The agent is responsible for delivering a PR that passes all CI checks.** The Maintainer should only review — never fix CI failures.
 
 1. **Before pushing**: Run the `pre-push-validation` skill (lint, type-check, test, build, markdownlint) locally. Do not push code that fails any check.
-2. **After pushing**: Monitor the PR Validation workflow. If it fails, inspect logs, fix the issue, re-validate locally, and push again.
+2. **After pushing**: Load and follow the `watch-pr-validation` skill. It covers the complete loop: find the triggered PR Validation run, watch it, read failure logs if it fails, fix issues, re-validate locally, and push again.
 3. **Before handoff**: Confirm CI is green. Do not hand off a PR with failing checks to the next agent or to the Maintainer.
 
 ### Why Manual Git Commands Fail

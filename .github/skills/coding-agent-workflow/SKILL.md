@@ -68,6 +68,19 @@ This skill is automatically loaded by all coding agents. It defines the core wor
      ```
      Your commits accumulate in the local branch. When the parent agent calls `report_progress`, ALL local commits (including yours) are pushed to the remote PR branch.
 
+4a. **Watch PR Validation and Fix Failures (primary agent only)**:
+
+   After every `report_progress` call that pushes code changes, load and follow the
+   **`watch-pr-validation`** skill. This skill covers the complete loop:
+
+   - Find the automatically-triggered PR Validation run for your branch
+   - Watch it until completion
+   - If it **fails**: read the error logs, fix the issues, re-run `pre-push-validation`
+     locally, call `report_progress` again, and repeat
+   - Only proceed to the summary comment once CI is **green**
+
+   **Do not hand off to the next agent with a failing build.**
+
 5. **Create Summary Comment (After Progress Reported)**: Post a PR comment with:
    - **Summary**: Brief description of what you completed
    - **Changes**: List of key files/features modified
@@ -99,5 +112,6 @@ This skill is automatically loaded by all coding agents. It defines the core wor
 - **Subagents MUST `git commit` before completing** - uncommitted changes will be lost if only in memory; the parent's `report_progress` can pick up uncommitted files via `git add .` but this is a fallback, not the primary mechanism
 - **Always use `edit`/`create` tools** to apply file changes - never just describe changes in your response without applying them
 - **Respect execution context** - behave differently when delegated vs primary agent
+- **Monitor CI after every push** - load the `watch-pr-validation` skill after each `report_progress` call; fix failures and re-push until green before handing off
 - **Communicate clearly** - provide complete summaries with status and next steps
 - **Track progress** - use markdown checklists in PR descriptions to show work completed and remaining
