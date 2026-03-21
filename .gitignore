@@ -1,0 +1,61 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+coverage/
+
+# next.js build output
+.next/
+/out/
+/dist/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+Thumbs.db
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# nested project files accidentally created in src/
+src/node_modules/
+src/.next/
+src/package.json
+src/package-lock.json
+src/next.config.js
+src/tsconfig.json
+src/tailwind.config.ts
+src/postcss.config.js
+src/vitest.config.ts
+src/.eslintrc.json
+src/Dockerfile
+src/docker/
+src/prisma/
+src/.env
+src/.env.example
+src/next-env.d.ts
+src/tsconfig.tsbuildinfo

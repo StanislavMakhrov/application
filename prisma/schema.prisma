@@ -1,0 +1,167 @@
+// prisma/schema.prisma
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model CompanyProfile {
+  id          Int      @id @default(1)
+  firmenname  String
+  branche     Branche
+  mitarbeiter Int
+  standort    String
+  logoPath    String?
+  updatedAt   DateTime @updatedAt
+}
+
+enum Branche {
+  ELEKTROHANDWERK
+  SHK
+  BAUGEWERBE
+  TISCHLER
+  KFZ_WERKSTATT
+  MALER
+  SONSTIGES
+}
+
+model ReportingYear {
+  id        Int      @id @default(autoincrement())
+  year      Int      @unique
+  createdAt DateTime @default(now())
+
+  entries         EmissionEntry[]
+  materialEntries MaterialEntry[]
+  stagingEntries  StagingEntry[]
+  reports         Report[]
+}
+
+model EmissionEntry {
+  id              Int           @id @default(autoincrement())
+  reportingYearId Int
+  reportingYear   ReportingYear @relation(fields: [reportingYearId], references: [id], onDelete: Cascade)
+  scope           Scope
+  category        EmissionCategory
+  quantity        Float
+  memo            String?
+  isOekostrom     Boolean       @default(false)
+  inputMethod     InputMethod   @default(MANUAL)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([reportingYearId, scope, category])
+}
+
+enum Scope {
+  SCOPE1
+  SCOPE2
+  SCOPE3
+}
+
+enum EmissionCategory {
+  ERDGAS
+  HEIZOEL
+  FLUESSIGGAS
+  DIESEL_FUHRPARK
+  BENZIN_FUHRPARK
+  PKW_BENZIN_KM
+  PKW_DIESEL_KM
+  TRANSPORTER_KM
+  LKW_KM
+  STROM
+  FERNWAERME
+  GESCHAEFTSREISEN_FLUG
+  GESCHAEFTSREISEN_BAHN
+  PENDLERVERKEHR
+  ABFALL_RESTMUELL
+  ABFALL_BAUSCHUTT
+  ABFALL_ALTMETALL
+  ABFALL_SONSTIGES
+}
+
+enum InputMethod {
+  MANUAL
+  OCR
+  CSV
+}
+
+model MaterialEntry {
+  id              Int           @id @default(autoincrement())
+  reportingYearId Int
+  reportingYear   ReportingYear @relation(fields: [reportingYearId], references: [id], onDelete: Cascade)
+  material        MaterialCategory
+  quantityKg      Float
+  supplierName    String?
+  inputMethod     InputMethod   @default(MANUAL)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+enum MaterialCategory {
+  KUPFER
+  STAHL
+  ALUMINIUM
+  HOLZ
+  KUNSTSTOFF_PVC
+  BETON
+  FARBEN_LACKE
+  SONSTIGE
+}
+
+model EmissionFactor {
+  id        Int      @id @default(autoincrement())
+  key       String
+  validYear Int
+  factorKg  Float
+  unit      String
+  source    String
+  scope     Scope
+  createdAt DateTime @default(now())
+
+  @@unique([key, validYear])
+}
+
+model StagingEntry {
+  id              Int           @id @default(autoincrement())
+  reportingYearId Int
+  reportingYear   ReportingYear @relation(fields: [reportingYearId], references: [id], onDelete: Cascade)
+  scope           Scope
+  category        EmissionCategory
+  quantity        Float
+  confidence      Float?
+  rawText         String?
+  source          StagingSource
+  createdAt       DateTime      @default(now())
+  expiresAt       DateTime
+
+  @@unique([reportingYearId, scope, category])
+}
+
+enum StagingSource {
+  OCR
+  CSV
+}
+
+model Report {
+  id              Int           @id @default(autoincrement())
+  reportingYearId Int
+  reportingYear   ReportingYear @relation(fields: [reportingYearId], references: [id], onDelete: Cascade)
+  type            ReportType
+  filePath        String
+  generatedAt     DateTime      @default(now())
+}
+
+enum ReportType {
+  GHG_PROTOCOL
+  CSRD_QUESTIONNAIRE
+}
+
+model IndustryBenchmark {
+  id                    Int     @id @default(autoincrement())
+  branche               Branche @unique
+  co2ePerEmployeePerYear Float
+}
