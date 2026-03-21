@@ -14,7 +14,9 @@ if [ -z "$DATABASE_URL" ]; then
 
   echo "==> Starting embedded PostgreSQL..."
 
-  # Ensure data directory exists with correct ownership
+  # Ensure socket directory and data directory exist with correct ownership
+  mkdir -p /run/postgresql
+  chown -R postgres:postgres /run/postgresql
   mkdir -p "$PGDATA"
   chown -R postgres:postgres "$PGDATA"
 
