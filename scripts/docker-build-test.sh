@@ -7,18 +7,18 @@
 #
 # Usage:
 #   scripts/docker-build-test.sh            # build linux/amd64, no push
-#   scripts/docker-build-test.sh --smoke    # build + run smoke tests against it
+#   scripts/docker-build-test.sh --e2e      # build + run Playwright e2e tests against it
 #   scripts/docker-build-test.sh --help
 #
 # Exit codes:
-#   0 — build (and optional smoke tests) succeeded
-#   1 — build failed  /  smoke tests failed
+#   0 — build (and optional e2e tests) succeeded
+#   1 — build failed  /  e2e tests failed
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 IMAGE_TAG="app-local:ci-test"
-RUN_SMOKE=false
+RUN_E2E=false
 
 usage() {
   grep '^#' "$0" | sed 's/^# \?//'
@@ -27,7 +27,7 @@ usage() {
 
 for arg in "$@"; do
   case "$arg" in
-    --smoke) RUN_SMOKE=true ;;
+    --e2e) RUN_E2E=true ;;
     --help|-h) usage ;;
     *) echo "Unknown argument: $arg" >&2; exit 1 ;;
   esac
@@ -53,13 +53,13 @@ docker buildx build \
 echo ""
 echo "✅ Docker build succeeded — image: $IMAGE_TAG"
 
-if [ "$RUN_SMOKE" = "true" ]; then
+if [ "$RUN_E2E" = "true" ]; then
   echo ""
   echo "──────────────────────────────────────"
-  echo " Smoke Tests"
+  echo " Playwright E2E Tests"
   echo "──────────────────────────────────────"
 
-  CONTAINER_NAME="app-smoke-local"
+  CONTAINER_NAME="app-e2e-local"
   # Clean up any previous container
   docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
 
@@ -85,19 +85,19 @@ if [ "$RUN_SMOKE" = "true" ]; then
     exit 1
   fi
 
-  echo "Running smoke tests..."
-  BASE_URL="http://localhost:3001" pytest smoke-tests/ -v --tb=short
-  SMOKE_EXIT=$?
+  echo "Running Playwright e2e tests..."
+  (cd "$REPO_ROOT/e2e-tests" && BASE_URL="http://localhost:3001" npm test)
+  E2E_EXIT=$?
 
   docker stop "$CONTAINER_NAME" 2>/dev/null || true
   docker rm "$CONTAINER_NAME" 2>/dev/null || true
 
-  if [ $SMOKE_EXIT -ne 0 ]; then
-    echo "❌ Smoke tests failed."
+  if [ $E2E_EXIT -ne 0 ]; then
+    echo "❌ E2E tests failed."
     exit 1
   fi
 
-  echo "✅ Smoke tests passed."
+  echo "✅ E2E tests passed."
 fi
 
 echo ""

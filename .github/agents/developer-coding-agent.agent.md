@@ -140,8 +140,8 @@ Follow the project's coding conventions strictly:
    docker run --rm -p 3000:3000 app:local
    # Open http://localhost:3000 and verify the feature works
    ```
-   - Smoke tests also run automatically in CI — the pipeline builds the image, starts a container, and runs `pytest smoke-tests/` against it
-   - If the CI `smoke-tests` job fails after your push, check the container logs in the workflow output
+   - E2E tests (Playwright) also run automatically in CI — the pipeline builds the image, starts a container, and runs Playwright e2e tests against it
+   - If the CI `e2e-tests` job fails after your push, check the container logs in the workflow output
 
 5. **Implement ONE task at a time** - Work on a single task from the tasks document:
    
@@ -242,7 +242,7 @@ docker run --rm -p 3000:3000 app:local
 # App available at http://localhost:3000
 ```
 
-Smoke tests also run automatically in CI against the built image (`pytest smoke-tests/`).
+E2E tests (Playwright) also run automatically in CI against the built image (Playwright e2e tests).
 
 ### Checking Failed Workflows
 
