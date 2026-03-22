@@ -54,6 +54,7 @@ RUN chmod +x /docker/healthcheck.sh
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_URL=postgresql://gruenbilanz:gruenbilanz@localhost:5432/gruenbilanz
+ENV HOSTNAME=0.0.0.0
 
 EXPOSE 3000
 
