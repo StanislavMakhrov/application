@@ -9,6 +9,12 @@
  * - STROM with isOekostrom=true uses the STROM_OEKOSTROM factor (0.030 kg/kWh)
  * - ABFALL_ALTMETALL has a negative factor (recycling credit), which correctly
  *   reduces the total
+ *
+ * Monthly billing aggregation rules (Item 4):
+ * - If a category has an isFinalAnnual=true entry, use ONLY that entry (it
+ *   overrides all monthly entries for the same category)
+ * - Otherwise, sum all entries for the category (annual + monthly, across all
+ *   providers — e.g. provider changed mid-month)
  */
 
 import { prisma } from './prisma';
@@ -46,6 +52,11 @@ export async function calculateCO2e(
  * Includes both EmissionEntries and MaterialEntries (materials are Scope 3).
  * Negative factors (e.g. ABFALL_ALTMETALL) are applied as credits.
  *
+ * Monthly entry aggregation:
+ * - If a category has an isFinalAnnual=true entry, only that entry is counted.
+ * - Otherwise all entries for that category are summed (handles multiple
+ *   providers and monthly breakdowns simultaneously).
+ *
  * @param yearId - Database ID of the ReportingYear
  * @returns Totals in tonnes CO₂e, broken down by scope and category
  */
@@ -71,8 +82,18 @@ export async function getTotalCO2e(yearId: number): Promise<CO2eTotals> {
   let scope2Kg = 0;
   let scope3Kg = 0;
 
-  // Process emission entries
+  // Determine which categories have a final-annual entry — those entries
+  // supersede all monthly/provider-specific rows for that category.
+  const finalAnnualCategories = new Set(
+    entries.filter((e) => e.isFinalAnnual).map((e) => e.category)
+  );
+
+  // Process emission entries, skipping non-final rows when a final annual
+  // entry exists for the same category.
   for (const entry of entries) {
+    // Skip monthly/non-final rows when a definitive annual total exists
+    if (finalAnnualCategories.has(entry.category) && !entry.isFinalAnnual) continue;
+
     const kg = await calculateCO2e(entry.category, entry.quantity, year, {
       isOekostrom: entry.isOekostrom,
     });

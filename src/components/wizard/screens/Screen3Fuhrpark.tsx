@@ -2,8 +2,13 @@
 
 /**
  * Screen 3 — Scope 1 Fuhrpark
+ *
  * Captures fuel consumption (Diesel L, Benzin L) and distance-based
  * emissions (PKW km, Transporter km, LKW km).
+ *
+ * The providerName field enables tracking when the fuel supplier
+ * changes mid-year. documentId threads the source document through
+ * to the audit log.
  */
 
 import { useEffect, useState } from 'react';
@@ -26,6 +31,8 @@ const schema = z.object({
   pkwDieselKm: z.coerce.number().min(0).default(0),
   transporterKm: z.coerce.number().min(0).default(0),
   lkwKm: z.coerce.number().min(0).default(0),
+  // Provider name for mid-year fuel supplier changes
+  providerName: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -36,8 +43,14 @@ interface Screen3Props {
 
 export default function Screen3Fuhrpark({ year }: Screen3Props) {
   const [yearId, setYearId] = useState<number | null>(null);
+  // documentId carried from OCR/CSV result to saveEntry for audit linkage
+  const [lastDocumentId, setLastDocumentId] = useState<number | undefined>();
+
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } =
-    useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { diesel: 0, benzin: 0, pkwBenzinKm: 0, pkwDieselKm: 0, transporterKm: 0, lkwKm: 0 } });
+    useForm<FormValues>({
+      resolver: zodResolver(schema),
+      defaultValues: { diesel: 0, benzin: 0, pkwBenzinKm: 0, pkwDieselKm: 0, transporterKm: 0, lkwKm: 0 },
+    });
 
   useEffect(() => {
     getOrCreateYear(year).then((y) => {
@@ -60,6 +73,7 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
 
   const onSubmit = async (values: FormValues) => {
     if (!yearId) return;
+    const providerName = values.providerName || undefined;
     const entries = [
       { category: 'DIESEL_FUHRPARK' as const, quantity: values.diesel },
       { category: 'BENZIN_FUHRPARK' as const, quantity: values.benzin },
@@ -69,15 +83,25 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
       { category: 'LKW_KM' as const, quantity: values.lkwKm },
     ];
     const results = await Promise.all(
-      entries.map((e) => saveEntry({ yearId, scope: 'SCOPE1', category: e.category, quantity: e.quantity }))
+      entries.map((e) =>
+        saveEntry({
+          yearId,
+          scope: 'SCOPE1',
+          category: e.category,
+          quantity: e.quantity,
+          providerName,
+          documentId: lastDocumentId,
+        })
+      )
     );
     if (results.every((r) => r.success)) toast.success('Fuhrpark gespeichert.');
     else toast.error('Fehler beim Speichern.');
   };
 
-  const handleCsvResult = (values: Record<string, number>) => {
+  const handleCsvResult = (values: Record<string, number>, documentId?: number) => {
     if (values.DIESEL_FUHRPARK) setValue('diesel', values.DIESEL_FUHRPARK);
     if (values.BENZIN_FUHRPARK) setValue('benzin', values.BENZIN_FUHRPARK);
+    setLastDocumentId(documentId);
   };
 
   const fields = [
@@ -100,12 +124,32 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* Provider name */}
+        <div className="space-y-1.5">
+          <Label htmlFor="providerName">Kraftstofflieferant (optional)</Label>
+          <Input
+            id="providerName"
+            type="text"
+            placeholder="z. B. Aral, Shell"
+            {...register('providerName')}
+          />
+          <p className="text-xs text-gray-400">
+            Bei Lieferantenwechsel im Jahr separat erfassen.
+          </p>
+        </div>
+
         {fields.map((f) => (
           <div key={f.id} className="space-y-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor={f.id}>{f.label}</Label>
               {f.category && (
-                <UploadOCR category={f.category} onResult={(v) => setValue(f.id, v)} />
+                <UploadOCR
+                  category={f.category}
+                  onResult={(v, _conf, docId) => {
+                    setValue(f.id, v);
+                    setLastDocumentId(docId);
+                  }}
+                />
               )}
             </div>
             <Input id={f.id} type="number" step="0.1" min={0} {...register(f.id)} />

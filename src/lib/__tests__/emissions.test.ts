@@ -99,8 +99,8 @@ describe('getTotalCO2e', () => {
       createdAt: new Date(),
     });
     vi.mocked(prisma.emissionEntry.findMany).mockResolvedValueOnce([
-      { id: 1, reportingYearId: 1, scope: 'SCOPE1', category: 'ERDGAS', quantity: 1000, isOekostrom: false, memo: null, inputMethod: 'MANUAL', createdAt: new Date(), updatedAt: new Date() },
-      { id: 2, reportingYearId: 1, scope: 'SCOPE2', category: 'STROM', quantity: 1000, isOekostrom: false, memo: null, inputMethod: 'MANUAL', createdAt: new Date(), updatedAt: new Date() },
+      { id: 1, reportingYearId: 1, scope: 'SCOPE1', category: 'ERDGAS', quantity: 1000, isOekostrom: false, memo: null, inputMethod: 'MANUAL', billingMonth: null, isFinalAnnual: false, providerName: null, createdAt: new Date(), updatedAt: new Date() },
+      { id: 2, reportingYearId: 1, scope: 'SCOPE2', category: 'STROM', quantity: 1000, isOekostrom: false, memo: null, inputMethod: 'MANUAL', billingMonth: null, isFinalAnnual: false, providerName: null, createdAt: new Date(), updatedAt: new Date() },
     ]);
     vi.mocked(prisma.materialEntry.findMany).mockResolvedValueOnce([]);
 
@@ -124,9 +124,9 @@ describe('getTotalCO2e', () => {
     });
     vi.mocked(prisma.emissionEntry.findMany).mockResolvedValueOnce([
       // 800 kg Restmüll × 0.45 = 360 kg CO₂e
-      { id: 1, reportingYearId: 2, scope: 'SCOPE3', category: 'ABFALL_RESTMUELL', quantity: 800, isOekostrom: false, memo: null, inputMethod: 'MANUAL', createdAt: new Date(), updatedAt: new Date() },
+      { id: 1, reportingYearId: 2, scope: 'SCOPE3', category: 'ABFALL_RESTMUELL', quantity: 800, isOekostrom: false, memo: null, inputMethod: 'MANUAL', billingMonth: null, isFinalAnnual: false, providerName: null, createdAt: new Date(), updatedAt: new Date() },
       // 200 kg Altmetall × -1.5 = -300 kg CO₂e (credit)
-      { id: 2, reportingYearId: 2, scope: 'SCOPE3', category: 'ABFALL_ALTMETALL', quantity: 200, isOekostrom: false, memo: null, inputMethod: 'MANUAL', createdAt: new Date(), updatedAt: new Date() },
+      { id: 2, reportingYearId: 2, scope: 'SCOPE3', category: 'ABFALL_ALTMETALL', quantity: 200, isOekostrom: false, memo: null, inputMethod: 'MANUAL', billingMonth: null, isFinalAnnual: false, providerName: null, createdAt: new Date(), updatedAt: new Date() },
     ]);
     vi.mocked(prisma.materialEntry.findMany).mockResolvedValueOnce([]);
 

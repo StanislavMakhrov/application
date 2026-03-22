@@ -25,6 +25,7 @@ import { CategoryBarChart } from '@/components/dashboard/CategoryBarChart';
 import { YearOverYearChart } from '@/components/dashboard/YearOverYearChart';
 import { BranchenvergleichCard } from '@/components/dashboard/BranchenvergleichCard';
 import { CategoryStatusList } from '@/components/dashboard/CategoryStatusList';
+import { AuditLogPanel } from '@/components/dashboard/AuditLogPanel';
 import { YearSelector } from '@/components/dashboard/YearSelector';
 import { BRANCHE_LABELS } from '@/types';
 import type { CO2eTotals } from '@/types';
@@ -217,6 +218,11 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               <CategoryStatusList capturedCategories={capturedCategories} />
             </div>
           </div>
+        </div>
+
+        {/* Audit trail — collapsible, shows last 50 changes with document links */}
+        <div className="mt-6">
+          <AuditLogPanel yearId={currentYearRecord?.id} />
         </div>
       </div>
     </main>

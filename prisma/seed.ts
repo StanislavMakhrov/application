@@ -108,20 +108,16 @@ async function main() {
   ];
 
   for (const entry of entries2023) {
-    await prisma.emissionEntry.upsert({
-      where: {
-        reportingYearId_scope_category: {
-          reportingYearId: year2023.id,
-          scope: entry.scope,
-          category: entry.category,
-        },
-      },
-      update: { quantity: entry.quantity },
-      create: {
-        reportingYearId: year2023.id,
-        ...entry,
-      },
+    // Use findFirst+create/update because Prisma's compound-unique where
+    // does not support null in the new (yearId, scope, category, billingMonth, providerName) key.
+    const existing = await prisma.emissionEntry.findFirst({
+      where: { reportingYearId: year2023.id, scope: entry.scope, category: entry.category, billingMonth: null, providerName: null },
     });
+    if (existing) {
+      await prisma.emissionEntry.update({ where: { id: existing.id }, data: { quantity: entry.quantity } });
+    } else {
+      await prisma.emissionEntry.create({ data: { reportingYearId: year2023.id, ...entry } });
+    }
   }
 
   // Materials 2023
@@ -154,20 +150,16 @@ async function main() {
   ];
 
   for (const entry of entries2024) {
-    await prisma.emissionEntry.upsert({
-      where: {
-        reportingYearId_scope_category: {
-          reportingYearId: year2024.id,
-          scope: entry.scope,
-          category: entry.category,
-        },
-      },
-      update: { quantity: entry.quantity },
-      create: {
-        reportingYearId: year2024.id,
-        ...entry,
-      },
+    // Use findFirst+create/update because Prisma's compound-unique where
+    // does not support null in the new (yearId, scope, category, billingMonth, providerName) key.
+    const existing = await prisma.emissionEntry.findFirst({
+      where: { reportingYearId: year2024.id, scope: entry.scope, category: entry.category, billingMonth: null, providerName: null },
     });
+    if (existing) {
+      await prisma.emissionEntry.update({ where: { id: existing.id }, data: { quantity: entry.quantity } });
+    } else {
+      await prisma.emissionEntry.create({ data: { reportingYearId: year2024.id, ...entry } });
+    }
   }
 
   // Materials 2024

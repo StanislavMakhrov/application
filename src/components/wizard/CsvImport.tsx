@@ -3,6 +3,9 @@
 /**
  * CsvImport — allows importing values from a DATEV or similar CSV export.
  * Shows a category mapping UI and populates fields on successful import.
+ *
+ * The documentId returned by the API is passed to onResult so parent
+ * screens can link it to their saveEntry calls for full audit traceability.
  */
 
 import { useState, useRef } from 'react';
@@ -11,7 +14,8 @@ import { Button } from '@/components/ui/button';
 
 interface CsvImportProps {
   categories: string[];
-  onResult: (values: Record<string, number>) => void;
+  // documentId is the ID of the stored CSV file returned by the API
+  onResult: (values: Record<string, number>, documentId?: number) => void;
 }
 
 export function CsvImport({ categories, onResult }: CsvImportProps) {
@@ -41,7 +45,7 @@ export function CsvImport({ categories, onResult }: CsvImportProps) {
       if (res.ok) {
         const count = Object.keys(data.values ?? {}).length;
         toast.success(`${count} Werte aus CSV importiert.`, { id: toastId });
-        onResult(data.values ?? {});
+        onResult(data.values ?? {}, data.documentId as number | undefined);
       } else {
         toast.error(`CSV Fehler: ${data.error ?? 'Unbekannter Fehler'}`, { id: toastId });
       }

@@ -2,7 +2,12 @@
 
 /**
  * Screen 2 — Scope 1 Heizung
+ *
  * Captures Erdgas (m³), Heizöl (L), and Flüssiggas (kg) consumption.
+ *
+ * The providerName field enables tracking when the gas/oil supplier
+ * changes mid-year — each provider gets its own entry row.
+ * documentId threads the source document through to the audit log.
  */
 
 import { useEffect, useState } from 'react';
@@ -22,6 +27,8 @@ const schema = z.object({
   erdgas: z.coerce.number().min(0, 'Wert ≥ 0').default(0),
   heizoel: z.coerce.number().min(0, 'Wert ≥ 0').default(0),
   fluessiggas: z.coerce.number().min(0, 'Wert ≥ 0').default(0),
+  // Provider name for mid-year supplier changes
+  providerName: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -32,6 +39,8 @@ interface Screen2Props {
 
 export default function Screen2Heizung({ year }: Screen2Props) {
   const [yearId, setYearId] = useState<number | null>(null);
+  // documentId carried from OCR/CSV result to saveEntry for audit linkage
+  const [lastDocumentId, setLastDocumentId] = useState<number | undefined>();
 
   const {
     register,
@@ -63,6 +72,7 @@ export default function Screen2Heizung({ year }: Screen2Props) {
 
   const onSubmit = async (values: FormValues) => {
     if (!yearId) return;
+    const providerName = values.providerName || undefined;
     const entries = [
       { category: 'ERDGAS' as const, quantity: values.erdgas },
       { category: 'HEIZOEL' as const, quantity: values.heizoel },
@@ -71,7 +81,14 @@ export default function Screen2Heizung({ year }: Screen2Props) {
 
     const results = await Promise.all(
       entries.map((e) =>
-        saveEntry({ yearId, scope: 'SCOPE1', category: e.category, quantity: e.quantity })
+        saveEntry({
+          yearId,
+          scope: 'SCOPE1',
+          category: e.category,
+          quantity: e.quantity,
+          providerName,
+          documentId: lastDocumentId,
+        })
       )
     );
 
@@ -82,10 +99,11 @@ export default function Screen2Heizung({ year }: Screen2Props) {
     }
   };
 
-  const handleCsvResult = (values: Record<string, number>) => {
+  const handleCsvResult = (values: Record<string, number>, documentId?: number) => {
     if (values.ERDGAS !== undefined) setValue('erdgas', values.ERDGAS);
     if (values.HEIZOEL !== undefined) setValue('heizoel', values.HEIZOEL);
     if (values.FLUESSIGGAS !== undefined) setValue('fluessiggas', values.FLUESSIGGAS);
+    setLastDocumentId(documentId);
   };
 
   return (
@@ -104,11 +122,28 @@ export default function Screen2Heizung({ year }: Screen2Props) {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* Provider name */}
+        <div className="space-y-1.5">
+          <Label htmlFor="providerName">Gasanbieter / Lieferant (optional)</Label>
+          <Input
+            id="providerName"
+            type="text"
+            placeholder="z. B. E.ON, Bayerngas"
+            {...register('providerName')}
+          />
+          <p className="text-xs text-gray-400">
+            Bei Anbieterwechsel im Jahr separat erfassen — ein Eintrag pro Anbieter.
+          </p>
+        </div>
+
         {/* Erdgas */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <Label htmlFor="erdgas">Erdgas (m³/Jahr)</Label>
-            <UploadOCR category="ERDGAS" onResult={(v) => setValue('erdgas', v)} />
+            <UploadOCR
+              category="ERDGAS"
+              onResult={(v, _conf, docId) => { setValue('erdgas', v); setLastDocumentId(docId); }}
+            />
           </div>
           <Input id="erdgas" type="number" step="0.1" min={0} {...register('erdgas')} />
           {errors.erdgas && <p className="text-xs text-red-600">{errors.erdgas.message}</p>}
@@ -119,7 +154,10 @@ export default function Screen2Heizung({ year }: Screen2Props) {
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <Label htmlFor="heizoel">Heizöl (Liter/Jahr)</Label>
-            <UploadOCR category="HEIZOEL" onResult={(v) => setValue('heizoel', v)} />
+            <UploadOCR
+              category="HEIZOEL"
+              onResult={(v, _conf, docId) => { setValue('heizoel', v); setLastDocumentId(docId); }}
+            />
           </div>
           <Input id="heizoel" type="number" step="0.1" min={0} {...register('heizoel')} />
           {errors.heizoel && <p className="text-xs text-red-600">{errors.heizoel.message}</p>}
@@ -130,7 +168,10 @@ export default function Screen2Heizung({ year }: Screen2Props) {
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <Label htmlFor="fluessiggas">Flüssiggas (kg/Jahr)</Label>
-            <UploadOCR category="FLUESSIGGAS" onResult={(v) => setValue('fluessiggas', v)} />
+            <UploadOCR
+              category="FLUESSIGGAS"
+              onResult={(v, _conf, docId) => { setValue('fluessiggas', v); setLastDocumentId(docId); }}
+            />
           </div>
           <Input id="fluessiggas" type="number" step="0.1" min={0} {...register('fluessiggas')} />
           {errors.fluessiggas && <p className="text-xs text-red-600">{errors.fluessiggas.message}</p>}

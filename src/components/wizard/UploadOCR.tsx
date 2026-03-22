@@ -4,8 +4,8 @@
  * UploadOCR — file upload button that calls the OCR API to extract values
  * from uploaded utility bills.
  *
- * On success, calls onResult with the extracted value so the parent form
- * can pre-fill the appropriate field.
+ * On success, calls onResult with the extracted value, confidence score,
+ * and the documentId of the stored source file (for audit trail linkage).
  */
 
 import { useState, useRef } from 'react';
@@ -14,7 +14,8 @@ import { Button } from '@/components/ui/button';
 
 interface UploadOCRProps {
   category: string;
-  onResult: (value: number, confidence: number) => void;
+  // documentId is undefined when OCR does not persist a document (should not happen in normal flow)
+  onResult: (value: number, confidence: number, documentId?: number) => void;
   label?: string;
 }
 
@@ -42,7 +43,7 @@ export function UploadOCR({ category, onResult, label = 'Rechnung hochladen' }: 
           `Erkannt: ${data.value} ${data.unit} (Konfidenz: ${Math.round(data.confidence * 100)}%)`,
           { id: toastId }
         );
-        onResult(data.value, data.confidence);
+        onResult(data.value, data.confidence, data.documentId as number | undefined);
       } else {
         toast.error(`OCR Fehler: ${data.error ?? 'Unbekannter Fehler'}`, { id: toastId });
       }
