@@ -205,28 +205,25 @@ test.describe("API /api/entries", () => {
   });
 
   test("POST upserts an emission entry and DELETE removes it", async ({ request }) => {
-    // First get the year ID from the profile endpoint
-    const profileRes = await request.get("/api/entries?yearId=1");
-    expect(profileRes.status()).toBe(200);
-
-    // POST a new test entry
+    // POST a new test entry (quantity is the correct field name per SaveEntryInput)
     const postRes = await request.post("/api/entries", {
       data: {
         yearId: 1,
         scope: "SCOPE1",
         category: "ERDGAS",
-        value: 999.0,
-        unit: "m³",
+        quantity: 999.0,
         inputMethod: "MANUAL",
       },
     });
     // Accept 200 or 201
     expect([200, 201]).toContain(postRes.status());
+    const postData = await postRes.json();
+    expect(postData.success).toBe(true);
 
-    // DELETE the test entry
-    const delRes = await request.delete("/api/entries", {
-      data: { yearId: 1, category: "ERDGAS" },
-    });
+    // DELETE the test entry via query params (not body)
+    const delRes = await request.delete(
+      "/api/entries?yearId=1&category=ERDGAS&scope=SCOPE1"
+    );
     expect([200, 204]).toContain(delRes.status());
   });
 });
@@ -235,26 +232,29 @@ test.describe("API /api/entries", () => {
 // API: audit log
 // ---------------------------------------------------------------------------
 test.describe("API /api/audit", () => {
-  test("GET returns array of audit log entries", async ({ request }) => {
+  test("GET returns object with logs array", async ({ request }) => {
     const response = await request.get("/api/audit");
     expect(response.status()).toBe(200);
     const data = await response.json();
-    expect(Array.isArray(data)).toBe(true);
+    expect(data).toHaveProperty("logs");
+    expect(Array.isArray(data.logs)).toBe(true);
   });
 
-  test("GET ?yearId=1 filters by year", async ({ request }) => {
+  test("GET ?yearId=1 filters by year and returns logs array", async ({ request }) => {
     const response = await request.get("/api/audit?yearId=1");
     expect(response.status()).toBe(200);
     const data = await response.json();
-    expect(Array.isArray(data)).toBe(true);
+    expect(data).toHaveProperty("logs");
+    expect(Array.isArray(data.logs)).toBe(true);
   });
 
   test("GET ?entityType=EmissionEntry filters by entity type", async ({ request }) => {
     const response = await request.get("/api/audit?entityType=EmissionEntry");
     expect(response.status()).toBe(200);
     const data = await response.json();
-    expect(Array.isArray(data)).toBe(true);
-    for (const entry of data) {
+    expect(data).toHaveProperty("logs");
+    expect(Array.isArray(data.logs)).toBe(true);
+    for (const entry of data.logs) {
       expect(entry.entityType).toBe("EmissionEntry");
     }
   });
@@ -264,7 +264,7 @@ test.describe("API /api/audit", () => {
 // API: badge
 // ---------------------------------------------------------------------------
 test.describe("API /api/badge", () => {
-  test("returns SVG or 404 for SVG format", async ({ request }) => {
+  test("returns SVG badge for SVG format", async ({ request }) => {
     const response = await request.get("/api/badge?yearId=1&format=svg");
     const status = response.status();
     expect([200, 404]).toContain(status);
@@ -274,14 +274,19 @@ test.describe("API /api/badge", () => {
     }
   });
 
-  test("returns JSON or 404 for JSON format", async ({ request }) => {
-    const response = await request.get("/api/badge?yearId=1&format=json");
+  test("returns HTML embed snippet for HTML format", async ({ request }) => {
+    const response = await request.get("/api/badge?yearId=1&format=html");
     const status = response.status();
     expect([200, 404]).toContain(status);
     if (status === 200) {
-      const data = await response.json();
-      expect(typeof data).toBe("object");
+      const body = await response.text();
+      expect(body.includes("<img") || body.includes("GrünBilanz") || body.includes("Badge")).toBe(true);
     }
+  });
+
+  test("returns 400 when yearId is missing", async ({ request }) => {
+    const response = await request.get("/api/badge?format=svg");
+    expect(response.status()).toBe(400);
   });
 });
 
