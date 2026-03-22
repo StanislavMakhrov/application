@@ -15,8 +15,8 @@ ALTER TABLE "EmissionEntry" ADD COLUMN "providerName" TEXT;
 
 -- ─── EmissionEntry: constraint replacement ───────────────────────────────────
 
--- Drop the old single-entry-per-category constraint
-ALTER TABLE "EmissionEntry" DROP CONSTRAINT "EmissionEntry_reportingYearId_scope_category_key";
+-- Drop the old single-entry-per-category index (created as CREATE UNIQUE INDEX in 0001_init)
+DROP INDEX IF EXISTS "EmissionEntry_reportingYearId_scope_category_key";
 
 -- New composite constraint: one entry per (year, scope, category, month, provider)
 -- NULL values participate in uniqueness so (…, NULL, NULL) is a valid annual entry
