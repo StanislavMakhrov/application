@@ -49,7 +49,7 @@ export function YearOverYearChart({ year1, totals1, year2, totals2 }: YearOverYe
         <span className="text-sm text-gray-500">
           Veränderung:{' '}
           <span className={improved ? 'font-semibold text-brand-green' : 'font-semibold text-red-600'}>
-            {improved ? '▼' : '▲'} {Math.abs(delta).toFixed(2)} t ({Math.abs(Number(deltaPercent))}%)
+            {improved ? '▼' : '▲'} {Math.abs(delta).toFixed(2)} t ({deltaPercent === '—' ? '—' : `${deltaPercent}%`})
           </span>
         </span>
       </div>
