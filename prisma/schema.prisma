@@ -1,0 +1,224 @@
+// prisma/schema.prisma
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model CompanyProfile {
+  id          Int      @id @default(1)
+  firmenname  String
+  branche     Branche
+  mitarbeiter Int
+  standort    String
+  logoPath    String?
+  updatedAt   DateTime @updatedAt
+}
+
+enum Branche {
+  ELEKTROHANDWERK
+  SHK
+  BAUGEWERBE
+  TISCHLER
+  KFZ_WERKSTATT
+  MALER
+  SONSTIGES
+}
+
+model ReportingYear {
+  id        Int      @id @default(autoincrement())
+  year      Int      @unique
+  createdAt DateTime @default(now())
+
+  entries         EmissionEntry[]
+  materialEntries MaterialEntry[]
+  stagingEntries  StagingEntry[]
+  reports         Report[]
+}
+
+model EmissionEntry {
+  id              Int           @id @default(autoincrement())
+  reportingYearId Int
+  reportingYear   ReportingYear @relation(fields: [reportingYearId], references: [id], onDelete: Cascade)
+  scope           Scope
+  category        EmissionCategory
+  quantity        Float
+  memo            String?
+  isOekostrom     Boolean       @default(false)
+  inputMethod     InputMethod   @default(MANUAL)
+  // Monthly billing support: 1–12 for a monthly entry, null for an annual entry
+  billingMonth    Int?
+  // When true, this annual entry supersedes any monthly entries for this category
+  isFinalAnnual   Boolean       @default(false)
+  // Energy/service provider name — enables mid-year provider changes
+  providerName    String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  auditLogs       AuditLog[]
+
+  // Unique per (year, scope, category, month, provider) — null billingMonth = annual entry
+  @@unique([reportingYearId, scope, category, billingMonth, providerName])
+}
+
+enum Scope {
+  SCOPE1
+  SCOPE2
+  SCOPE3
+}
+
+enum EmissionCategory {
+  ERDGAS
+  HEIZOEL
+  FLUESSIGGAS
+  DIESEL_FUHRPARK
+  BENZIN_FUHRPARK
+  PKW_BENZIN_KM
+  PKW_DIESEL_KM
+  TRANSPORTER_KM
+  LKW_KM
+  STROM
+  FERNWAERME
+  GESCHAEFTSREISEN_FLUG
+  GESCHAEFTSREISEN_BAHN
+  PENDLERVERKEHR
+  ABFALL_RESTMUELL
+  ABFALL_BAUSCHUTT
+  ABFALL_ALTMETALL
+  ABFALL_SONSTIGES
+}
+
+enum InputMethod {
+  MANUAL
+  OCR
+  CSV
+}
+
+model MaterialEntry {
+  id              Int           @id @default(autoincrement())
+  reportingYearId Int
+  reportingYear   ReportingYear @relation(fields: [reportingYearId], references: [id], onDelete: Cascade)
+  material        MaterialCategory
+  quantityKg      Float
+  supplierName    String?
+  inputMethod     InputMethod   @default(MANUAL)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  auditLogs       AuditLog[]
+}
+
+enum MaterialCategory {
+  KUPFER
+  STAHL
+  ALUMINIUM
+  HOLZ
+  KUNSTSTOFF_PVC
+  BETON
+  FARBEN_LACKE
+  SONSTIGE
+}
+
+model EmissionFactor {
+  id        Int      @id @default(autoincrement())
+  key       String
+  validYear Int
+  factorKg  Float
+  unit      String
+  source    String
+  scope     Scope
+  createdAt DateTime @default(now())
+
+  @@unique([key, validYear])
+}
+
+model StagingEntry {
+  id              Int           @id @default(autoincrement())
+  reportingYearId Int
+  reportingYear   ReportingYear @relation(fields: [reportingYearId], references: [id], onDelete: Cascade)
+  scope           Scope
+  category        EmissionCategory
+  quantity        Float
+  confidence      Float?
+  rawText         String?
+  source          StagingSource
+  createdAt       DateTime      @default(now())
+  expiresAt       DateTime
+
+  @@unique([reportingYearId, scope, category])
+}
+
+enum StagingSource {
+  OCR
+  CSV
+}
+
+model Report {
+  id              Int           @id @default(autoincrement())
+  reportingYearId Int
+  reportingYear   ReportingYear @relation(fields: [reportingYearId], references: [id], onDelete: Cascade)
+  type            ReportType
+  filePath        String
+  generatedAt     DateTime      @default(now())
+}
+
+enum ReportType {
+  GHG_PROTOCOL
+  CSRD_QUESTIONNAIRE
+}
+
+model IndustryBenchmark {
+  id                    Int     @id @default(autoincrement())
+  branche               Branche @unique
+  co2ePerEmployeePerYear Float
+}
+
+// ─── Audit Trail & Document Storage ──────────────────────────────────────────
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+// Stores original uploaded documents (PDFs, images, CSVs) so they can be
+// retrieved later as evidence for audit purposes.
+model UploadedDocument {
+  id          Int        @id @default(autoincrement())
+  filename    String
+  mimeType    String
+  sizeBytes   Int
+  // File bytes stored directly in the database for self-contained deployments
+  content     Bytes
+  uploadedAt  DateTime   @default(now())
+  auditLogs   AuditLog[]
+}
+
+// Immutable audit log that records every change to emission/material data.
+// Supports field-level change tracking (oldValue → newValue) and links to
+// source documents when data was imported via OCR or CSV.
+model AuditLog {
+  id          Int               @id @default(autoincrement())
+  // Entity type as a string so it works across all model types
+  entityType  String            // "EmissionEntry", "MaterialEntry", "CompanyProfile"
+  entityId    Int?
+  action      AuditAction
+  // Field-level change tracking
+  fieldName   String?           // which field changed
+  oldValue    String?           // previous value serialised as string
+  newValue    String?           // new value serialised as string
+  inputMethod InputMethod       @default(MANUAL)
+  // Optional link to the source document (OCR invoice, CSV file, etc.)
+  documentId  Int?
+  document    UploadedDocument? @relation(fields: [documentId], references: [id])
+  // Additional context (filename, category, etc.) as JSON
+  metadata    String?
+  // Relations back to the changed entities (optional — entityId covers both)
+  emissionEntryId Int?
+  emissionEntry   EmissionEntry? @relation(fields: [emissionEntryId], references: [id], onDelete: SetNull)
+  materialEntryId Int?
+  materialEntry   MaterialEntry? @relation(fields: [materialEntryId], references: [id], onDelete: SetNull)
+  createdAt   DateTime          @default(now())
+}

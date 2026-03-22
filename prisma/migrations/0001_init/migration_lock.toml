@@ -1,0 +1,10 @@
+{
+  "id": "0001_init",
+  "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "finishedAt": "2024-01-01T00:00:00.000Z",
+  "migrationName": "0001_init",
+  "logs": "",
+  "rolledBack": false,
+  "started_at": "2024-01-01T00:00:00.000Z",
+  "applied_steps_count": 1
+}

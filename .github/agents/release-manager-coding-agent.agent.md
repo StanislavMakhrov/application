@@ -311,7 +311,7 @@ Before releasing, verify:
 
    ## Verification
    - ✅ Unit/integration tests pass (`npm test`)
-   - ✅ Docker image builds and smoke tests pass (CI)
+   - ✅ Docker image builds and e2e tests pass (CI)
    - ✅ E2E Playwright tests added and passing (CI)
    - ✅ UAT: <PASS / not required>
 
