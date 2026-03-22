@@ -295,7 +295,7 @@ export async function saveMaterialEntries(input: {
     // delete, and the create all occur atomically — no race conditions.
     const { deleted, created } = await prisma.$transaction(async (tx) => {
       // Snapshot existing rows before deletion (within the same transaction)
-      const deleted = await tx.materialEntry.findMany({
+      const existingRows = await tx.materialEntry.findMany({
         where: { reportingYearId: input.yearId },
         select: { id: true, material: true, quantityKg: true },
       });
@@ -317,7 +317,7 @@ export async function saveMaterialEntries(input: {
         select: { id: true, material: true, quantityKg: true },
       });
 
-      return { deleted, created };
+      return { deleted: existingRows, created };
     });
 
     // Audit DELETE events for every row that was removed

@@ -132,15 +132,14 @@ export default function Screen4Strom({ year }: Screen4Props) {
     const providerName = values.providerName || undefined;
 
     if (values.useMonthly && !values.isFinalAnnual) {
-      // Save one entry per month for Strom
-      const monthKeys = ['m1','m2','m3','m4','m5','m6','m7','m8','m9','m10','m11','m12'] as const;
+      // Save one entry per month for Strom — use MONTHLY_KEYS to derive the month key
       const monthResults = await Promise.all(
-        monthKeys.map((key, idx) =>
+        MONTHLY_KEYS.map((key, idx) =>
           saveEntry({
             yearId,
             scope: 'SCOPE2',
             category: 'STROM',
-            quantity: values.monthly[key],
+            quantity: values.monthly[key.split('.')[1] as keyof MonthlyValues],
             isOekostrom: values.isOekostrom,
             billingMonth: idx + 1,
             providerName,

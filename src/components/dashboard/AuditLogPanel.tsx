@@ -31,6 +31,7 @@ const ACTION_STYLES: Record<string, string> = {
   CREATE: 'bg-green-100 text-green-800',
   UPDATE: 'bg-yellow-100 text-yellow-800',
   DELETE: 'bg-red-100 text-red-800',
+  DEFAULT: 'bg-gray-100 text-gray-800',
 };
 
 function parseCategory(metadata: string | null): string {
@@ -126,7 +127,7 @@ export function AuditLogPanel({ yearId }: { yearId?: number }) {
                         {parseCategory(log.metadata)}
                       </td>
                       <td className="py-1.5 pr-4">
-                        <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${ACTION_STYLES[log.action] ?? ''}`}>
+                        <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${ACTION_STYLES[log.action] ?? ACTION_STYLES.DEFAULT}`}>
                           {log.action}
                         </span>
                       </td>
