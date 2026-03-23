@@ -38,6 +38,14 @@ For project-specific instructions, refer to the `docs/architecture.md` and `docs
 
 **Exception — subagents spawned via `task` tool**: `report_progress` is NOT available to subagents. They must use `git commit` instead (see below).
 
+### Pull Request Creation
+
+GitHub no longer automatically creates a draft PR when a coding agent session starts. PRs are now user-controlled:
+
+- **If your prompt explicitly requests a PR** (e.g. "Create a pull request to fix X"): use the **`create-pr-github`** skill after pushing your changes.
+- **If your prompt does not mention a PR**: push your changes with `report_progress` — the user will click **Create Pull Request** in the GitHub UI when ready.
+- **Never create a duplicate PR** if one already exists for your branch.
+
 ### CI Accountability (MANDATORY)
 
 **The agent is responsible for delivering a PR that passes all CI checks.** The Maintainer should only review — never fix CI failures.

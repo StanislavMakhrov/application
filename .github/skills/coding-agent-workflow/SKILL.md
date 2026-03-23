@@ -20,17 +20,21 @@ This skill is automatically loaded by all coding agents. It defines the core wor
 
 ### CRITICAL: Branch and PR Management
 
-**GitHub Copilot automatically creates branches and PRs** - you do NOT create them:
-- When an issue is assigned to `@copilot`, GitHub automatically creates a `copilot/*` branch and draft PR
-- When you start working, you're already on the correct branch with an active PR
+**GitHub Copilot automatically creates a branch** - you do NOT create it:
+- When an issue is assigned to `@copilot` or a session starts, GitHub automatically creates a `copilot/*` branch
+- When you start working, you're already on the correct branch
 - **NEVER run `git checkout`, `git switch`, or `git branch` commands** - you're already on the right branch
-- **NEVER attempt to create a new PR** - one already exists for your work
 - Your job is to commit work to the existing branch using `report_progress` (which handles git push automatically)
 
-**Why this fails:**
+**Why manual branch creation fails:**
 - Manual `git checkout -b` commands will fail (permission denied)
-- Attempting to create PRs will fail or create duplicate PRs
-- These operations are GitHub's responsibility, not yours
+- Branch creation is GitHub's responsibility, not yours
+
+**Pull Request Creation (new behavior):**
+- GitHub no longer automatically creates a draft PR when a session starts
+- If your prompt **explicitly requests a PR** (e.g. "Create a pull request to fix X"), use the **`create-pr-github`** skill to create one after pushing
+- If your prompt does **not** request a PR, just push your changes with `report_progress` — the user can create the PR by clicking **Create Pull Request** in the GitHub UI after the session completes
+- Never create a duplicate PR if one already exists for your branch
 
 1. **For Direct Questions (When Running as Primary Agent)**: If you are the primary agent on a PR (not delegated via `task` tool), you can create PR comments to ask the Maintainer questions. Wait for a response before proceeding.
 
@@ -106,7 +110,8 @@ This skill is automatically loaded by all coding agents. It defines the core wor
 
 ## Key Principles
 
-- **GitHub creates branches/PRs automatically** - never attempt to create them yourself
+- **GitHub creates branches automatically** - never attempt to create or switch branches yourself
+- **PR creation is user-controlled** - use the `create-pr-github` skill only when the prompt explicitly requests a PR; otherwise push with `report_progress` and let the user click "Create Pull Request" in the GitHub UI
 - **`report_progress` is only available to the primary agent** - subagents spawned via `task` tool must use `git commit` instead
 - **Always use `report_progress`** for commits and pushes (primary agent) - never use manual `git push` commands
 - **Subagents MUST `git commit` before completing** - uncommitted changes will be lost if only in memory; the parent's `report_progress` can pick up uncommitted files via `git add .` but this is a fallback, not the primary mechanism
