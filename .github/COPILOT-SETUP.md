@@ -41,3 +41,17 @@ No special tokens, separate repositories, or environments are required for UAT.
 ### Agent cannot push code
 
 Ensure the repository has GitHub Actions enabled and the default `GITHUB_TOKEN` has `contents: write` permission.
+
+### Agent gets 403 when creating a pull request
+
+If the repository has restricted default `GITHUB_TOKEN` permissions (e.g. read-only), the Copilot coding agent will receive a 403 error when trying to create a pull request.
+
+**Fix**: Add explicit `permissions` to `.github/workflows/copilot-setup-steps.yml` at the workflow level:
+
+```yaml
+permissions:
+  contents: write
+  pull-requests: write
+```
+
+This grants the Copilot agent the minimum permissions required to push branches and open pull requests.
