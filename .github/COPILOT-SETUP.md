@@ -59,3 +59,12 @@ integration policy. The fix:
    - `~/.bashrc` and `~/.profile` — for the agent's interactive bash sessions (which start fresh and don't inherit `$GITHUB_ENV`)
 
    This ensures the agent's `gh` commands use the PAT.
+
+### Verifying PR creation works
+
+To confirm the agent can create PRs, assign an issue to `@copilot` and check that the
+agent completes a session ending with a new PR. A successful PR creation confirms:
+
+- `COPILOT_TOKEN` secret is set correctly
+- `GH_TOKEN` is visible in the agent's bash session (via `~/.bashrc`/`~/.profile`)
+- The `scripts/pr-github.sh create` command exits without a 403 error
