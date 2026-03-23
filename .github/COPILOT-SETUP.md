@@ -59,3 +59,9 @@ integration policy. The fix:
    - `~/.bashrc` and `~/.profile` — for the agent's interactive bash sessions (which start fresh and don't inherit `$GITHUB_ENV`)
 
    This ensures the agent's `gh` commands use the PAT.
+
+## Verification Log
+
+| Date | Verified By | Result |
+|------|------------|--------|
+| 2026-03-23 | copilot/create-test-pr | ✅ COPILOT_TOKEN readable; PR creation successful |
