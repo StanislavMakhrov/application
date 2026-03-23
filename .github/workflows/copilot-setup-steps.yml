@@ -13,6 +13,10 @@ on:
     paths:
       - .github/workflows/copilot-setup-steps.yml
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   copilot-setup-steps:
     runs-on: ubuntu-latest
