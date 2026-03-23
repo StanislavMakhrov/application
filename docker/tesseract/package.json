@@ -1,0 +1,12 @@
+{
+  "name": "grunbilanz-tesseract",
+  "version": "1.0.0",
+  "description": "OCR microservice for GrünBilanz using Tesseract.js",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "tesseract.js": "^5.0.4"
+  }
+}
