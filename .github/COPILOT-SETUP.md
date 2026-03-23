@@ -27,16 +27,20 @@ settings must be configured by the Maintainer once:
 
 ### 1. Enable GitHub Actions workflow permissions
 
-Go to **Settings → Actions → General → Workflow permissions** and select:
+Go to **Settings → Actions → General → Workflow permissions** and make two
+changes:
 
-> ✅ **Read and write permissions**
-> Allow GitHub Actions to create and approve pull requests ✅
+1. Select **"Read and write permissions"**
+   _(currently: "Read repository contents and packages permissions" is selected)_
+2. Check **"Allow GitHub Actions to create and approve pull requests"**
+   _(currently: unchecked)_
+3. Click **Save**
 
-This makes the default `GITHUB_TOKEN` in all Actions workflows read+write, which
-is required for the Copilot agent to push branches and open pull requests.
+This makes the default `GITHUB_TOKEN` read+write for all scopes and allows
+Actions to open PRs — matching the green-ledger configuration.
 
-**Alternative (used in this repo):** If you prefer restricted defaults, keep the
-setting at "Read repository contents" and instead grant permissions explicitly in
+**Current workaround (already in place):** This repo keeps restricted defaults
+and instead grants permissions explicitly in
 `.github/workflows/copilot-setup-steps.yml`:
 
 ```yaml
@@ -45,8 +49,9 @@ permissions:
   pull-requests: write
 ```
 
-Both approaches have the same effect. The permissive default is simpler but
-grants write access to _all_ workflows by default.
+Both approaches work. The explicit-permissions approach is already active so the
+Copilot agent can auto-create PRs today. The UI change above is optional but
+makes all future workflows simpler by not requiring per-workflow grants.
 
 ### 2. Enable Copilot coding agent
 
