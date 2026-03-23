@@ -6,6 +6,9 @@ This repository uses GitHub Copilot coding agents for automated development work
 
 - **GitHub Copilot Pro+** (or Enterprise) subscription
 - Copilot coding agent enabled in repository settings
+- **`RELEASE_TOKEN` secret** — a classic Personal Access Token (PAT) with `repo` scope,
+  stored as a repository secret. This is required for the agent to create pull requests.
+  Without it, PR creation will fail with a 403 error.
 
 ## How It Works
 
@@ -44,3 +47,12 @@ No special tokens, separate repositories, or environments are required for UAT.
 ### Agent cannot push code
 
 Ensure the repository has GitHub Actions enabled and the default `GITHUB_TOKEN` has `contents: write` permission.
+
+### Agent cannot create pull requests (403 error)
+
+The Copilot agent's built-in OAuth token (`ghu_`) is blocked from creating PRs by GitHub's
+integration policy. The fix:
+
+1. Create a classic PAT with `repo` scope at **Settings → Developer settings → Personal access tokens**
+2. Store it as a repository secret named `RELEASE_TOKEN` (**Settings → Secrets and variables → Actions**)
+3. The `copilot-setup-steps.yml` workflow exposes it as `GH_TOKEN` so the agent's `gh` commands use the PAT
