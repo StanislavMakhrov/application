@@ -19,17 +19,21 @@ export function KpiCard({ title, value, unit, subtitle, highlight, className }: 
   return (
     <div
       className={cn(
-        'rounded-lg border bg-white p-5 shadow-sm',
-        highlight ? 'border-brand-green bg-brand-green-pale' : 'border-gray-200',
+        'rounded-2xl border p-5 shadow-card transition-all',
+        highlight
+          ? 'border-brand-green/30 bg-card-highlight text-brand-green shadow-green/20'
+          : 'border-card-border bg-white hover:shadow-card-hover',
         className
       )}
     >
-      <p className="text-sm font-medium text-gray-500">{title}</p>
-      <p className={cn('mt-1 text-3xl font-bold', highlight ? 'text-brand-green' : 'text-gray-900')}>
-        {value}
-        {unit && <span className="ml-1 text-base font-normal text-gray-500">{unit}</span>}
+      <p className={cn('text-xs font-semibold uppercase tracking-wide', highlight ? 'text-brand-green/70' : 'text-gray-400')}>
+        {title}
       </p>
-      {subtitle && <p className="mt-1 text-xs text-gray-500">{subtitle}</p>}
+      <p className={cn('mt-2 text-3xl font-bold tracking-tight', highlight ? 'text-brand-green' : 'text-gray-900')}>
+        {value}
+        {unit && <span className="ml-1 text-sm font-normal opacity-60">{unit}</span>}
+      </p>
+      {subtitle && <p className={cn('mt-1 text-xs', highlight ? 'text-brand-green/60' : 'text-gray-400')}>{subtitle}</p>}
     </div>
   );
 }

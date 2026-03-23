@@ -6,10 +6,16 @@
   --brand-green: #2D6A4F;
   --brand-green-light: #52B788;
   --brand-green-pale: #D8F3DC;
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --background: #F7F6F2;
+  --brand-green-dark: #1B4332;
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --background: #F4F6F4;
   --card: #FFFFFF;
-  --card-border: #E5E7EB;
+  --card-border: #E2E8E4;
+  --radius: 0.75rem;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -20,5 +26,14 @@ body {
 
 /* Smooth transitions on interactive elements */
 button, a, input, select, textarea {
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
+}
+
+/* Modern card hover effect */
+.card-hover {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.card-hover:hover {
+  box-shadow: 0 8px 30px rgba(45, 106, 79, 0.12);
+  transform: translateY(-1px);
 }
