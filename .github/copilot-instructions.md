@@ -40,10 +40,9 @@ For project-specific instructions, refer to the `docs/architecture.md` and `docs
 
 ### Pull Request Creation
 
-GitHub no longer automatically creates a draft PR when a coding agent session starts. PRs are now user-controlled:
+GitHub no longer automatically creates a draft PR when a coding agent session starts. The agent is responsible for creating the PR:
 
-- **If your prompt explicitly requests a PR** (e.g. "Create a pull request to fix X"): use the **`create-pr-github`** skill after pushing your changes.
-- **If your prompt does not mention a PR**: push your changes with `report_progress` — the user will click **Create Pull Request** in the GitHub UI when ready.
+- After all work is pushed with `report_progress` and CI is green, always use the **`create-pr-github`** skill to open the PR.
 - **Never create a duplicate PR** if one already exists for your branch.
 
 ### CI Accountability (MANDATORY)

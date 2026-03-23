@@ -30,9 +30,7 @@ This repository uses GitHub Copilot coding agents for automated development work
 2. Go to **Settings → Copilot → Coding agent → ON**
 3. Create an issue and assign it to `@copilot`, or open a session from the Agents tab / Copilot chat
 4. The workflow orchestrator agent delegates work to specialized agents automatically
-5. When the session completes, either:
-   - Click **Create Pull Request** in the GitHub UI to open a PR with the agent's changes, or
-   - Include "create a pull request" in your prompt and the agent will create it automatically
+5. When all work is pushed and CI is green, the agent automatically creates the pull request
 
 ## UAT (User Acceptance Testing)
 
