@@ -47,23 +47,21 @@ Ensure the repository has GitHub Actions enabled and the default `GITHUB_TOKEN` 
 
 ### Agent gets 403 when creating a pull request
 
-The Copilot coding agent uses a `ghu_` OAuth token (user-to-server token) for its operations. This token is subject to the repository policy **"Allow GitHub Actions to create and approve pull requests"**. When this policy is disabled (the default in many repos), the token gets a `403 Resource not accessible by integration` error when calling the GitHub `createPullRequest` API.
+The Copilot coding agent uses a `ghu_` OAuth token (user-to-server token) for its operations. GitHub's infrastructure auto-creates the PR at the end of a successful agent session using this token. If PR creation fails, check both of the following settings.
 
 The `permissions` block in `.github/workflows/copilot-setup-steps.yml` controls the `GITHUB_TOKEN` scopes for the setup steps job, **not** the agent's OAuth token. Setting `pull-requests: write` in the workflow permissions does **not** bypass this restriction.
 
-**Fix A (recommended — no UI policy change needed):** Add a classic PAT as `RELEASE_TOKEN` repository secret.
+**Required: Enable the repository policy that allows GitHub Apps to open PRs.**
+
+1. Go to **Settings → Actions → General**
+2. Under "Workflow permissions", set **"Read and write permissions"**
+3. Check **"Allow GitHub Actions to create and approve pull requests"**
+4. Click **Save**
+
+**Optional but recommended: Add a classic PAT as `RELEASE_TOKEN` repository secret** (allows agents to create PRs manually via `scripts/pr-github.sh`, independent of the policy above).
 
 1. Create a classic PAT at <https://github.com/settings/tokens> with `repo` scope
    - Set an expiration date (90 days recommended) and rotate it before it expires
 2. Go to **Settings → Secrets and variables → Actions → New repository secret**
 3. Name: `RELEASE_TOKEN`, Value: the PAT you created
-4. The `copilot-setup-steps.yml` workflow already exposes this as `GH_TOKEN`, which the `gh` CLI uses automatically for PR creation
-5. (Optional) If you also use Fix B, you can skip this step
-
-**Fix B (alternative):** Enable the repository policy that allows GitHub Apps to open PRs.
-
-1. Go to **Settings → Actions → General**
-2. Under "Workflow permissions", check **"Allow GitHub Actions to create and approve pull requests"**
-3. Click **Save**
-
-Fix A is preferred because it works immediately without changing repository-wide security policies. It also enables use of `scripts/pr-github.sh` for PR creation from within the agent session.
+4. The `copilot-setup-steps.yml` workflow automatically exposes this as `GH_TOKEN`
