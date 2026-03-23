@@ -59,6 +59,7 @@ jobs:
           COPILOT_TOKEN: ${{ secrets.COPILOT_TOKEN }}
         run: |
           if [ -n "$COPILOT_TOKEN" ]; then
+            echo "::add-mask::$COPILOT_TOKEN"
             echo "GH_TOKEN=$COPILOT_TOKEN" >> "$GITHUB_ENV"
           fi
 

@@ -184,7 +184,7 @@ main() {
   branch="$(git branch --show-current)"
   local remote_sha
   remote_sha="$(git ls-remote origin "refs/heads/${branch}" 2>/dev/null | cut -f1 || true)"
-  if [[ "$(git rev-parse HEAD)" != "$remote_sha" ]]; then
+  if [[ -z "$remote_sha" ]] || [[ "$(git rev-parse HEAD)" != "$remote_sha" ]]; then
     git push -u origin HEAD
   fi
 
