@@ -15,6 +15,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { WizardNav } from '@/components/wizard/WizardNav';
 import { CsvImport } from '@/components/wizard/CsvImport';
+import { FieldDocumentZone } from '@/components/wizard/FieldDocumentZone';
+import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
+import { PlausibilityWarning, getPlausibilityWarning } from '@/components/wizard/PlausibilityWarning';
+import { HelpTooltip } from '@/components/ui/HelpTooltip';
 import { saveEntry, getOrCreateYear } from '@/lib/actions';
 
 const schema = z.object({
@@ -31,6 +35,7 @@ interface Screen5Props {
 
 export default function Screen5Dienstreisen({ year }: Screen5Props) {
   const [yearId, setYearId] = useState<number | null>(null);
+  const [warnings, setWarnings] = useState<Record<string, string | null>>({});
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } =
     useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { flug: 0, bahn: 0, pendlerKm: 0 } });
 
@@ -82,10 +87,22 @@ export default function Screen5Dienstreisen({ year }: Screen5Props) {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="space-y-1.5">
-          <Label htmlFor="flug">Geschäftsreisen Flug (km/Jahr, gesamt)</Label>
-          <Input id="flug" type="number" step="1" min={0} {...register('flug')} />
+          <Label htmlFor="flug">
+            Geschäftsreisen Flug (km/Jahr, gesamt)
+            <HelpTooltip text="Summe aller Flugreisen in km (Hin- und Rückflug zusammenzählen)" />
+          </Label>
+          <Input
+            id="flug"
+            type="number"
+            step="1"
+            min={0}
+            {...register('flug')}
+            onBlur={(e) => setWarnings(w => ({ ...w, GESCHAEFTSREISEN_FLUG: getPlausibilityWarning('GESCHAEFTSREISEN_FLUG', Number(e.target.value)) }))}
+          />
           {errors.flug && <p className="text-xs text-red-600">{errors.flug.message}</p>}
+          <PlausibilityWarning message={warnings.GESCHAEFTSREISEN_FLUG ?? null} />
           <p className="text-xs text-gray-400">Summe aller Flüge in km. Faktor: 0,255 kg CO₂e/km (UBA 2024)</p>
+          <FieldDocumentZone fieldKey="GESCHAEFTSREISEN_FLUG" year={year} />
         </div>
 
         <div className="space-y-1.5">
@@ -93,21 +110,31 @@ export default function Screen5Dienstreisen({ year }: Screen5Props) {
           <Input id="bahn" type="number" step="1" min={0} {...register('bahn')} />
           {errors.bahn && <p className="text-xs text-red-600">{errors.bahn.message}</p>}
           <p className="text-xs text-gray-400">Faktor: 0,032 kg CO₂e/km (UBA 2024)</p>
+          <FieldDocumentZone fieldKey="GESCHAEFTSREISEN_BAHN" year={year} />
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="pendlerKm">Pendlerverkehr (km/Jahr, alle Mitarbeitenden)</Label>
+          <Label htmlFor="pendlerKm">
+            Pendlerverkehr (km/Jahr, alle Mitarbeitenden)
+            <HelpTooltip text="Schätzen: Ø Pendelweg km × 2 × Arbeitstage × Anzahl Mitarbeiter" />
+          </Label>
           <Input id="pendlerKm" type="number" step="1" min={0} {...register('pendlerKm')} />
           {errors.pendlerKm && <p className="text-xs text-red-600">{errors.pendlerKm.message}</p>}
           <p className="text-xs text-gray-400">
             Berechnung: Anzahl MA × ∅ Pendelweg (km) × 2 × Arbeitstage. Faktor: 0,142 kg CO₂e/km
           </p>
+          <FieldDocumentZone fieldKey="PENDLERVERKEHR" year={year} />
         </div>
 
-        <Button type="submit" disabled={isSubmitting || !yearId}>
+        <Button type="submit" disabled={isSubmitting || !yearId} className="rounded-full px-6">
           {isSubmitting ? 'Speichern...' : '💾 Speichern'}
         </Button>
       </form>
+
+      <ScreenChangeLog
+        yearId={yearId}
+        categories={['GESCHAEFTSREISEN_FLUG', 'GESCHAEFTSREISEN_BAHN', 'PENDLERVERKEHR']}
+      />
 
       <WizardNav currentScreen={5} />
     </div>

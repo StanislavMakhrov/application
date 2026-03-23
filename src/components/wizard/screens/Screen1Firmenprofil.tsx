@@ -6,7 +6,7 @@
  * This data populates PDF headers and the Branchenvergleich benchmark.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -19,6 +19,7 @@ import { WizardNav } from '@/components/wizard/WizardNav';
 import { saveCompanyProfile } from '@/lib/actions';
 import { BRANCHE_LABELS } from '@/types';
 import type { Branche } from '@/types';
+import { PlausibilityWarning, getPlausibilityWarning } from '@/components/wizard/PlausibilityWarning';
 
 const schema = z.object({
   firmenname: z.string().min(1, 'Firmenname ist erforderlich'),
@@ -52,6 +53,8 @@ export default function Screen1Firmenprofil() {
       standort: '',
     },
   });
+
+  const [mitarbeiterWarning, setMitarbeiterWarning] = useState<string | null>(null);
 
   // Load existing profile on mount
   useEffect(() => {
@@ -126,10 +129,12 @@ export default function Screen1Firmenprofil() {
             min={1}
             placeholder="z.B. 12"
             {...register('mitarbeiter')}
+            onBlur={(e) => setMitarbeiterWarning(getPlausibilityWarning('MITARBEITER', Number(e.target.value)))}
           />
           {errors.mitarbeiter && (
             <p className="text-xs text-red-600">{errors.mitarbeiter.message}</p>
           )}
+          <PlausibilityWarning message={mitarbeiterWarning} />
         </div>
 
         {/* Standort */}

@@ -22,6 +22,10 @@ import { Label } from '@/components/ui/label';
 import { WizardNav } from '@/components/wizard/WizardNav';
 import { UploadOCR } from '@/components/wizard/UploadOCR';
 import { CsvImport } from '@/components/wizard/CsvImport';
+import { FieldDocumentZone } from '@/components/wizard/FieldDocumentZone';
+import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
+import { PlausibilityWarning, getPlausibilityWarning } from '@/components/wizard/PlausibilityWarning';
+import { HelpTooltip } from '@/components/ui/HelpTooltip';
 import { saveEntry, getOrCreateYear } from '@/lib/actions';
 
 const schema = z.object({
@@ -45,6 +49,7 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
   const [yearId, setYearId] = useState<number | null>(null);
   // documentId carried from OCR/CSV result to saveEntry for audit linkage
   const [lastDocumentId, setLastDocumentId] = useState<number | undefined>();
+  const [warnings, setWarnings] = useState<Record<string, string | null>>({});
 
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } =
     useForm<FormValues>({
@@ -105,12 +110,12 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
   };
 
   const fields = [
-    { id: 'diesel', label: 'Diesel gesamt (L/Jahr)', category: 'DIESEL_FUHRPARK', hint: 'Faktor: 2,640 kg CO₂e/L' },
-    { id: 'benzin', label: 'Benzin gesamt (L/Jahr)', category: 'BENZIN_FUHRPARK', hint: 'Faktor: 2,330 kg CO₂e/L' },
-    { id: 'pkwBenzinKm', label: 'PKW Benzin (km/Jahr)', category: null, hint: 'Faktor: 0,142 kg CO₂e/km' },
-    { id: 'pkwDieselKm', label: 'PKW Diesel (km/Jahr)', category: null, hint: 'Faktor: 0,171 kg CO₂e/km' },
-    { id: 'transporterKm', label: 'Transporter (km/Jahr)', category: null, hint: 'Faktor: 0,210 kg CO₂e/km' },
-    { id: 'lkwKm', label: 'LKW (km/Jahr)', category: null, hint: 'Faktor: 0,320 kg CO₂e/km' },
+    { id: 'diesel', label: 'Diesel gesamt (L/Jahr)', category: 'DIESEL_FUHRPARK', fieldKey: 'DIESEL_FUHRPARK', hint: 'Faktor: 2,650 kg CO₂e/L' },
+    { id: 'benzin', label: 'Benzin gesamt (L/Jahr)', category: 'BENZIN_FUHRPARK', fieldKey: 'BENZIN_FUHRPARK', hint: 'Faktor: 2,330 kg CO₂e/L' },
+    { id: 'pkwBenzinKm', label: 'PKW Benzin (km/Jahr)', category: null, fieldKey: 'PKW_BENZIN_KM', hint: 'Faktor: 0,142 kg CO₂e/km' },
+    { id: 'pkwDieselKm', label: 'PKW Diesel (km/Jahr)', category: null, fieldKey: 'PKW_DIESEL_KM', hint: 'Faktor: 0,171 kg CO₂e/km' },
+    { id: 'transporterKm', label: 'Transporter (km/Jahr)', category: null, fieldKey: 'TRANSPORTER_KM', hint: 'Faktor: 0,210 kg CO₂e/km' },
+    { id: 'lkwKm', label: 'LKW (km/Jahr)', category: null, fieldKey: 'LKW_KM', hint: 'Faktor: 0,320 kg CO₂e/km' },
   ] as const;
 
   return (
@@ -141,7 +146,15 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
         {fields.map((f) => (
           <div key={f.id} className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label htmlFor={f.id}>{f.label}</Label>
+              <Label htmlFor={f.id}>
+                {f.id === 'diesel' ? (
+                  <>{f.label}<HelpTooltip text="Aus Tankbelegen, DATEV-Konto 4530, oder vom Fuhrparkmanager" /></>
+                ) : f.id === 'benzin' ? (
+                  <>{f.label}<HelpTooltip text="Aus Tankbelegen oder DATEV-Konto 4530" /></>
+                ) : (
+                  f.label
+                )}
+              </Label>
               {f.category && (
                 <UploadOCR
                   category={f.category}
@@ -152,16 +165,36 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
                 />
               )}
             </div>
-            <Input id={f.id} type="number" step="0.1" min={0} {...register(f.id)} />
+            <Input
+              id={f.id}
+              type="number"
+              step="0.1"
+              min={0}
+              {...register(f.id)}
+              onBlur={(e) => {
+                if (f.id === 'diesel') {
+                  setWarnings(w => ({ ...w, DIESEL_FUHRPARK: getPlausibilityWarning('DIESEL_FUHRPARK', Number(e.target.value)) }));
+                }
+              }}
+            />
             {errors[f.id] && <p className="text-xs text-red-600">{errors[f.id]?.message}</p>}
+            {f.id === 'diesel' && <PlausibilityWarning message={warnings.DIESEL_FUHRPARK ?? null} />}
             <p className="text-xs text-gray-400">{f.hint} (UBA 2024)</p>
+            {(f.id === 'diesel' || f.id === 'benzin' || f.id === 'pkwBenzinKm' || f.id === 'pkwDieselKm' || f.id === 'transporterKm' || f.id === 'lkwKm') && (
+              <FieldDocumentZone fieldKey={f.fieldKey} year={year} />
+            )}
           </div>
         ))}
 
-        <Button type="submit" disabled={isSubmitting || !yearId}>
+        <Button type="submit" disabled={isSubmitting || !yearId} className="rounded-full px-6">
           {isSubmitting ? 'Speichern...' : '💾 Speichern'}
         </Button>
       </form>
+
+      <ScreenChangeLog
+        yearId={yearId}
+        categories={['DIESEL_FUHRPARK', 'BENZIN_FUHRPARK', 'PKW_BENZIN_KM', 'PKW_DIESEL_KM', 'TRANSPORTER_KM', 'LKW_KM']}
+      />
 
       <WizardNav currentScreen={3} />
     </div>

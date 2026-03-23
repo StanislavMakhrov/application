@@ -27,6 +27,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { WizardNav } from '@/components/wizard/WizardNav';
 import { UploadOCR } from '@/components/wizard/UploadOCR';
 import { CsvImport } from '@/components/wizard/CsvImport';
+import { FieldDocumentZone } from '@/components/wizard/FieldDocumentZone';
+import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
+import { PlausibilityWarning, getPlausibilityWarning } from '@/components/wizard/PlausibilityWarning';
+import { HelpTooltip } from '@/components/ui/HelpTooltip';
 import { saveEntry, getOrCreateYear } from '@/lib/actions';
 
 // Month labels for the monthly breakdown section
@@ -78,6 +82,7 @@ export default function Screen4Strom({ year }: Screen4Props) {
   const [yearId, setYearId] = useState<number | null>(null);
   // documentId is carried from OCR/CSV result to saveEntry for audit linkage
   const [lastDocumentId, setLastDocumentId] = useState<number | undefined>();
+  const [warnings, setWarnings] = useState<Record<string, string | null>>({});
 
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } =
     useForm<FormValues>({
@@ -254,17 +259,27 @@ export default function Screen4Strom({ year }: Screen4Props) {
             <div className="flex items-center justify-between">
               <Label htmlFor="strom">
                 Strom (kWh/Jahr){isFinalAnnual ? ' — Jahresendsumme' : ''}
+                <HelpTooltip text="Auf der Strom-Jahresabrechnung unter 'Verbrauch kWh' oder 'Gesamtverbrauch'. Bei monatlichen Rechnungen alle 12 Monate addieren." />
               </Label>
               <UploadOCR
                 category="STROM"
                 onResult={(v, _conf, docId) => { setValue('strom', v); setLastDocumentId(docId); }}
               />
             </div>
-            <Input id="strom" type="number" step="1" min={0} {...register('strom')} />
+            <Input
+              id="strom"
+              type="number"
+              step="1"
+              min={0}
+              {...register('strom')}
+              onBlur={(e) => setWarnings(w => ({ ...w, STROM: getPlausibilityWarning('STROM', Number(e.target.value)) }))}
+            />
             {errors.strom && <p className="text-xs text-red-600">{errors.strom.message}</p>}
+            <PlausibilityWarning message={warnings.STROM ?? null} />
             <p className="text-xs text-gray-400">
-              Faktor: {isOekostrom ? '0,030' : '0,434'} kg CO₂e/kWh (UBA 2024)
+              Faktor: {isOekostrom ? '0,030' : '0,380'} kg CO₂e/kWh (UBA 2024)
             </p>
+            <FieldDocumentZone fieldKey="STROM" year={year} />
           </div>
         )}
 
@@ -284,7 +299,10 @@ export default function Screen4Strom({ year }: Screen4Props) {
         {/* Fernwärme */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <Label htmlFor="fernwaerme">Fernwärme (kWh/Jahr)</Label>
+            <Label htmlFor="fernwaerme">
+              Fernwärme (kWh/Jahr)
+              <HelpTooltip text="Auf der Fernwärme-Jahresabrechnung Ihres Versorgers" />
+            </Label>
             <UploadOCR
               category="FERNWAERME"
               onResult={(v, _conf, docId) => { setValue('fernwaerme', v); setLastDocumentId(docId); }}
@@ -293,12 +311,18 @@ export default function Screen4Strom({ year }: Screen4Props) {
           <Input id="fernwaerme" type="number" step="1" min={0} {...register('fernwaerme')} />
           {errors.fernwaerme && <p className="text-xs text-red-600">{errors.fernwaerme.message}</p>}
           <p className="text-xs text-gray-400">Faktor: 0,175 kg CO₂e/kWh (UBA 2024). Nur wenn Fernwärme vorhanden.</p>
+          <FieldDocumentZone fieldKey="FERNWAERME" year={year} />
         </div>
 
-        <Button type="submit" disabled={isSubmitting || !yearId}>
+        <Button type="submit" disabled={isSubmitting || !yearId} className="rounded-full px-6">
           {isSubmitting ? 'Speichern...' : '💾 Speichern'}
         </Button>
       </form>
+
+      <ScreenChangeLog
+        yearId={yearId}
+        categories={['STROM', 'FERNWAERME']}
+      />
 
       <WizardNav currentScreen={4} />
     </div>

@@ -16,6 +16,8 @@ import { WizardNav } from '@/components/wizard/WizardNav';
 import { saveMaterialEntries, getOrCreateYear } from '@/lib/actions';
 import { MATERIAL_LABELS } from '@/types';
 import type { MaterialCategory } from '@/types';
+import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
+import { HelpTooltip } from '@/components/ui/HelpTooltip';
 
 interface MaterialRow {
   material: MaterialCategory;
@@ -113,7 +115,9 @@ export default function Screen6Materialien({ year }: Screen6Props) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-200">
-              <th className="text-left pb-2 pr-3 font-medium text-gray-600">Material</th>
+              <th className="text-left pb-2 pr-3 font-medium text-gray-600">
+                Material <HelpTooltip text="Aus Materialeinkauf / DATEV-Konto 3000–3999, oder von Ihrem Lagerbestand" />
+              </th>
               <th className="text-left pb-2 pr-3 font-medium text-gray-600">Menge (kg)</th>
               <th className="text-left pb-2 pr-3 font-medium text-gray-600">Lieferant (optional)</th>
               <th className="text-left pb-2 font-medium text-gray-600">Faktor (kg CO₂e/kg)</th>
@@ -182,6 +186,12 @@ export default function Screen6Materialien({ year }: Screen6Props) {
           Tipp: Geben Sie nur die verbrauchten Mengen ein. Nicht verwendete Materialien können leer bleiben.
         </Label>
       </div>
+
+      <ScreenChangeLog
+        yearId={yearId}
+        categories={['KUPFER', 'STAHL', 'ALUMINIUM', 'HOLZ', 'KUNSTSTOFF_PVC', 'BETON', 'FARBEN_LACKE', 'SONSTIGE']}
+        title="Änderungsprotokoll Materialien"
+      />
 
       <WizardNav currentScreen={6} />
     </div>

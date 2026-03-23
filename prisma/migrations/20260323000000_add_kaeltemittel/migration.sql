@@ -1,0 +1,5 @@
+-- Add Kältemittel (refrigerant) categories to EmissionCategory enum
+ALTER TYPE "EmissionCategory" ADD VALUE IF NOT EXISTS 'R410A_KAELTEMITTEL';
+ALTER TYPE "EmissionCategory" ADD VALUE IF NOT EXISTS 'R32_KAELTEMITTEL';
+ALTER TYPE "EmissionCategory" ADD VALUE IF NOT EXISTS 'R134A_KAELTEMITTEL';
+ALTER TYPE "EmissionCategory" ADD VALUE IF NOT EXISTS 'SONSTIGE_KAELTEMITTEL';

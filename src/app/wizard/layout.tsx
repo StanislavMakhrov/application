@@ -27,7 +27,7 @@ export default function WizardLayout({ children }: { children: React.ReactNode }
   const progress = (currentScreen / WIZARD_STEPS.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-[#F7F6F2] flex flex-col">
       {/* Top bar */}
       <header className="border-b border-gray-200 bg-white px-6 py-3 shadow-sm">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
@@ -62,7 +62,7 @@ export default function WizardLayout({ children }: { children: React.ReactNode }
                 className={cn(
                   'flex flex-col rounded-md px-3 py-2.5 text-sm transition-colors',
                   isActive
-                    ? 'bg-brand-green text-white font-medium'
+                    ? 'border-l-[3px] border-l-[#1B4332] bg-brand-green text-white font-medium pl-[calc(0.75rem-3px)]'
                     : isDone
                     ? 'bg-brand-green-pale text-brand-green hover:bg-brand-green-pale/80'
                     : 'text-gray-600 hover:bg-gray-100'
