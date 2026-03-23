@@ -37,7 +37,14 @@ require_non_empty() {
 }
 
 gh_safe() {
-  GH_PAGER=cat GH_FORCE_TTY=false gh "$@"
+  # Use RELEASE_TOKEN (classic PAT) when available — the built-in GITHUB_TOKEN (ghu_
+  # OAuth token) cannot create PRs due to GitHub App integration restrictions.
+  local token="${RELEASE_TOKEN:-}"
+  if [[ -n "$token" ]]; then
+    GH_PAGER=cat GH_FORCE_TTY=false GH_TOKEN="$token" gh "$@"
+  else
+    GH_PAGER=cat GH_FORCE_TTY=false gh "$@"
+  fi
 }
 
 require_clean_worktree() {
@@ -177,7 +184,20 @@ main() {
     exit 2
   fi
 
-  git push -u origin HEAD
+  git_push_with_token() {
+    local token="${RELEASE_TOKEN:-}"
+    local branch
+    branch="$(git branch --show-current)"
+    if [[ -n "$token" ]]; then
+      local repo_url
+      repo_url="$(git remote get-url origin | sed 's|https://[^@]*@||; s|https://||')"
+      git push -u "https://x-access-token:${token}@${repo_url}" "HEAD:${branch}"
+    else
+      git push -u origin HEAD
+    fi
+  }
+
+  git_push_with_token
 
   ensure_pr_exists
 

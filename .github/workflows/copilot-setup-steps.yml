@@ -17,12 +17,20 @@ jobs:
   copilot-setup-steps:
     runs-on: ubuntu-latest
 
-    # The permissions defined here are scoped to the GITHUB_TOKEN the coding agent
-    # uses during its session. contents:write is required for the agent to push code,
-    # and pull-requests:write is required to create and update pull requests.
+    # NOTE: The permissions block here does NOT control the Copilot agent's ghu_ OAuth
+    # token. The Copilot agent always uses a GitHub App user-to-server token whose
+    # permissions are governed by the Copilot App installation — not this block.
+    # This block only scopes the GITHUB_TOKEN for the setup steps themselves.
     permissions:
       contents: write
       pull-requests: write
+
+    # RELEASE_TOKEN is a classic PAT (repo + workflow scopes). It is exposed here so
+    # the agent can use it via scripts/pr-github.sh to push code and create pull
+    # requests. The built-in ghu_ Copilot token cannot create PRs programmatically
+    # (returns "Resource not accessible by integration"), whereas a classic PAT can.
+    env:
+      RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 
     steps:
       - name: Checkout repository
