@@ -28,8 +28,7 @@ import { CategoryStatusList } from '@/components/dashboard/CategoryStatusList';
 import { AuditLogPanel } from '@/components/dashboard/AuditLogPanel';
 import { YearSelector } from '@/components/dashboard/YearSelector';
 import { BRANCHE_LABELS } from '@/types';
-import type { CO2eTotals } from '@/types';
-import type { Branche } from '@/types';
+import type { CO2eTotals, Branche } from '@/types';
 
 // Revalidate data on every request so the dashboard is always fresh
 export const dynamic = 'force-dynamic';
@@ -93,7 +92,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     : '#';
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-50" aria-label="GrünBilanz Dashboard">
       {/* Header */}
       <header className="border-b border-gray-200 bg-white px-6 py-4 shadow-sm">
         <div className="mx-auto max-w-7xl flex items-center justify-between flex-wrap gap-4">
