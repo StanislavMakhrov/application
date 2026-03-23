@@ -1,15 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --brand-green: #2D6A4F;
+  --brand-green: #1e5c3a;
+  --brand-green-mid: #2D6A4F;
   --brand-green-light: #52B788;
   --brand-green-pale: #D8F3DC;
   --font-sans: 'Inter', system-ui, sans-serif;
-  --background: #F7F6F2;
+  --background: #f0f4f1;
   --card: #FFFFFF;
-  --card-border: #E5E7EB;
+  --card-border: #e2e8e4;
+
+  /* Modern shadow tokens */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.05);
+
+  /* Gradient tokens */
+  --gradient-brand: linear-gradient(135deg, #1e5c3a 0%, #2D6A4F 50%, #3a8a63 100%);
+  --gradient-card-accent: linear-gradient(90deg, #1e5c3a, #52B788);
 }
 
 body {
@@ -20,5 +32,30 @@ body {
 
 /* Smooth transitions on interactive elements */
 button, a, input, select, textarea {
-  transition: all 0.15s ease;
+  transition: all 0.18s ease;
+}
+
+/* Modern card glow on hover */
+.card-hover {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.card-hover:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #b0c4b8;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2D6A4F;
 }

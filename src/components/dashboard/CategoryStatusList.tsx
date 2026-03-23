@@ -35,21 +35,27 @@ export function CategoryStatusList({ capturedCategories }: CategoryStatusListPro
     <div className="space-y-4">
       {(['SCOPE1', 'SCOPE2', 'SCOPE3'] as const).map((scope) => (
         <div key={scope}>
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+          <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">
             {SCOPE_LABELS[scope]}
           </p>
-          <div className="grid grid-cols-2 gap-1">
+          <div className="grid grid-cols-2 gap-1.5">
             {byScope[scope].map((cat) => {
               const captured = capturedCategories.has(cat);
               return (
                 <div
                   key={cat}
-                  className={`flex items-center gap-2 rounded px-2 py-1 text-xs ${
-                    captured ? 'bg-brand-green-pale text-green-600' : 'bg-gray-50 text-gray-400'
+                  className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                    captured
+                      ? 'bg-brand-green-muted text-brand-green border border-brand-green/20'
+                      : 'bg-gray-50 text-gray-400 border border-transparent'
                   }`}
                 >
-                  <span>{captured ? '✓' : '○'}</span>
-                  <span>{CATEGORY_LABELS[cat]}</span>
+                  <span className={`flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${
+                    captured ? 'bg-brand-green text-white' : 'bg-gray-200 text-gray-400'
+                  }`}>
+                    {captured ? '✓' : '○'}
+                  </span>
+                  <span className="truncate">{CATEGORY_LABELS[cat]}</span>
                 </div>
               );
             })}

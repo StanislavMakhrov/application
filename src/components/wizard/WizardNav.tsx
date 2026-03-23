@@ -27,7 +27,7 @@ export function WizardNav({
   const canGoForward = currentScreen < totalScreens;
 
   return (
-    <div className="mt-6 flex items-center justify-between border-t border-gray-200 pt-4">
+    <div className="mt-6 flex items-center justify-between border-t border-card-border pt-4">
       <Button
         variant="outline"
         onClick={() => router.push(`/wizard/${currentScreen - 1}`)}

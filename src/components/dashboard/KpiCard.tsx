@@ -19,17 +19,33 @@ export function KpiCard({ title, value, unit, subtitle, highlight, className }: 
   return (
     <div
       className={cn(
-        'rounded-lg border bg-white p-5 shadow-sm',
-        highlight ? 'border-brand-green bg-brand-green-pale' : 'border-gray-200',
+        'relative rounded-2xl border overflow-hidden bg-white shadow-card transition-all duration-200 hover:shadow-card-hover hover:-translate-y-0.5',
+        highlight ? 'border-brand-green/30' : 'border-card-border',
         className
       )}
     >
-      <p className="text-sm font-medium text-gray-500">{title}</p>
-      <p className={cn('mt-1 text-3xl font-bold', highlight ? 'text-brand-green' : 'text-gray-900')}>
-        {value}
-        {unit && <span className="ml-1 text-base font-normal text-gray-500">{unit}</span>}
-      </p>
-      {subtitle && <p className="mt-1 text-xs text-gray-500">{subtitle}</p>}
+      {/* Accent stripe */}
+      <div
+        className={cn(
+          'h-1 w-full',
+          highlight ? 'bg-gradient-card-accent' : 'bg-gradient-to-r from-gray-200 to-gray-100'
+        )}
+      />
+      <div className="p-5">
+        <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">{title}</p>
+        <p
+          className={cn(
+            'mt-2 text-3xl font-extrabold tracking-tight',
+            highlight ? 'text-brand-green' : 'text-gray-900'
+          )}
+        >
+          {value}
+          {unit && (
+            <span className="ml-1.5 text-base font-normal text-gray-400">{unit}</span>
+          )}
+        </p>
+        {subtitle && <p className="mt-1.5 text-xs text-gray-400">{subtitle}</p>}
+      </div>
     </div>
   );
 }

@@ -92,15 +92,15 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     : '#';
 
   return (
-    <main className="min-h-screen bg-[#F7F6F2]">
+    <main className="min-h-screen bg-warm-bg">
       {/* Header */}
-      <header className="border-b border-gray-200 bg-white px-6 py-4 shadow-sm">
+      <header className="border-b border-card-border bg-white/80 backdrop-blur-sm px-6 py-4 shadow-card sticky top-0 z-10">
         <div className="mx-auto max-w-7xl flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-xl font-bold text-brand-green">
+            <h1 className="text-xl font-extrabold tracking-tight text-brand-green">
               🌿 GrünBilanz
             </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-xs text-gray-400 mt-0.5">
               {companyProfile?.firmenname ?? 'Unbekanntes Unternehmen'} ·{' '}
               {companyProfile?.standort ?? ''}
             </p>
@@ -111,7 +111,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             )}
             <Link
               href="/wizard/1"
-              className="inline-flex items-center justify-center rounded-md bg-brand-green px-4 py-2 text-sm font-medium text-white hover:bg-brand-green/90 min-h-[44px] transition-colors"
+              className="inline-flex items-center justify-center rounded-xl bg-gradient-brand px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:shadow-md hover:opacity-95 active:scale-[0.98] min-h-[44px] transition-all duration-150"
             >
               Daten erfassen
             </Link>
@@ -119,10 +119,10 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               href={reportUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium min-h-[44px] transition-colors border ${
+              className={`inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold min-h-[44px] transition-all duration-150 border shadow-card ${
                 currentYearRecord
-                  ? 'border-brand-green text-brand-green hover:bg-brand-green-pale'
-                  : 'border-gray-300 text-gray-400 pointer-events-none'
+                  ? 'border-brand-green/30 text-brand-green hover:bg-brand-green-muted hover:shadow-md'
+                  : 'border-card-border text-gray-400 pointer-events-none'
               }`}
             >
               Bericht erstellen
@@ -164,8 +164,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         {/* Main content grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Scope Donut */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-            <h2 className="text-sm font-semibold text-gray-700 mb-4">Scope-Verteilung</h2>
+          <div className="bg-white rounded-2xl border border-card-border shadow-card p-5 transition-all duration-200 hover:shadow-card-hover">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Scope-Verteilung</h2>
             <ScopeDonut
               scope1={currentTotals.scope1}
               scope2={currentTotals.scope2}
@@ -174,8 +174,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           </div>
 
           {/* Category bar chart */}
-          <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 shadow-sm p-5 overflow-x-auto">
-            <h2 className="text-sm font-semibold text-gray-700 mb-4">
+          <div className="lg:col-span-2 bg-white rounded-2xl border border-card-border shadow-card p-5 overflow-x-auto transition-all duration-200 hover:shadow-card-hover">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
               Emissionen nach Kategorie (t CO₂e)
             </h2>
             <CategoryBarChart byCategory={currentTotals.byCategory} />
@@ -185,8 +185,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         {/* YoY comparison + Benchmark + Status */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Year-over-year */}
-          <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-            <h2 className="text-sm font-semibold text-gray-700 mb-4">
+          <div className="lg:col-span-2 bg-white rounded-2xl border border-card-border shadow-card p-5 transition-all duration-200 hover:shadow-card-hover">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
               Jahresvergleich {prevYear} vs. {selectedYear}
             </h2>
             <YearOverYearChart
@@ -210,8 +210,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               mitarbeiter={mitarbeiter}
             />
 
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-              <h2 className="text-sm font-semibold text-gray-700 mb-3">
+            <div className="bg-white rounded-2xl border border-card-border shadow-card p-5 transition-all duration-200 hover:shadow-card-hover">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">
                 Erfassungsstatus {selectedYear}
               </h2>
               <CategoryStatusList capturedCategories={capturedCategories} />

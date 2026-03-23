@@ -189,10 +189,10 @@ export default function Screen4Strom({ year }: Screen4Props) {
   };
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+    <div className="rounded-2xl border border-card-border bg-white p-6 shadow-card">
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Strom & Fernwärme</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">Strom & Fernwärme</h1>
           <p className="text-sm text-gray-500">Scope 2 — eingekaufte Energie</p>
         </div>
         <CsvImport categories={['STROM', 'FERNWAERME']} onResult={handleCsvResult} />

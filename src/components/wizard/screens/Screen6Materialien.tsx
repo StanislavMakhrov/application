@@ -105,8 +105,8 @@ export default function Screen6Materialien({ year }: Screen6Props) {
   };
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-      <h1 className="text-xl font-bold text-gray-900 mb-1">Materialien</h1>
+    <div className="rounded-2xl border border-card-border bg-white p-6 shadow-card">
+      <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 mb-1">Materialien</h1>
       <p className="text-sm text-gray-500 mb-6">
         Scope 3, Kategorie 1 — vorgelagerte Emissionen eingekaufter Materialien
       </p>

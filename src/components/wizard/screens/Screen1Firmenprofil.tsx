@@ -87,11 +87,13 @@ export default function Screen1Firmenprofil() {
   };
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-      <h1 className="text-xl font-bold text-gray-900 mb-1">Firmenprofil</h1>
-      <p className="text-sm text-gray-500 mb-6">
-        Grunddaten Ihres Betriebs — erscheinen auf dem PDF-Bericht und im Branchenvergleich.
-      </p>
+    <div className="rounded-2xl border border-card-border bg-white p-6 shadow-card">
+      <div className="mb-6">
+        <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 mb-1">Firmenprofil</h1>
+        <p className="text-sm text-gray-500">
+          Grunddaten Ihres Betriebs — erscheinen auf dem PDF-Bericht und im Branchenvergleich.
+        </p>
+      </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {/* Firmenname */}
