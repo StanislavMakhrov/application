@@ -38,6 +38,14 @@ No special tokens, separate repositories, or environments are required for UAT.
 
 ## Troubleshooting
 
-### Agent cannot push code
+### Agent cannot push code or create PRs
 
-Ensure the repository has GitHub Actions enabled and the default `GITHUB_TOKEN` has `contents: write` permission.
+Ensure the repository has GitHub Actions enabled and `.github/workflows/copilot-setup-steps.yml` has the following permissions block at the workflow level:
+
+```yaml
+permissions:
+  contents: write
+  pull-requests: write
+```
+
+Without these explicit permissions, the `GITHUB_TOKEN` only has read access (when the repository's default token permissions are set to "restricted"), and the agent cannot push branches or have GitHub auto-create PRs on its behalf.
