@@ -29,8 +29,15 @@ export async function getEmissionFactor(key: string, year: number): Promise<numb
     where: { key, validYear: { lte: year } },
     orderBy: { validYear: 'desc' },
   });
+  if (fallback) return fallback.factorKg;
 
-  return fallback?.factorKg ?? null;
+  // Forward fallback: use earliest factor newer than requested year.
+  // Handles years before the first seeded factor (e.g. 2023 data with only 2024 factors).
+  const forward = await prisma.emissionFactor.findFirst({
+    where: { key, validYear: { gt: year } },
+    orderBy: { validYear: 'asc' },
+  });
+  return forward?.factorKg ?? null;
 }
 
 /**

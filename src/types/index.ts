@@ -25,7 +25,11 @@ export type EmissionCategory =
   | 'ABFALL_RESTMUELL'
   | 'ABFALL_BAUSCHUTT'
   | 'ABFALL_ALTMETALL'
-  | 'ABFALL_SONSTIGES';
+  | 'ABFALL_SONSTIGES'
+  | 'R410A_KAELTEMITTEL'
+  | 'R32_KAELTEMITTEL'
+  | 'R134A_KAELTEMITTEL'
+  | 'SONSTIGE_KAELTEMITTEL';
 
 export type MaterialCategory =
   | 'KUPFER'
@@ -118,6 +122,10 @@ export const CATEGORY_LABELS: Record<EmissionCategory, string> = {
   ABFALL_BAUSCHUTT: 'Abfall Bauschutt',
   ABFALL_ALTMETALL: 'Abfall Altmetall',
   ABFALL_SONSTIGES: 'Abfall Sonstiges',
+  R410A_KAELTEMITTEL: 'R410A (Kältemittelverlust)',
+  R32_KAELTEMITTEL: 'R32 (Kältemittelverlust)',
+  R134A_KAELTEMITTEL: 'R134a (Kältemittelverlust)',
+  SONSTIGE_KAELTEMITTEL: 'Sonstige Kältemittel',
 };
 
 /** Human-readable German label for each material category */
@@ -163,6 +171,10 @@ export const CATEGORY_UNITS: Record<EmissionCategory, string> = {
   ABFALL_BAUSCHUTT: 'kg',
   ABFALL_ALTMETALL: 'kg',
   ABFALL_SONSTIGES: 'kg',
+  R410A_KAELTEMITTEL: 'kg',
+  R32_KAELTEMITTEL: 'kg',
+  R134A_KAELTEMITTEL: 'kg',
+  SONSTIGE_KAELTEMITTEL: 'kg',
 };
 
 /** Maps each emission category to its scope */
@@ -185,4 +197,8 @@ export const CATEGORY_SCOPE: Record<EmissionCategory, Scope> = {
   ABFALL_BAUSCHUTT: 'SCOPE3',
   ABFALL_ALTMETALL: 'SCOPE3',
   ABFALL_SONSTIGES: 'SCOPE3',
+  R410A_KAELTEMITTEL: 'SCOPE1',
+  R32_KAELTEMITTEL: 'SCOPE1',
+  R134A_KAELTEMITTEL: 'SCOPE1',
+  SONSTIGE_KAELTEMITTEL: 'SCOPE1',
 };

@@ -25,7 +25,6 @@ import { CategoryBarChart } from '@/components/dashboard/CategoryBarChart';
 import { YearOverYearChart } from '@/components/dashboard/YearOverYearChart';
 import { BranchenvergleichCard } from '@/components/dashboard/BranchenvergleichCard';
 import { CategoryStatusList } from '@/components/dashboard/CategoryStatusList';
-import { AuditLogPanel } from '@/components/dashboard/AuditLogPanel';
 import { YearSelector } from '@/components/dashboard/YearSelector';
 import { BRANCHE_LABELS } from '@/types';
 import type { CO2eTotals } from '@/types';
@@ -93,7 +92,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     : '#';
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-[#F7F6F2]">
       {/* Header */}
       <header className="border-b border-gray-200 bg-white px-6 py-4 shadow-sm">
         <div className="mx-auto max-w-7xl flex items-center justify-between flex-wrap gap-4">
@@ -220,10 +219,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           </div>
         </div>
 
-        {/* Audit trail — collapsible, shows last 50 changes with document links */}
-        <div className="mt-6">
-          <AuditLogPanel yearId={currentYearRecord?.id} />
-        </div>
+        {/* Audit trail — moved to individual wizard screens */}
       </div>
     </main>
   );

@@ -18,13 +18,13 @@ async function main() {
     { key: 'ERDGAS', validYear: 2024, factorKg: 2.0, unit: 'm³', source: 'UBA 2024', scope: Scope.SCOPE1 },
     { key: 'HEIZOEL', validYear: 2024, factorKg: 2.65, unit: 'L', source: 'UBA 2024', scope: Scope.SCOPE1 },
     { key: 'FLUESSIGGAS', validYear: 2024, factorKg: 1.65, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE1 },
-    { key: 'DIESEL_FUHRPARK', validYear: 2024, factorKg: 2.64, unit: 'L', source: 'UBA 2024', scope: Scope.SCOPE1 },
+    { key: 'DIESEL_FUHRPARK', validYear: 2024, factorKg: 2.650, unit: 'L', source: 'UBA 2024', scope: Scope.SCOPE1 },
     { key: 'BENZIN_FUHRPARK', validYear: 2024, factorKg: 2.33, unit: 'L', source: 'UBA 2024', scope: Scope.SCOPE1 },
     { key: 'PKW_BENZIN_KM', validYear: 2024, factorKg: 0.142, unit: 'km', source: 'UBA 2024', scope: Scope.SCOPE1 },
     { key: 'PKW_DIESEL_KM', validYear: 2024, factorKg: 0.171, unit: 'km', source: 'UBA 2024', scope: Scope.SCOPE1 },
     { key: 'TRANSPORTER_KM', validYear: 2024, factorKg: 0.21, unit: 'km', source: 'UBA 2024', scope: Scope.SCOPE1 },
     { key: 'LKW_KM', validYear: 2024, factorKg: 0.32, unit: 'km', source: 'UBA 2024', scope: Scope.SCOPE1 },
-    { key: 'STROM', validYear: 2024, factorKg: 0.434, unit: 'kWh', source: 'UBA 2024', scope: Scope.SCOPE2 },
+    { key: 'STROM', validYear: 2024, factorKg: 0.380, unit: 'kWh', source: 'UBA 2024', scope: Scope.SCOPE2 },
     { key: 'STROM_OEKOSTROM', validYear: 2024, factorKg: 0.03, unit: 'kWh', source: 'UBA 2024', scope: Scope.SCOPE2 },
     { key: 'FERNWAERME', validYear: 2024, factorKg: 0.175, unit: 'kWh', source: 'UBA 2024', scope: Scope.SCOPE2 },
     { key: 'GESCHAEFTSREISEN_FLUG', validYear: 2024, factorKg: 0.255, unit: 'km', source: 'UBA 2024', scope: Scope.SCOPE3 },
@@ -44,6 +44,11 @@ async function main() {
     { key: 'BETON', validYear: 2024, factorKg: 0.13, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE3 },
     { key: 'FARBEN_LACKE', validYear: 2024, factorKg: 2.8, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE3 },
     { key: 'SONSTIGE', validYear: 2024, factorKg: 1.0, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE3 },
+    // Kältemittel (refrigerant leak) Scope 1 — GWP values from UBA 2024
+    { key: 'R410A_KAELTEMITTEL', validYear: 2024, factorKg: 2088, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE1 },
+    { key: 'R32_KAELTEMITTEL', validYear: 2024, factorKg: 675, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE1 },
+    { key: 'R134A_KAELTEMITTEL', validYear: 2024, factorKg: 1430, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE1 },
+    { key: 'SONSTIGE_KAELTEMITTEL', validYear: 2024, factorKg: 1000, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE1 },
   ];
 
   for (const factor of factors) {
@@ -57,7 +62,7 @@ async function main() {
 
   // Industry benchmarks (t CO₂e per employee per year)
   const benchmarks = [
-    { branche: Branche.ELEKTROHANDWERK, co2ePerEmployeePerYear: 12.5 },
+    { branche: Branche.ELEKTROHANDWERK, co2ePerEmployeePerYear: 3.2 },
     { branche: Branche.SHK, co2ePerEmployeePerYear: 14.2 },
     { branche: Branche.BAUGEWERBE, co2ePerEmployeePerYear: 18.7 },
     { branche: Branche.TISCHLER, co2ePerEmployeePerYear: 10.3 },

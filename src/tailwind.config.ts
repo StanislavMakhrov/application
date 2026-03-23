@@ -17,6 +17,9 @@ const config: Config = {
           amber: '#F4A261',
           red: '#E76F51',
         },
+        // Design refresh — warm off-white background
+        'warm-bg': '#F7F6F2',
+        'card-border': '#E5E7EB',
       },
     },
   },

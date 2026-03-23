@@ -2,7 +2,8 @@
 
 /**
  * Per-category completion status list for the dashboard.
- * Shows ✓ (erfasst) or ○ (nicht erfasst) for each emission category.
+ * Shows ✓ erfasst (green) or ○ nicht erfasst (gray) for each emission category.
+ * Kältemittel categories are also included in the Scope 1 section.
  */
 
 import { CATEGORY_LABELS, CATEGORY_SCOPE } from '@/types';
@@ -13,7 +14,9 @@ interface CategoryStatusListProps {
 }
 
 const ALL_CATEGORIES: EmissionCategory[] = [
-  'ERDGAS', 'HEIZOEL', 'FLUESSIGGAS', 'DIESEL_FUHRPARK', 'BENZIN_FUHRPARK',
+  'ERDGAS', 'HEIZOEL', 'FLUESSIGGAS',
+  'R410A_KAELTEMITTEL', 'R32_KAELTEMITTEL', 'R134A_KAELTEMITTEL', 'SONSTIGE_KAELTEMITTEL',
+  'DIESEL_FUHRPARK', 'BENZIN_FUHRPARK',
   'PKW_BENZIN_KM', 'PKW_DIESEL_KM', 'TRANSPORTER_KM', 'LKW_KM',
   'STROM', 'FERNWAERME',
   'GESCHAEFTSREISEN_FLUG', 'GESCHAEFTSREISEN_BAHN', 'PENDLERVERKEHR',
@@ -42,7 +45,7 @@ export function CategoryStatusList({ capturedCategories }: CategoryStatusListPro
                 <div
                   key={cat}
                   className={`flex items-center gap-2 rounded px-2 py-1 text-xs ${
-                    captured ? 'bg-brand-green-pale text-brand-green' : 'bg-gray-50 text-gray-400'
+                    captured ? 'bg-brand-green-pale text-green-600' : 'bg-gray-50 text-gray-400'
                   }`}
                 >
                   <span>{captured ? '✓' : '○'}</span>

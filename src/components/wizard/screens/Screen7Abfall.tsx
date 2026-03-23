@@ -15,6 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { WizardNav } from '@/components/wizard/WizardNav';
 import { CsvImport } from '@/components/wizard/CsvImport';
+import { FieldDocumentZone } from '@/components/wizard/FieldDocumentZone';
+import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
 import { saveEntry, getOrCreateYear } from '@/lib/actions';
 
 const schema = z.object({
@@ -90,6 +92,7 @@ export default function Screen7Abfall({ year }: Screen7Props) {
           <Input id="restmuell" type="number" step="0.1" min={0} {...register('restmuell')} />
           {errors.restmuell && <p className="text-xs text-red-600">{errors.restmuell.message}</p>}
           <p className="text-xs text-gray-400">Faktor: 0,450 kg CO₂e/kg (UBA 2024)</p>
+          <FieldDocumentZone fieldKey="ABFALL_RESTMUELL" year={year} />
         </div>
 
         <div className="space-y-1.5">
@@ -97,6 +100,7 @@ export default function Screen7Abfall({ year }: Screen7Props) {
           <Input id="bauschutt" type="number" step="0.1" min={0} {...register('bauschutt')} />
           {errors.bauschutt && <p className="text-xs text-red-600">{errors.bauschutt.message}</p>}
           <p className="text-xs text-gray-400">Faktor: 0,008 kg CO₂e/kg (UBA 2024)</p>
+          <FieldDocumentZone fieldKey="ABFALL_BAUSCHUTT" year={year} />
         </div>
 
         <div className="space-y-1.5">
@@ -106,6 +110,7 @@ export default function Screen7Abfall({ year }: Screen7Props) {
           <p className="text-xs text-gray-400 font-medium text-brand-green">
             ♻ Gutschrift: −1,500 kg CO₂e/kg — Recycling reduziert Ihre Bilanz! (UBA 2024)
           </p>
+          <FieldDocumentZone fieldKey="ABFALL_ALTMETALL" year={year} />
         </div>
 
         <div className="space-y-1.5">
@@ -113,12 +118,19 @@ export default function Screen7Abfall({ year }: Screen7Props) {
           <Input id="sonstiges" type="number" step="0.1" min={0} {...register('sonstiges')} />
           {errors.sonstiges && <p className="text-xs text-red-600">{errors.sonstiges.message}</p>}
           <p className="text-xs text-gray-400">Faktor: 0,350 kg CO₂e/kg (UBA 2024)</p>
+          <FieldDocumentZone fieldKey="ABFALL_SONSTIGES" year={year} />
         </div>
 
-        <Button type="submit" disabled={isSubmitting || !yearId}>
+        <Button type="submit" disabled={isSubmitting || !yearId} className="rounded-full px-6">
           {isSubmitting ? 'Speichern...' : '💾 Speichern & Abschließen'}
         </Button>
       </form>
+
+      <ScreenChangeLog
+        yearId={yearId}
+        categories={['ABFALL_RESTMUELL', 'ABFALL_BAUSCHUTT', 'ABFALL_ALTMETALL', 'ABFALL_SONSTIGES']}
+        title="Änderungsprotokoll Abfall"
+      />
 
       <WizardNav currentScreen={7} />
     </div>

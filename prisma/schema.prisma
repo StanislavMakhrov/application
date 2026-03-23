@@ -89,6 +89,10 @@ enum EmissionCategory {
   ABFALL_BAUSCHUTT
   ABFALL_ALTMETALL
   ABFALL_SONSTIGES
+  R410A_KAELTEMITTEL
+  R32_KAELTEMITTEL
+  R134A_KAELTEMITTEL
+  SONSTIGE_KAELTEMITTEL
 }
 
 enum InputMethod {
@@ -176,6 +180,19 @@ model IndustryBenchmark {
 }
 
 // ─── Audit Trail & Document Storage ──────────────────────────────────────────
+
+// Per-field document attachments (invoices, receipts) uploaded per fieldKey/year.
+model FieldDocument {
+  id               Int      @id @default(autoincrement())
+  fieldKey         String   // e.g. "ERDGAS_2024"
+  year             Int
+  filePath         String
+  originalFilename String
+  mimeType         String
+  uploadedAt       DateTime @default(now())
+
+  @@unique([fieldKey, year])
+}
 
 enum AuditAction {
   CREATE

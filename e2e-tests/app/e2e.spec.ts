@@ -77,10 +77,10 @@ test.describe("Dashboard", () => {
     expect(body).not.toContain("NaN%");
   });
 
-  test("shows audit log panel on dashboard", async ({ page }) => {
-    await page.goto("/");
+  test("shows audit log section on wizard screen", async ({ page }) => {
+    await page.goto("/wizard/2");
     const body = await page.content();
-    // AuditLogPanel renders a section with "Änderungsprotokoll" or similar
+    // ScreenChangeLog renders at the bottom of each wizard screen (moved from dashboard)
     expect(
       body.includes("Änderungsprotokoll") || body.includes("Audit") || body.includes("Protokoll")
     ).toBe(true);
