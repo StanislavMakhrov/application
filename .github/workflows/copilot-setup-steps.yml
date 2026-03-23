@@ -17,6 +17,9 @@ permissions:
   contents: write
   pull-requests: write
 
+env:
+  GH_TOKEN: ${{ secrets.COPILOT_TOKEN }}
+
 jobs:
   copilot-setup-steps:
     runs-on: ubuntu-latest
@@ -47,6 +50,18 @@ jobs:
         # Buildx is required to replicate the multi-platform build used in PR Validation.
         # The agent uses this to run `scripts/docker-build-test.sh` locally before pushing.
         uses: docker/setup-buildx-action@v4
+
+      - name: Export COPILOT_TOKEN to agent session
+        # The workflow-level env block only applies to setup steps.
+        # Writing to $GITHUB_ENV is required to make GH_TOKEN available
+        # in the Copilot agent's own session so scripts/pr-github.sh can create PRs.
+        env:
+          COPILOT_TOKEN: ${{ secrets.COPILOT_TOKEN }}
+        run: |
+          if [ -n "$COPILOT_TOKEN" ]; then
+            echo "::add-mask::$COPILOT_TOKEN"
+            echo "GH_TOKEN=$COPILOT_TOKEN" >> "$GITHUB_ENV"
+          fi
 
       - name: Setup complete
         run: |

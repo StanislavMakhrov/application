@@ -73,6 +73,14 @@ npm test
 npm run test:coverage
 ```
 
+## Beitragen / Contributing
+
+Beiträge sind willkommen! Bitte lies [`CONTRIBUTING.md`](CONTRIBUTING.md) für Details
+zu Branch-Konventionen, Commit-Messages und dem Review-Prozess.
+
+**GitHub Copilot Coding Agent** wird für automatisierte Entwicklungsaufgaben eingesetzt.
+Setup-Anleitung: [`.github/COPILOT-SETUP.md`](.github/COPILOT-SETUP.md).
+
 ## Lizenz
 
 MIT — siehe LICENSE

@@ -177,7 +177,16 @@ main() {
     exit 2
   fi
 
-  git push -u origin HEAD
+  # Push only if the remote doesn't already have this exact commit.
+  # (report_progress already pushes via GitHub Actions credentials; the
+  #  ghu_ OAuth token used in agent sessions cannot push directly.)
+  local branch
+  branch="$(git branch --show-current)"
+  local remote_sha
+  remote_sha="$(git ls-remote origin "refs/heads/${branch}" 2>/dev/null | cut -f1 || true)"
+  if [[ -z "$remote_sha" ]] || [[ "$(git rev-parse HEAD)" != "$remote_sha" ]]; then
+    git push -u origin HEAD
+  fi
 
   ensure_pr_exists
 
