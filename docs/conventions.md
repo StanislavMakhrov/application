@@ -70,6 +70,7 @@ If these appear as **transitive dependencies** (pulled in by another package), u
 **Test Optimization:** Tests only run in PR Validation workflow to eliminate redundancy. CI workflow focuses solely on versioning after merge.
 
 **Manual CI trigger:** If a release was missed (e.g., CI failed when the secret was not yet configured), run CI manually:
+
 ```bash
 scripts/check-workflow-status.sh trigger ci.yml
 ```
