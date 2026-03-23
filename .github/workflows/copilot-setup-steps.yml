@@ -17,6 +17,14 @@ jobs:
   copilot-setup-steps:
     runs-on: ubuntu-latest
 
+    # These permissions are used by the GITHUB_TOKEN that the coding agent receives
+    # during its session (for pushing code and creating pull requests).
+    # This repo uses restricted default token permissions, so they must be granted
+    # explicitly here. Without pull-requests:write, the agent cannot auto-create PRs.
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
