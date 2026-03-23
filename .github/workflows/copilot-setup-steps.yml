@@ -17,9 +17,12 @@ jobs:
   copilot-setup-steps:
     runs-on: ubuntu-latest
 
-    # Keep permissions at minimum required for setup steps
+    # The permissions defined here are scoped to the GITHUB_TOKEN the coding agent
+    # uses during its session. contents:write is required for the agent to push code,
+    # and pull-requests:write is required to create and update pull requests.
     permissions:
-      contents: read
+      contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository
