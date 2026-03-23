@@ -20,12 +20,43 @@ This repository uses GitHub Copilot coding agents for automated development work
 3. **Agent Skills**: `.github/skills/*/SKILL.md`
    - Reusable workflows for common tasks (PR creation, testing, releases)
 
+## Repository Settings (One-Time Setup)
+
+Before Copilot coding agent can push code and auto-create PRs, two repository
+settings must be configured by the Maintainer once:
+
+### 1. Enable GitHub Actions workflow permissions
+
+Go to **Settings → Actions → General → Workflow permissions** and select:
+
+> ✅ **Read and write permissions**
+> Allow GitHub Actions to create and approve pull requests ✅
+
+This makes the default `GITHUB_TOKEN` in all Actions workflows read+write, which
+is required for the Copilot agent to push branches and open pull requests.
+
+**Alternative (used in this repo):** If you prefer restricted defaults, keep the
+setting at "Read repository contents" and instead grant permissions explicitly in
+`.github/workflows/copilot-setup-steps.yml`:
+
+```yaml
+permissions:
+  contents: write
+  pull-requests: write
+```
+
+Both approaches have the same effect. The permissive default is simpler but
+grants write access to _all_ workflows by default.
+
+### 2. Enable Copilot coding agent
+
+Go to **Settings → Copilot → Coding agent** and turn it **ON**.
+
 ## Usage
 
-1. Push this repository to GitHub
-2. Go to **Settings → Copilot → Coding agent → ON**
-3. Create an issue and assign it to `@copilot`
-4. The workflow orchestrator agent delegates work to specialized agents automatically
+1. Complete the one-time setup above
+2. Create an issue and assign it to `@copilot`
+3. The workflow orchestrator agent delegates work to specialized agents automatically
 
 ## UAT (User Acceptance Testing)
 
