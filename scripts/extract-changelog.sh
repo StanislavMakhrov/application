@@ -12,8 +12,8 @@ LAST_VERSION="${3-}"
 LAST_VERSION="${LAST_VERSION#v}"
 
 if [[ ! -f "$CHANGELOG_PATH" ]]; then
-  echo "Changelog file not found: $CHANGELOG_PATH" >&2
-  exit 1
+  echo "Changelog file not found: $CHANGELOG_PATH; skipping extraction" >&2
+  exit 0
 fi
 
 awk -v current="$CURRENT_VERSION" -v last="$LAST_VERSION" '
