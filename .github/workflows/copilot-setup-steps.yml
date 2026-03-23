@@ -17,6 +17,9 @@ permissions:
   contents: write
   pull-requests: write
 
+env:
+  GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+
 jobs:
   copilot-setup-steps:
     runs-on: ubuntu-latest
