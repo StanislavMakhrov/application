@@ -6,14 +6,14 @@ This repository uses GitHub Copilot coding agents for automated development work
 
 - **GitHub Copilot Pro+** (or Enterprise) subscription
 - Copilot coding agent enabled in repository settings
-- **Repository setting**: Go to **Settings → Actions → General → Workflow permissions** and check **"Allow GitHub Actions to create and approve pull requests"** — this is required for the Copilot agent to open pull requests automatically
+- **`RELEASE_TOKEN` secret** *(recommended)* — a classic PAT with `repo` scope added to repository secrets. Required for the Copilot agent to create pull requests unless you enable the "Allow GitHub Actions to create and approve pull requests" repository policy instead. See Troubleshooting below.
 
 ## How It Works
 
 1. **Setup Workflow**: `.github/workflows/copilot-setup-steps.yml`
    - Runs before the coding agent starts working
    - Installs Node.js 20 and npm dependencies
-   - The `permissions` block in this file applies to the setup steps only — **it does not affect the Copilot agent's own token**
+   - Exposes `RELEASE_TOKEN` as `GH_TOKEN` so the agent can create pull requests
 
 2. **Agent Definitions**: `.github/agents/*.agent.md`
    - Define agent roles, tools, and instructions
@@ -26,7 +26,7 @@ This repository uses GitHub Copilot coding agents for automated development work
 
 1. Push this repository to GitHub
 2. Go to **Settings → Copilot → Coding agent → ON**
-3. Go to **Settings → Actions → General** and check **"Allow GitHub Actions to create and approve pull requests"**
+3. Add `RELEASE_TOKEN` secret to repository secrets (Settings → Secrets and variables → Actions)
 4. Create an issue and assign it to `@copilot`
 5. The workflow orchestrator agent delegates work to specialized agents automatically
 
@@ -47,14 +47,23 @@ Ensure the repository has GitHub Actions enabled and the default `GITHUB_TOKEN` 
 
 ### Agent gets 403 when creating a pull request
 
-The Copilot coding agent uses its own GitHub App token (`GITHUB_COPILOT_API_TOKEN`) for all operations including PR creation. This token is **separate** from the `GITHUB_TOKEN` used by workflow steps.
+The Copilot coding agent uses a `ghu_` OAuth token (user-to-server token) for its operations. This token is subject to the repository policy **"Allow GitHub Actions to create and approve pull requests"**. When this policy is disabled (the default in many repos), the token gets a `403 Resource not accessible by integration` error when calling the GitHub `createPullRequest` API.
 
-The `permissions` block in `.github/workflows/copilot-setup-steps.yml` only applies to the **setup job** that runs before the agent starts — it has no effect on the agent's ability to create pull requests.
+The `permissions` block in `.github/workflows/copilot-setup-steps.yml` controls the `GITHUB_TOKEN` scopes for the setup steps job, **not** the agent's OAuth token. Setting `pull-requests: write` in the workflow permissions does **not** bypass this restriction.
 
-**Fix**: Enable the repository setting that allows GitHub Apps to open PRs:
+**Fix A (recommended — no UI policy change needed):** Add a classic PAT as `RELEASE_TOKEN` repository secret.
+
+1. Create a classic PAT at <https://github.com/settings/tokens> with `repo` scope
+   - Set an expiration date (90 days recommended) and rotate it before it expires
+2. Go to **Settings → Secrets and variables → Actions → New repository secret**
+3. Name: `RELEASE_TOKEN`, Value: the PAT you created
+4. The `copilot-setup-steps.yml` workflow already exposes this as `GH_TOKEN`, which the `gh` CLI uses automatically for PR creation
+5. (Optional) If you also use Fix B, you can skip this step
+
+**Fix B (alternative):** Enable the repository policy that allows GitHub Apps to open PRs.
 
 1. Go to **Settings → Actions → General**
 2. Under "Workflow permissions", check **"Allow GitHub Actions to create and approve pull requests"**
 3. Click **Save**
 
-Without this setting, the Copilot agent's token will receive a 403 "Resource not accessible by integration" error when trying to open pull requests, regardless of what permissions are listed in `copilot-setup-steps.yml`.
+Fix A is preferred because it works immediately without changing repository-wide security policies. It also enables use of `scripts/pr-github.sh` for PR creation from within the agent session.
