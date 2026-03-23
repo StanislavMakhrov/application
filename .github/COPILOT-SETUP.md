@@ -6,12 +6,14 @@ This repository uses GitHub Copilot coding agents for automated development work
 
 - **GitHub Copilot Pro+** (or Enterprise) subscription
 - Copilot coding agent enabled in repository settings
+- **Repository setting**: Go to **Settings → Actions → General → Workflow permissions** and check **"Allow GitHub Actions to create and approve pull requests"** — this is required for the Copilot agent to open pull requests automatically
 
 ## How It Works
 
 1. **Setup Workflow**: `.github/workflows/copilot-setup-steps.yml`
    - Runs before the coding agent starts working
    - Installs Node.js 20 and npm dependencies
+   - The `permissions` block in this file applies to the setup steps only — **it does not affect the Copilot agent's own token**
 
 2. **Agent Definitions**: `.github/agents/*.agent.md`
    - Define agent roles, tools, and instructions
@@ -24,8 +26,9 @@ This repository uses GitHub Copilot coding agents for automated development work
 
 1. Push this repository to GitHub
 2. Go to **Settings → Copilot → Coding agent → ON**
-3. Create an issue and assign it to `@copilot`
-4. The workflow orchestrator agent delegates work to specialized agents automatically
+3. Go to **Settings → Actions → General** and check **"Allow GitHub Actions to create and approve pull requests"**
+4. Create an issue and assign it to `@copilot`
+5. The workflow orchestrator agent delegates work to specialized agents automatically
 
 ## UAT (User Acceptance Testing)
 
@@ -40,18 +43,18 @@ No special tokens, separate repositories, or environments are required for UAT.
 
 ### Agent cannot push code
 
-Ensure the repository has GitHub Actions enabled and the default `GITHUB_TOKEN` has `contents: write` permission.
+Ensure the repository has GitHub Actions enabled and the default `GITHUB_TOKEN` has `contents: write` permission (Settings → Actions → General → Workflow permissions → "Read and write permissions").
 
 ### Agent gets 403 when creating a pull request
 
-If the repository has restricted default `GITHUB_TOKEN` permissions (e.g. read-only), the Copilot coding agent will receive a 403 "Resource not accessible by integration" error when trying to open a pull request.
+The Copilot coding agent uses its own GitHub App token (`GITHUB_COPILOT_API_TOKEN`) for all operations including PR creation. This token is **separate** from the `GITHUB_TOKEN` used by workflow steps.
 
-**Fix**: Add explicit `permissions` to `.github/workflows/copilot-setup-steps.yml` at the workflow level:
+The `permissions` block in `.github/workflows/copilot-setup-steps.yml` only applies to the **setup job** that runs before the agent starts — it has no effect on the agent's ability to create pull requests.
 
-```yaml
-permissions:
-  contents: write
-  pull-requests: write
-```
+**Fix**: Enable the repository setting that allows GitHub Apps to open PRs:
 
-This grants the Copilot agent the minimum permissions required to push branches and open pull requests. This fix is already applied in this repository.
+1. Go to **Settings → Actions → General**
+2. Under "Workflow permissions", check **"Allow GitHub Actions to create and approve pull requests"**
+3. Click **Save**
+
+Without this setting, the Copilot agent's token will receive a 403 "Resource not accessible by integration" error when trying to open pull requests, regardless of what permissions are listed in `copilot-setup-steps.yml`.

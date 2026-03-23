@@ -14,6 +14,11 @@ on:
       - .github/workflows/copilot-setup-steps.yml
 
 permissions:
+  # These permissions apply to the setup steps job only.
+  # They do NOT affect the Copilot agent's own token (GITHUB_COPILOT_API_TOKEN),
+  # which the agent uses for all its operations including PR creation.
+  # To allow the agent to create pull requests, enable:
+  # Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests"
   contents: write
   pull-requests: write
 
