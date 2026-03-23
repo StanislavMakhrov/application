@@ -52,15 +52,17 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Export COPILOT_TOKEN to agent session
-        # The workflow-level env block only applies to setup steps.
-        # Writing to $GITHUB_ENV is required to make GH_TOKEN available
-        # in the Copilot agent's own session so scripts/pr-github.sh can create PRs.
+        # $GITHUB_ENV propagates to subsequent Actions steps only.
+        # To reach the agent's interactive bash sessions (which start fresh),
+        # we also write to ~/.bashrc and ~/.profile so every new shell inherits GH_TOKEN.
         env:
           COPILOT_TOKEN: ${{ secrets.COPILOT_TOKEN }}
         run: |
           if [ -n "$COPILOT_TOKEN" ]; then
             echo "::add-mask::$COPILOT_TOKEN"
             echo "GH_TOKEN=$COPILOT_TOKEN" >> "$GITHUB_ENV"
+            printf 'export GH_TOKEN=%s\n' "$COPILOT_TOKEN" >> ~/.bashrc
+            printf 'export GH_TOKEN=%s\n' "$COPILOT_TOKEN" >> ~/.profile
           fi
 
       - name: Setup complete

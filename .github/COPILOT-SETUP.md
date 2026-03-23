@@ -54,4 +54,4 @@ integration policy. The fix:
 
 1. Create a classic PAT with `repo` scope at **Settings → Developer settings → Personal access tokens**
 2. Store it as a repository secret named `COPILOT_TOKEN` (**Settings → Secrets and variables → Actions**)
-3. The `copilot-setup-steps.yml` workflow exposes it as `GH_TOKEN` so the agent's `gh` commands use the PAT
+3. The `copilot-setup-steps.yml` workflow exposes it as `GH_TOKEN` via `$GITHUB_ENV` (for Actions steps) and `~/.bashrc` / `~/.profile` (for the agent's interactive bash sessions) so the agent's `gh` commands use the PAT
