@@ -30,10 +30,10 @@ This skill is automatically loaded by all coding agents. It defines the core wor
 - Manual `git checkout -b` commands will fail (permission denied)
 - Branch creation is GitHub's responsibility, not yours
 
-**Pull Request Creation (new behavior):**
+**Pull Request Creation:**
 - GitHub no longer automatically creates a draft PR when a session starts
-- If your prompt **explicitly requests a PR** (e.g. "Create a pull request to fix X"), use the **`create-pr-github`** skill to create one after pushing
-- If your prompt does **not** request a PR, just push your changes with `report_progress` — the user can create the PR by clicking **Create Pull Request** in the GitHub UI after the session completes
+- The agent is responsible for creating the PR at the end of the session using the **`create-pr-github`** skill
+- After all work is pushed with `report_progress` and CI is green, always invoke the `create-pr-github` skill to open the PR
 - Never create a duplicate PR if one already exists for your branch
 
 1. **For Direct Questions (When Running as Primary Agent)**: If you are the primary agent on a PR (not delegated via `task` tool), you can create PR comments to ask the Maintainer questions. Wait for a response before proceeding.
@@ -81,11 +81,20 @@ This skill is automatically loaded by all coding agents. It defines the core wor
    - Watch it until completion
    - If it **fails**: read the error logs, fix the issues, re-run `pre-push-validation`
      locally, call `report_progress` again, and repeat
-   - Only proceed to the summary comment once CI is **green**
+   - Only proceed to the next step once CI is **green**
 
    **Do not hand off to the next agent with a failing build.**
 
-5. **Create Summary Comment (After Progress Reported)**: Post a PR comment with:
+4b. **Create the Pull Request (primary agent only)**:
+
+   Once CI is green, use the **`create-pr-github`** skill to open the PR. The agent is
+   responsible for creating the PR — do not wait for the user to click "Create Pull Request"
+   in the GitHub UI.
+
+   - Check first that no open PR already exists for this branch
+   - Use the standard PR body template (Problem / Change / Verification)
+
+5. **Create Summary Comment (After PR Created)**: Post a PR comment with:
    - **Summary**: Brief description of what you completed
    - **Changes**: List of key files/features modified
    - **Next Agent**: Recommend which agent should continue the workflow (see docs/agents.md for workflow sequence)
@@ -111,7 +120,8 @@ This skill is automatically loaded by all coding agents. It defines the core wor
 ## Key Principles
 
 - **GitHub creates branches automatically** - never attempt to create or switch branches yourself
-- **PR creation is user-controlled** - use the `create-pr-github` skill only when the prompt explicitly requests a PR; otherwise push with `report_progress` and let the user click "Create Pull Request" in the GitHub UI
+- **Agent creates PRs** - after pushing and CI is green, always use the `create-pr-github` skill to open the PR; do NOT wait for the user to click "Create Pull Request" in the GitHub UI
+- **Never create a duplicate PR** - check if one already exists for your branch before creating
 - **`report_progress` is only available to the primary agent** - subagents spawned via `task` tool must use `git commit` instead
 - **Always use `report_progress`** for commits and pushes (primary agent) - never use manual `git push` commands
 - **Subagents MUST `git commit` before completing** - uncommitted changes will be lost if only in memory; the parent's `report_progress` can pick up uncommitted files via `git add .` but this is a fallback, not the primary mechanism
