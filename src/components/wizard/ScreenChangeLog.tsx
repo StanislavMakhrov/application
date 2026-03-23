@@ -32,7 +32,10 @@ function parseCategory(metadata: string | null): string {
   try {
     const p = JSON.parse(metadata) as Record<string, unknown>;
     return String(p.category ?? p.material ?? '');
-  } catch { return ''; }
+  } catch (err) {
+    console.warn('ScreenChangeLog: failed to parse metadata JSON', err);
+    return '';
+  }
 }
 
 export function ScreenChangeLog({ yearId, categories, title = 'Änderungsprotokoll für diesen Abschnitt' }: ScreenChangeLogProps) {

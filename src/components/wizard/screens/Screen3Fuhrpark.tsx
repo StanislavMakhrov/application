@@ -180,9 +180,7 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
             {errors[f.id] && <p className="text-xs text-red-600">{errors[f.id]?.message}</p>}
             {f.id === 'diesel' && <PlausibilityWarning message={warnings.DIESEL_FUHRPARK ?? null} />}
             <p className="text-xs text-gray-400">{f.hint} (UBA 2024)</p>
-            {(f.id === 'diesel' || f.id === 'benzin' || f.id === 'pkwBenzinKm' || f.id === 'pkwDieselKm' || f.id === 'transporterKm' || f.id === 'lkwKm') && (
-              <FieldDocumentZone fieldKey={f.fieldKey} year={year} />
-            )}
+            <FieldDocumentZone fieldKey={f.fieldKey} year={year} />
           </div>
         ))}
 
