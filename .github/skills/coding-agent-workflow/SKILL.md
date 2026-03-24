@@ -14,6 +14,24 @@ This skill is automatically loaded by all coding agents. It defines the core wor
 - Reporting progress with the `report_progress` tool
 - Creating summary comments after work completion
 
+## ⛔ STOP — Check Session Type Before Proceeding
+
+**If your session was triggered by a GitHub issue assignment** (i.e. an issue was assigned to `@copilot`), you **MUST NOT follow the workflow below**. Instead:
+
+1. Load `.github/agents/workflow-orchestrator-coding-agent.agent.md` immediately.
+2. Act as the Workflow Orchestrator — delegate ALL work to specialized agents.
+3. Do **not** implement anything directly. Do not search code, do not edit files, do not run tests.
+
+This skill's workflow below is **only** for:
+- Subagents that have already been delegated a specific task by the Orchestrator (invoked via `task` tool).
+- Session-triggered sessions (Maintainer opened a coding-agent chat with no issue assignment).
+
+**How to detect which type you are:**
+- Issue-triggered: The session context references a GitHub issue number/link, or an issue was assigned to `@copilot`.
+- Session-triggered: No issue is referenced; a Maintainer typed a prompt directly.
+
+---
+
 ## Workflow
 
 **You are running as a GitHub Copilot coding agent.** Follow this workflow:
