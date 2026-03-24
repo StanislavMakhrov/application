@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.5](https://github.com/StanislavMakhrov/application/compare/v0.1.4...v0.1.5) (2026-03-24)
+
+
+### Features
+
+* add full company profile section and always-visible boundaries in GHG report ([003221e](https://github.com/StanislavMakhrov/application/commit/003221ee58f12786dde7dc6557203a6a41b64415))
+* add reporting boundaries and company profile setup ([282e395](https://github.com/StanislavMakhrov/application/commit/282e395f9ce6ca0ac31b6592654040679905b02b))
+
+
+### Bug Fixes
+
+* tighten exception clause for orchestrator session continuity in documentation ([ebbdbfe](https://github.com/StanislavMakhrov/application/commit/ebbdbfefffd3a300766e4949fd3c5e019e62d84a))
+
 ## [0.1.4](https://github.com/StanislavMakhrov/application/compare/v0.1.3...v0.1.4) (2026-03-24)
 
 
