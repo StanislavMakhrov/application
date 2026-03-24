@@ -36,6 +36,18 @@ For project-specific instructions, refer to the `docs/architecture.md` and `docs
 
 **If you are running as a GitHub Copilot coding agent** (assigned issues via `@copilot`, PR coding agent on `copilot/*` branches), you **MUST** use the `report_progress` tool for all commits and pushes. **Manual `git push` commands will fail.**
 
+### Entry Point: Workflow Orchestrator (MANDATORY for Issue Assignments)
+
+**When you are triggered from a GitHub issue assignment** (i.e. the session was started because a GitHub issue was assigned to `@copilot`), you **MUST NOT implement the feature directly**. You must act as the **Workflow Orchestrator**:
+
+1. **Load** `.github/agents/workflow-orchestrator-coding-agent.agent.md` and follow its instructions as your primary directive.
+2. **Delegate** all work to the specialized agents in the correct sequence (Requirements Engineer → Architect → Quality Engineer → Task Planner → Developer → ...).
+3. **Never implement code, write docs, or produce artifacts yourself** — your role is purely to orchestrate.
+
+This is the mechanism that routes issue assignments through the full workflow pipeline described in `docs/agents.md` § Automated Orchestration.
+
+> **Exception**: If a previous orchestrator session already produced feature specifications, architecture decisions, and tasks — and the session was re-invoked specifically to continue development (e.g. a PR coding agent on an existing `copilot/*` branch with prior commits) — you may continue from the appropriate workflow step rather than restarting from Requirements Engineer.
+
 **Exception — subagents spawned via `task` tool**: `report_progress` is NOT available to subagents. They must use `git commit` instead (see below).
 
 ### Pull Request Creation
