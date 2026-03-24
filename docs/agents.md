@@ -27,6 +27,9 @@ For well-defined features or bugs, use the **Workflow Orchestrator** agent to au
 **How It Works (Technical)**:
 The routing is controlled by `.github/copilot-instructions.md`. That file contains an explicit rule: when the coding agent session is triggered from a GitHub issue assignment, it **must** load `.github/agents/workflow-orchestrator-coding-agent.agent.md` and act as the Workflow Orchestrator rather than implementing directly. Without this rule, the coding agent would bypass the pipeline and implement directly as a developer.
 
+**Bypassing the Orchestrator (known failure mode)**:
+When GitHub starts a coding agent session it automatically creates an "Initial plan" commit on the `copilot/*` branch. A previous version of the Exception clause in `copilot-instructions.md` allowed bypass when "prior commits" existed — the agent misread the automatic commit as evidence of a prior orchestrator session and implemented the feature directly. The clause was tightened to require actual orchestrator artifacts (`docs/features/<N>-*/specification.md` or `docs/adr/*.md`) before the exception can apply.
+
 **Workflow**:
 - The orchestrator **never asks clarifying questions** - it immediately delegates to the appropriate entry point agent (Requirements Engineer for features, Issue Analyst for bugs)
 - The orchestrator **never implements anything itself** - it purely delegates to specialized agents in sequence
@@ -43,6 +46,9 @@ The routing is controlled by `.github/copilot-instructions.md`. That file contai
 - Exploratory analysis or design work (use individual agents directly)
 - Single-agent tasks (just use that agent)
 - Highly interactive work requiring maintainer decisions at each step
+
+**PR Validation and draft PRs**:
+The `PR Validation` pipeline only runs on **ready (non-draft) PRs**. When a coding agent pushes commits to a draft PR, the `synchronize` event triggers the workflow but all jobs are intentionally skipped — this is expected and the "skipped" run in the Actions history is not a failure. The pipeline runs for real only when `scripts/pr-github.sh mark-ready` converts the draft PR to ready-for-review (firing the `ready_for_review` event). This design prevents wasted CI resources on intermediate commits during development.
 
 **Verification note:** If a change only touches agent instructions / skills / documentation (for example `.github/agents/`, `.github/skills/`, `.github/copilot-instructions.md`, or `docs/`), running `npm test` is not required because the test suite does not validate those changes. Run `cd src && npm test` when application code changes.
 
