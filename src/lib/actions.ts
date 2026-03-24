@@ -189,6 +189,8 @@ export interface SaveEntryInput {
   isFinalAnnual?: boolean;
   // Provider name for mid-year provider-change tracking
   providerName?: string;
+  // Supplier-specific emission factor (kg CO₂e/kWh) for STROM market-based calculation
+  supplierSpecificFactor?: number | null;
   // ID of the source document (returned by OCR/CSV upload endpoints)
   documentId?: number;
 }
@@ -229,6 +231,7 @@ export async function saveEntry(input: SaveEntryInput): Promise<ActionResult> {
           inputMethod: newMethod,
           isFinalAnnual: input.isFinalAnnual ?? false,
           providerName: input.providerName ?? null,
+          supplierSpecificFactor: input.supplierSpecificFactor ?? null,
         },
       });
       entryId = existing.id;
@@ -245,6 +248,7 @@ export async function saveEntry(input: SaveEntryInput): Promise<ActionResult> {
           billingMonth: input.billingMonth ?? null,
           isFinalAnnual: input.isFinalAnnual ?? false,
           providerName: input.providerName ?? null,
+          supplierSpecificFactor: input.supplierSpecificFactor ?? null,
         },
       });
       entryId = created.id;

@@ -203,6 +203,35 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
         <Text style={styles.sectionTitle}>Emissionen nach Scope (GHG Protocol)</Text>
         {renderScopeTable(scope1Entries, 'Scope 1 — Direkte Emissionen', totals.scope1)}
         {renderScopeTable(scope2Entries, 'Scope 2 — Energiebedingte Emissionen', totals.scope2)}
+
+        {/* Scope 2 dual-method note — shown when both methods are available */}
+        {totals.scope2MarketBased !== null && totals.scope2MarketBased !== totals.scope2LocationBased && (
+          <View style={{ backgroundColor: '#f0fdf4', borderRadius: 4, padding: 10, marginBottom: 12 }}>
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#2D6A4F', marginBottom: 4 }}>
+              Scope 2 — Standortbasiert vs. Marktbasiert (GHG Protocol Dual-Methode)
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 8, color: '#555' }}>Standortbasiert (Netzmix)</Text>
+                <Text style={{ fontSize: 11, fontFamily: 'Helvetica-Bold', color: '#1a1a1a', marginTop: 2 }}>
+                  {totals.scope2LocationBased.toFixed(3)} t CO₂e
+                </Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 8, color: '#555' }}>Marktbasiert (Lieferant/Zertifikat)</Text>
+                <Text style={{ fontSize: 11, fontFamily: 'Helvetica-Bold', color: '#2D6A4F', marginTop: 2 }}>
+                  {totals.scope2MarketBased.toFixed(3)} t CO₂e
+                </Text>
+              </View>
+            </View>
+            <Text style={{ fontSize: 8, color: '#777', marginTop: 6, lineHeight: 1.4 }}>
+              Der standortbasierte Wert verwendet den durchschnittlichen Netzemissionsfaktor (UBA 2024).
+              Der marktbasierte Wert basiert auf anbieterspezifischen Faktoren oder Herkunftsnachweisen.
+              Beide Werte werden gemäß GHG Protocol Corporate Standard ausgewiesen.
+            </Text>
+          </View>
+        )}
+
         {renderScopeTable(scope3Entries, 'Scope 3 — Vorgelagerte Emissionen', totals.scope3)}
 
         {/* Reporting Boundaries — always shown on page 1 */}

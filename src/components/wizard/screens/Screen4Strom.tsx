@@ -62,6 +62,7 @@ type MonthlyValues = z.infer<typeof monthlySchema>;
 const schema = z.object({
   strom: z.coerce.number().min(0).default(0),
   isOekostrom: z.boolean().default(false),
+  supplierSpecificFactor: z.coerce.number().min(0).optional(),
   fernwaerme: z.coerce.number().min(0).default(0),
   // Provider name for mid-year provider changes
   providerName: z.string().optional(),
@@ -90,6 +91,7 @@ export default function Screen4Strom({ year }: Screen4Props) {
       defaultValues: {
         strom: 0,
         isOekostrom: false,
+        supplierSpecificFactor: undefined,
         fernwaerme: 0,
         useMonthly: false,
         isFinalAnnual: false,
@@ -100,6 +102,7 @@ export default function Screen4Strom({ year }: Screen4Props) {
   const isOekostrom = watch('isOekostrom');
   const useMonthly = watch('useMonthly');
   const isFinalAnnual = watch('isFinalAnnual');
+  const supplierSpecificFactor = watch('supplierSpecificFactor');
 
   useEffect(() => {
     getOrCreateYear(year).then((y) => {
@@ -107,12 +110,15 @@ export default function Screen4Strom({ year }: Screen4Props) {
       setYearId(y.id);
       fetch(`/api/entries?yearId=${y.id}&scope=SCOPE2`)
         .then((r) => r.json())
-        .then((entries: Array<{ category: string; quantity: number; isOekostrom: boolean; billingMonth?: number | null }>) => {
+        .then((entries: Array<{ category: string; quantity: number; isOekostrom: boolean; supplierSpecificFactor?: number | null; billingMonth?: number | null }>) => {
           // Load annual entries into the main fields
           for (const e of entries) {
             if (e.category === 'STROM' && !e.billingMonth) {
               setValue('strom', e.quantity);
               setValue('isOekostrom', e.isOekostrom);
+              if (e.supplierSpecificFactor != null) {
+                setValue('supplierSpecificFactor', e.supplierSpecificFactor);
+              }
             }
             if (e.category === 'FERNWAERME' && !e.billingMonth) setValue('fernwaerme', e.quantity);
           }
@@ -146,6 +152,7 @@ export default function Screen4Strom({ year }: Screen4Props) {
             category: 'STROM',
             quantity: values.monthly[key.split('.')[1] as keyof MonthlyValues],
             isOekostrom: values.isOekostrom,
+            supplierSpecificFactor: values.supplierSpecificFactor ?? null,
             billingMonth: idx + 1,
             providerName,
             documentId: docId,
@@ -162,6 +169,7 @@ export default function Screen4Strom({ year }: Screen4Props) {
         category: 'STROM',
         quantity: values.strom,
         isOekostrom: values.isOekostrom,
+        supplierSpecificFactor: values.supplierSpecificFactor ?? null,
         isFinalAnnual: values.isFinalAnnual,
         providerName,
         documentId: docId,
@@ -294,6 +302,40 @@ export default function Screen4Strom({ year }: Screen4Props) {
           <p className="text-xs text-gray-400 mt-1 ml-7">
             Ökostrom-Zertifikat vorhanden? Reduziert den Emissionsfaktor erheblich.
           </p>
+        </div>
+
+        {/* Market-based: supplier-specific factor */}
+        <div className="rounded-md border border-gray-100 bg-gray-50 p-4 space-y-2">
+          <p className="text-sm font-medium text-gray-700">
+            Anbieterspezifischer Emissionsfaktor (Marktbasierte Methode)
+          </p>
+          <p className="text-xs text-gray-500">
+            Optionaler Lieferantenfaktor aus Herkunftsnachweisen oder Vertragsdokumentation (kg CO₂e/kWh).
+            Wird für den marktbasierten Scope-2-Wert verwendet, sofern angegeben.
+          </p>
+          <div className="space-y-1.5">
+            <Label htmlFor="supplierSpecificFactor">
+              Lieferantenfaktor (kg CO₂e/kWh)
+              <HelpTooltip text="Wert aus dem Herkunftsnachweis oder der Vertragsdokumentation Ihres Stromanbieters. Wenn leer, wird der Ökostrom-Faktor (0,030) verwendet, sofern Ökostrom aktiviert ist." />
+            </Label>
+            <Input
+              id="supplierSpecificFactor"
+              type="number"
+              step="0.001"
+              min={0}
+              placeholder={isOekostrom ? '0,030 (Ökostrom-Standard)' : '0,380 (Netzmix)'}
+              {...register('supplierSpecificFactor')}
+            />
+            {errors.supplierSpecificFactor && (
+              <p className="text-xs text-red-600">{errors.supplierSpecificFactor.message}</p>
+            )}
+            {supplierSpecificFactor != null && supplierSpecificFactor > 0 && (
+              <p className="text-xs text-green-700">
+                ✓ Marktbasierter Wert aktiv: {supplierSpecificFactor.toFixed(3)} kg CO₂e/kWh
+              </p>
+            )}
+          </div>
+          <FieldDocumentZone fieldKey="STROM_MARKET" year={year} />
         </div>
 
         {/* Fernwärme */}

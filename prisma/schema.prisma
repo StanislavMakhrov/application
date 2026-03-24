@@ -58,6 +58,9 @@ model EmissionEntry {
   isFinalAnnual   Boolean       @default(false)
   // Energy/service provider name — enables mid-year provider changes
   providerName    String?
+  // Supplier-specific emission factor (kg CO₂e/kWh) for STROM market-based calculation.
+  // When set, overrides the default grid factor for market-based Scope 2 reporting.
+  supplierSpecificFactor Float?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   auditLogs       AuditLog[]

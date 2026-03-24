@@ -76,6 +76,7 @@ export interface EmissionEntryData {
   memo?: string | null;
   isOekostrom: boolean;
   inputMethod: InputMethod;
+  supplierSpecificFactor?: number | null;
 }
 
 export interface MaterialEntryData {
@@ -96,10 +97,19 @@ export interface ReportingYearData {
 
 export interface CO2eTotals {
   scope1: number; // tonnes
-  scope2: number; // tonnes
+  scope2: number; // tonnes (market-based when available, otherwise location-based)
   scope3: number; // tonnes
   total: number; // tonnes
   byCategory: Record<string, number>; // tonnes
+  /** Always uses default grid emission factors (location-based method) */
+  scope2LocationBased: number; // tonnes
+  /**
+   * Uses supplier-specific or renewable-tariff factors (market-based method).
+   * Only set when at least one STROM entry has market-based data
+   * (isOekostrom=true or supplierSpecificFactor is provided).
+   * null when no market-based data is available for Scope 2 electricity.
+   */
+  scope2MarketBased: number | null; // tonnes
 }
 
 // === UI Helpers ===

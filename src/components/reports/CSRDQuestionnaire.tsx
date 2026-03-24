@@ -64,7 +64,10 @@ export function CSRDQuestionnaire({ profile, year, totals }: CSRDQuestionnairePr
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>2. Treibhausgasemissionen (CO₂-Äquivalente)</Text>
           <Row label="Scope 1 — Direkte Emissionen" value={`${totals.scope1.toFixed(2)} t CO₂e`} />
-          <Row label="Scope 2 — Energiebedingte Emissionen" value={`${totals.scope2.toFixed(2)} t CO₂e`} />
+          <Row label="Scope 2 — Energiebedingte Emissionen (standortbasiert)" value={`${totals.scope2LocationBased.toFixed(2)} t CO₂e`} />
+          {totals.scope2MarketBased !== null && (
+            <Row label="Scope 2 — Energiebedingte Emissionen (marktbasiert)" value={`${totals.scope2MarketBased.toFixed(2)} t CO₂e`} />
+          )}
           <Row label="Scope 3 — Vorgelagerte Emissionen" value={`${totals.scope3.toFixed(2)} t CO₂e`} />
           <Row label="Gesamt CO₂e" value={`${totals.total.toFixed(2)} t CO₂e`} />
           <Row label="CO₂e pro Mitarbeiter" value={`${co2ePerEmployee.toFixed(2)} t CO₂e/MA`} />

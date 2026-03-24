@@ -7,6 +7,7 @@
  *
  * Special cases:
  * - STROM with isOekostrom=true uses the STROM_OEKOSTROM factor (0.030 kg/kWh)
+ * - STROM with supplierSpecificFactor set uses that factor directly (market-based)
  * - ABFALL_ALTMETALL has a negative factor (recycling credit), which correctly
  *   reduces the total
  *
@@ -15,6 +16,11 @@
  *   overrides all monthly entries for the same category)
  * - Otherwise, sum all entries for the category (annual + monthly, across all
  *   providers — e.g. provider changed mid-month)
+ *
+ * Scope 2 dual-method reporting (GHG Protocol):
+ * - Location-based: always uses the default grid factor (STROM)
+ * - Market-based: uses supplierSpecificFactor when provided, or STROM_OEKOSTROM
+ *   when isOekostrom=true; only reported when market data is available
  */
 
 import { prisma } from './prisma';
@@ -27,15 +33,20 @@ import type { CO2eTotals } from '@/types';
  * @param category - EmissionCategory or MaterialCategory key
  * @param quantity - Amount in the category's native unit
  * @param year - Reporting year for factor lookup
- * @param options - Optional flags (e.g. isOekostrom for STROM)
+ * @param options - Optional flags (e.g. isOekostrom, supplierSpecificFactor for STROM)
  * @returns kg CO₂e, or 0 if no factor found
  */
 export async function calculateCO2e(
   category: string,
   quantity: number,
   year: number,
-  options?: { isOekostrom?: boolean }
+  options?: { isOekostrom?: boolean; supplierSpecificFactor?: number | null }
 ): Promise<number> {
+  // STROM with a supplier-specific factor: use it directly (market-based method)
+  if (category === 'STROM' && options?.supplierSpecificFactor != null) {
+    return quantity * options.supplierSpecificFactor;
+  }
+
   // STROM uses a different factor when powered by renewable energy
   const factorKey =
     category === 'STROM' && options?.isOekostrom ? 'STROM_OEKOSTROM' : category;
@@ -56,6 +67,12 @@ export async function calculateCO2e(
  * - If a category has an isFinalAnnual=true entry, only that entry is counted.
  * - Otherwise all entries for that category are summed (handles multiple
  *   providers and monthly breakdowns simultaneously).
+ *
+ * Scope 2 dual-method reporting:
+ * - scope2LocationBased: always uses default grid factors (STROM)
+ * - scope2MarketBased: uses supplierSpecificFactor or STROM_OEKOSTROM when
+ *   market data is available; null when no market-based data exists
+ * - scope2: market-based when available, otherwise location-based
  *
  * @param yearId - Database ID of the ReportingYear
  * @returns Totals in tonnes CO₂e, broken down by scope and category
@@ -82,6 +99,11 @@ export async function getTotalCO2e(yearId: number): Promise<CO2eTotals> {
   let scope2Kg = 0;
   let scope3Kg = 0;
 
+  // Scope 2 dual-method accumulators
+  let scope2LocationKg = 0;
+  let scope2MarketKg = 0;
+  let hasMarketBasedScope2 = false;
+
   // Determine which categories have a final-annual entry — those entries
   // supersede all monthly/provider-specific rows for that category.
   const finalAnnualCategories = new Set(
@@ -96,12 +118,33 @@ export async function getTotalCO2e(yearId: number): Promise<CO2eTotals> {
 
     const kg = await calculateCO2e(entry.category, entry.quantity, year, {
       isOekostrom: entry.isOekostrom,
+      supplierSpecificFactor: entry.supplierSpecificFactor,
     });
     byCategory[entry.category] = (byCategory[entry.category] ?? 0) + kg;
 
-    if (entry.scope === 'SCOPE1') scope1Kg += kg;
-    else if (entry.scope === 'SCOPE2') scope2Kg += kg;
-    else scope3Kg += kg;
+    if (entry.scope === 'SCOPE1') {
+      scope1Kg += kg;
+    } else if (entry.scope === 'SCOPE2') {
+      scope2Kg += kg;
+
+      if (entry.category === 'STROM' &&
+          (entry.isOekostrom || entry.supplierSpecificFactor != null)) {
+        // Market-based data is available: compute location-based with default grid factor
+        hasMarketBasedScope2 = true;
+        const locationKg = await calculateCO2e(entry.category, entry.quantity, year, {
+          isOekostrom: false,
+          supplierSpecificFactor: null,
+        });
+        scope2LocationKg += locationKg;
+        scope2MarketKg += kg; // already computed with market-based factor
+      } else {
+        // No market adjustment: location-based equals the computed value
+        scope2LocationKg += kg;
+        scope2MarketKg += kg;
+      }
+    } else {
+      scope3Kg += kg;
+    }
   }
 
   // Process material entries (always Scope 3, Category 1 — upstream emissions)
@@ -125,5 +168,7 @@ export async function getTotalCO2e(yearId: number): Promise<CO2eTotals> {
     scope3: kgToTonnes(scope3Kg),
     total: kgToTonnes(scope1Kg + scope2Kg + scope3Kg),
     byCategory: byCategoryTonnes,
+    scope2LocationBased: kgToTonnes(scope2LocationKg),
+    scope2MarketBased: hasMarketBasedScope2 ? kgToTonnes(scope2MarketKg) : null,
   };
 }
