@@ -45,6 +45,17 @@ GitHub no longer automatically creates a draft PR when a coding agent session st
 - After all work is pushed with `report_progress` and CI is green, always use the **`create-pr-github`** skill to open the PR.
 - **Never create a duplicate PR** if one already exists for your branch.
 
+### PR Comment Context (No Sub-PRs)
+
+When `@copilot` is mentioned in a **comment on an existing PR** (rather than assigned a new issue), GitHub may start a new agent session on a new `copilot/*` branch branched from the PR's head. This would result in an unintended **sub-PR** if a new PR is created from that branch.
+
+**In this context you MUST:**
+- **Do NOT create a new sub-PR.** Before calling `create-pr-github`, check if the current branch is a sub-branch of another `copilot/*` branch (i.e., another Copilot branch's commits are already included in yours but not yet in `main`).
+- **Continue work on the existing PR.** If possible, keep all commits on the parent PR's branch. Push changes using `report_progress`; the existing PR updates automatically.
+- **If you detect a sub-branch situation**, stop and leave a comment on the parent PR explaining what work was requested, rather than opening a second PR.
+
+`scripts/pr-github.sh` automatically enforces this: it exits with an error if the current `copilot/*` branch contains commits from another Copilot branch that has not yet been merged to `main`.
+
 ### CI Accountability (MANDATORY)
 
 **The agent is responsible for delivering a PR that passes all CI checks.** The Maintainer should only review — never fix CI failures.

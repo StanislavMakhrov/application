@@ -36,6 +36,11 @@ This skill is automatically loaded by all coding agents. It defines the core wor
 - After all work is pushed with `report_progress` and CI is green, always invoke the `create-pr-github` skill to open the PR
 - Never create a duplicate PR if one already exists for your branch
 
+**PR Comment Context — Preventing Sub-PRs:**
+When `@copilot` is mentioned in a comment on an **existing PR** (not from a new issue), GitHub may create a new `copilot/*` branch branched from the PR's head. Creating a PR from that new branch would produce an unintended **sub-PR**.
+
+Before invoking `create-pr-github`, the sub-branch condition is checked automatically by `scripts/pr-github.sh` — it fetches the latest remote refs and verifies that no other `copilot/*` branch's tip is an ancestor of HEAD while not yet merged into `origin/main`. If a parent Copilot branch is detected, the script exits with an error.
+
 1. **For Direct Questions (When Running as Primary Agent)**: If you are the primary agent on a PR (not delegated via `task` tool), you can create PR comments to ask the Maintainer questions. Wait for a response before proceeding.
 
 2. **For Delegated Execution (When Invoked via `task` Tool)**: If you were invoked by the Workflow Orchestrator via the `task` tool, you run in an isolated context. In this case:

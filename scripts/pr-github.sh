@@ -124,6 +124,46 @@ ensure_pr_exists() {
   echo "$BODY_TEXT" | gh_safe pr create --base main --head "$branch" --title "$TITLE" --body-file -
 }
 
+# Prevent creating a sub-PR when the current copilot/* branch was branched from another
+# copilot/* branch (i.e. @copilot was mentioned in an existing Copilot PR).
+#
+# Logic: for every remote copilot/* branch (other than the current one), check whether
+# its tip is an ancestor of HEAD *and* is NOT already an ancestor of origin/main.
+# If so, the current branch carries that branch's unmerged work → sub-PR situation.
+require_no_sub_pr() {
+  local current_branch
+  current_branch="$(git branch --show-current)"
+
+  # Only relevant for copilot/* branches.
+  [[ "$current_branch" != copilot/* ]] && return 0
+
+  # Quietly refresh remote refs so the check is accurate.
+  # Log a warning if fetch fails so network issues are visible, but don't abort.
+  if ! git fetch origin --quiet 2>/dev/null; then
+    echo "Warning: could not fetch from origin; sub-PR detection may be inaccurate." >&2
+  fi
+
+  while IFS= read -r remote_ref; do
+    local ref_commit
+    ref_commit="$(git rev-parse "$remote_ref" 2>/dev/null || true)"
+    [[ -z "$ref_commit" ]] && continue
+
+    # Is this other copilot branch an ancestor of our HEAD?
+    git merge-base --is-ancestor "$ref_commit" HEAD 2>/dev/null || continue
+
+    # Is it NOT yet merged into origin/main?
+    git merge-base --is-ancestor "$ref_commit" origin/main 2>/dev/null && continue
+
+    # The current branch contains unmerged work from another Copilot branch.
+    local remote_branch="${remote_ref#refs/remotes/}"
+    echo "Error: '${current_branch}' was branched from '${remote_branch}' which is not yet merged into main." >&2
+    echo "       Creating a PR here would produce an unintended sub-PR." >&2
+    echo "       @copilot was likely mentioned in an existing PR. Continue work on '${remote_branch}' instead." >&2
+    exit 1
+  done < <(git for-each-ref --format='%(refname)' 'refs/remotes/origin/copilot/*' \
+             | grep -v "refs/remotes/origin/${current_branch}$")
+}
+
 get_pr_number() {
   local branch
   branch="$(git branch --show-current)"
@@ -176,6 +216,8 @@ main() {
     echo "Error: gh is not authenticated. Run: gh auth login" >&2
     exit 2
   fi
+
+  require_no_sub_pr
 
   # Push only if the remote doesn't already have this exact commit.
   # (report_progress already pushes via GitHub Actions credentials; the
