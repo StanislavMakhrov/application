@@ -202,7 +202,30 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
         {/* Scope Tables */}
         <Text style={styles.sectionTitle}>Emissionen nach Scope (GHG Protocol)</Text>
         {renderScopeTable(scope1Entries, 'Scope 1 — Direkte Emissionen', totals.scope1)}
-        {renderScopeTable(scope2Entries, 'Scope 2 — Energiebedingte Emissionen', totals.scope2)}
+        {renderScopeTable(scope2Entries, 'Scope 2 — Energiebedingte Emissionen (marktbasiert)', totals.scope2MarketBased)}
+        {/* Show location-based total and explanatory note when it differs from market-based */}
+        {totals.scope2LocationBased !== totals.scope2MarketBased && (
+          <View style={{ marginTop: -4, marginBottom: 10 }}>
+            <View style={[styles.tableRow, { backgroundColor: '#f0fdf4' }]}>
+              <Text style={[styles.tableHeaderCell, styles.col1]}>
+                Scope 2 — Energiebedingte Emissionen (standortbasiert)
+              </Text>
+              <Text style={[styles.tableCell, styles.col2]} />
+              <Text style={[styles.tableCell, styles.col3]} />
+              <Text style={[styles.tableHeaderCell, styles.col4]}>
+                {totals.scope2LocationBased.toFixed(3)}
+              </Text>
+            </View>
+            <View style={[styles.boundaryBox, { marginTop: 4 }]}>
+              <Text style={styles.boundaryLabel}>Scope 2 — Methodik</Text>
+              <Text style={styles.boundaryText}>
+                Marktbasiert: Emissionen werden mit lieferantenspezifischen Faktoren (Ökostrom-Zertifikat) berechnet.{'\n'}
+                Standortbasiert: Emissionen werden mit dem nationalen Netz-Durchschnittsfaktor (UBA 2024) berechnet.{'\n'}
+                Beide Werte werden gemäß GHG Protocol Corporate Standard ausgewiesen.
+              </Text>
+            </View>
+          </View>
+        )}
         {renderScopeTable(scope3Entries, 'Scope 3 — Vorgelagerte Emissionen', totals.scope3)}
 
         {/* Reporting Boundaries — always shown on page 1 */}

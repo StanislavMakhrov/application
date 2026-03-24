@@ -104,16 +104,41 @@ describe('getTotalCO2e', () => {
     ]);
     vi.mocked(prisma.materialEntry.findMany).mockResolvedValueOnce([]);
 
-    // ERDGAS: 1000 × 2.0 = 2000 kg, STROM: 1000 × 0.434 = 434 kg
+    // ERDGAS: 1000 × 2.0 = 2000 kg
+    // STROM market-based: 1000 × 0.434 = 434 kg (isOekostrom=false, same factor for both methods)
     vi.mocked(getEmissionFactor)
       .mockResolvedValueOnce(2.0)   // ERDGAS
-      .mockResolvedValueOnce(0.434); // STROM
+      .mockResolvedValueOnce(0.434); // STROM (location-based equals market-based when isOekostrom=false)
 
     const result = await getTotalCO2e(1);
     expect(result.scope1).toBeCloseTo(2.0);   // 2000 kg = 2 t
     expect(result.scope2).toBeCloseTo(0.434); // 434 kg = 0.434 t
+    expect(result.scope2MarketBased).toBeCloseTo(0.434);
+    expect(result.scope2LocationBased).toBeCloseTo(0.434);
     expect(result.scope3).toBe(0);
     expect(result.total).toBeCloseTo(2.434);
+  });
+
+  it('scope2LocationBased uses grid factor while scope2MarketBased uses Ökostrom factor', async () => {
+    vi.mocked(prisma.reportingYear.findUniqueOrThrow).mockResolvedValueOnce({
+      id: 5,
+      year: 2024,
+      createdAt: new Date(),
+    });
+    vi.mocked(prisma.emissionEntry.findMany).mockResolvedValueOnce([
+      // 1000 kWh Ökostrom — market-based uses 0.030, location-based uses 0.380
+      { id: 1, reportingYearId: 5, scope: 'SCOPE2', category: 'STROM', quantity: 1000, isOekostrom: true, memo: null, inputMethod: 'MANUAL', billingMonth: null, isFinalAnnual: false, providerName: null, createdAt: new Date(), updatedAt: new Date() },
+    ]);
+    vi.mocked(prisma.materialEntry.findMany).mockResolvedValueOnce([]);
+
+    vi.mocked(getEmissionFactor)
+      .mockResolvedValueOnce(0.03)  // STROM_OEKOSTROM (market-based)
+      .mockResolvedValueOnce(0.38); // STROM (location-based)
+
+    const result = await getTotalCO2e(5);
+    expect(result.scope2MarketBased).toBeCloseTo(0.03);  // 1000 × 0.030 / 1000
+    expect(result.scope2LocationBased).toBeCloseTo(0.38); // 1000 × 0.380 / 1000
+    expect(result.scope2).toBeCloseTo(0.03); // scope2 equals market-based
   });
 
   it('correctly reduces total when ABFALL_ALTMETALL has negative factor', async () => {

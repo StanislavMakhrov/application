@@ -96,7 +96,11 @@ export interface ReportingYearData {
 
 export interface CO2eTotals {
   scope1: number; // tonnes
-  scope2: number; // tonnes
+  scope2: number; // tonnes (equals scope2MarketBased; kept for backward compatibility)
+  /** Scope 2 calculated with the default grid factor — location-based method */
+  scope2LocationBased: number; // tonnes
+  /** Scope 2 calculated with supplier-specific factors (Ökostrom) — market-based method */
+  scope2MarketBased: number; // tonnes
   scope3: number; // tonnes
   total: number; // tonnes
   byCategory: Record<string, number>; // tonnes

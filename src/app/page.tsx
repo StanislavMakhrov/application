@@ -44,7 +44,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     ? await prisma.industryBenchmark.findUnique({ where: { branche: companyProfile.branche } })
     : null;
 
-  const emptyTotals: CO2eTotals = { scope1: 0, scope2: 0, scope3: 0, total: 0, byCategory: {} };
+  const emptyTotals: CO2eTotals = { scope1: 0, scope2: 0, scope2LocationBased: 0, scope2MarketBased: 0, scope3: 0, total: 0, byCategory: {} };
   const currentTotals = currentYearRecord ? await getTotalCO2e(currentYearRecord.id) : emptyTotals;
 
   const prevYear = selectedYear - 1;

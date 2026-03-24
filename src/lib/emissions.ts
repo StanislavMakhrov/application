@@ -15,6 +15,11 @@
  *   overrides all monthly entries for the same category)
  * - Otherwise, sum all entries for the category (annual + monthly, across all
  *   providers — e.g. provider changed mid-month)
+ *
+ * Scope 2 dual-method:
+ * - Location-based: always uses the grid factor (STROM), ignoring isOekostrom
+ * - Market-based: uses STROM_OEKOSTROM when isOekostrom=true
+ * Both values are returned in CO2eTotals; scope2 equals scope2MarketBased.
  */
 
 import { prisma } from './prisma';
@@ -80,6 +85,7 @@ export async function getTotalCO2e(yearId: number): Promise<CO2eTotals> {
   const byCategory: Record<string, number> = {};
   let scope1Kg = 0;
   let scope2Kg = 0;
+  let scope2LocationKg = 0;
   let scope3Kg = 0;
 
   // Determine which categories have a final-annual entry — those entries
@@ -100,8 +106,20 @@ export async function getTotalCO2e(yearId: number): Promise<CO2eTotals> {
     byCategory[entry.category] = (byCategory[entry.category] ?? 0) + kg;
 
     if (entry.scope === 'SCOPE1') scope1Kg += kg;
-    else if (entry.scope === 'SCOPE2') scope2Kg += kg;
-    else scope3Kg += kg;
+    else if (entry.scope === 'SCOPE2') {
+      scope2Kg += kg;
+      // Location-based: always use the grid factor (ignore isOekostrom).
+      // Only differs from market-based when isOekostrom=true on a STROM entry;
+      // for all other Scope 2 categories the factors are identical.
+      if (entry.category === 'STROM' && entry.isOekostrom) {
+        const kgLocation = await calculateCO2e(entry.category, entry.quantity, year, {
+          isOekostrom: false,
+        });
+        scope2LocationKg += kgLocation;
+      } else {
+        scope2LocationKg += kg;
+      }
+    } else scope3Kg += kg;
   }
 
   // Process material entries (always Scope 3, Category 1 — upstream emissions)
@@ -122,6 +140,8 @@ export async function getTotalCO2e(yearId: number): Promise<CO2eTotals> {
   return {
     scope1: kgToTonnes(scope1Kg),
     scope2: kgToTonnes(scope2Kg),
+    scope2LocationBased: kgToTonnes(scope2LocationKg),
+    scope2MarketBased: kgToTonnes(scope2Kg),
     scope3: kgToTonnes(scope3Kg),
     total: kgToTonnes(scope1Kg + scope2Kg + scope3Kg),
     byCategory: byCategoryTonnes,
