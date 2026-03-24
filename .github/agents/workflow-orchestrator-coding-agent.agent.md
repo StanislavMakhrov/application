@@ -97,7 +97,8 @@ task({
 - Check agent outputs for blockers or errors before proceeding to next agent
 - Report progress after each major workflow stage
 - Handle rework gracefully by delegating back to the appropriate agent
-- Ensure branch naming follows conventions (feature/NNN, fix/NNN, workflow/NNN)
+- On `feature/NNN-*` / `fix/NNN-*` / `workflow/NNN-*` branches, pass the NNN from the branch name to every agent as the work item folder
+- On `copilot/*` branches (GitHub-auto-created when an issue is assigned to @copilot), tell the entry-point agent to run `scripts/next-issue-number.sh` to obtain the NNN and create the work item folder; then propagate that resolved folder to every subsequent agent
 - **Trust that specialized agents have the right tools** - don't assume tool limitations or try to work around them
 
 ### ⚠️ Ask First
@@ -139,9 +140,50 @@ Before starting orchestration:
 
 ## Orchestration Workflow
 
+### 0. Resolve the Work Item Folder (CRITICAL — do this before delegating)
+
+The work item folder (`docs/features/NNN-<slug>/`, `docs/issues/NNN-<slug>/`, or
+`docs/workflow/NNN-<slug>/`) **must be resolved and passed explicitly to every agent
+you delegate to.** Without it, agents cannot create their artifacts.
+
+**How to resolve the folder depends on the current branch:**
+
+#### On a `feature/NNN-*`, `fix/NNN-*`, or `workflow/NNN-*` branch
+Extract the NNN from the branch name and construct the folder path directly:
+```
+Branch: feature/025-custom-title  →  work item folder: docs/features/025-custom-title/
+Branch: fix/042-login-loop        →  work item folder: docs/issues/042-login-loop/
+Branch: workflow/010-ci-speed     →  work item folder: docs/workflow/010-ci-speed/
+```
+Pass this path to every agent you delegate to.
+
+#### On a `copilot/*` branch (GitHub-auto-created from an issue assignment)
+The branch has no NNN — you **must** tell the entry-point agent to determine it.
+When delegating to the entry-point agent (Requirements Engineer for features,
+Issue Analyst for bugs, Workflow Engineer for workflow), include these instructions
+in the prompt:
+
+```
+WORK ITEM FOLDER SETUP (copilot/* branch — you are running as a subagent):
+1. Do NOT create a new git branch. All work stays on the current copilot/* branch.
+2. Run `scripts/next-issue-number.sh` to get the next issue number (NNN).
+3. Derive a slug from the issue title (lowercase, hyphenated words, ≤ 5 words).
+4. Create the work item folder:
+   - Feature:  docs/features/<NNN>-<slug>/
+   - Bug fix:  docs/issues/<NNN>-<slug>/
+   - Workflow: docs/workflow/<NNN>-<slug>/
+5. Save all your artifacts to that folder.
+6. Report the resolved folder path in your response so the orchestrator can
+   propagate it to subsequent agents.
+```
+
+After the entry-point agent reports back, **extract the resolved folder path from
+its response** and use it in every subsequent delegation prompt.
+
 ### 1. Parse and Delegate Immediately
 - Read the complete issue body
 - Extract what you can understand about the type (feature, bug, or workflow)
+- Resolve the work item folder (see § 0 above) and include it in the delegation prompt
 - **Immediately delegate** to the appropriate entry point agent:
   - Features → Requirements Engineer (they will gather any missing requirements)
   - Bugs → Issue Analyst (they will investigate and clarify details)
@@ -170,9 +212,15 @@ For each stage:
      Current context:
      - GitHub issue: [link or summary]
      - Scope: [scope description]
+     - Work item folder: docs/features/025-<slug>/   ← always provide the resolved folder
+     
+     IMPORTANT (copilot/* branch): Do NOT create a new git branch. Use
+     `scripts/next-issue-number.sh` to obtain NNN if the folder is not yet
+     known, derive the slug from the issue title, then save all artifacts to
+     docs/features/<NNN>-<slug>/. Report the resolved folder in your response.
      
      Please create the feature specification following the template in docs/agents.md.
-     Save to docs/features/NNN-<slug>/specification.md.
+     Save to docs/features/<NNN>-<slug>/specification.md.
      
      IMPORTANT: Use edit/create tools to apply all file changes. Call report_progress before completing to commit your changes.`
    })

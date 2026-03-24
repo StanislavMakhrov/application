@@ -18,13 +18,23 @@ Transform an initial feature idea into a clear, unambiguous Feature Specificatio
 
 ## Determine the current work item
 
-As an initial step, determine the current work item folder from the current git branch name (`git branch --show-current`):
+As an initial step, determine the current work item folder:
 
-- `feature/<NNN>-...` -> `docs/features/<NNN>-.../`
-- `fix/<NNN>-...` -> `docs/issues/<NNN>-.../`
-- `workflow/<NNN>-...` -> `docs/workflow/<NNN>-.../`
+1. **If the orchestrator provided the folder path in your instructions**, use it as-is — skip the steps below.
 
-If it's not clear, ask the Maintainer for the exact folder path.
+2. **Otherwise, derive it from the branch name** (`git branch --show-current`):
+   - `feature/<NNN>-...` → `docs/features/<NNN>-.../`
+   - `fix/<NNN>-...` → `docs/issues/<NNN>-.../`
+   - `workflow/<NNN>-...` → `docs/workflow/<NNN>-.../`
+
+3. **On a `copilot/*` branch** (GitHub-auto-created from issue assignment) where no folder was provided:
+   - Run `scripts/next-issue-number.sh` to obtain the next issue number (NNN).
+   - Derive a slug from the issue title or feature description (lowercase, hyphenated, ≤ 5 words).
+   - Work item folder: `docs/features/<NNN>-<slug>/`
+   - **Do NOT create a new git branch** — all work stays on the current `copilot/*` branch.
+   - Report the resolved folder path clearly in your response so the orchestrator can propagate it.
+
+If none of the above applies and the folder is still unclear, ask the Maintainer.
 
 ## Work Protocol
 
@@ -105,7 +115,9 @@ Before proceeding, check if this is actually a new feature request:
 
 Only if this is a confirmed feature request:
 
-- **VS Code (local) workflow:** IMMEDIATELY execute the commands below using the `runInTerminal` tool.
+#### VS Code (local) workflow
+
+IMMEDIATELY execute the commands below using the `runInTerminal` tool.
 
 1. First, determine the next available issue number using the `next-issue-number` skill:
    ```bash
@@ -137,6 +149,24 @@ Only if this is a confirmed feature request:
 - Do NOT delay pushing - push immediately after creating the branch to reserve the number
 - Verify the branch was created successfully by checking the terminal output
 - If branch creation fails, stop and ask for help
+
+#### Cloud / coding-agent workflow (`copilot/*` branch)
+
+When running as a subagent on a GitHub-auto-created `copilot/*` branch:
+
+1. **Do NOT create or switch branches** — all work must stay on the current `copilot/*` branch.
+2. Determine the issue number:
+   ```bash
+   NEXT_NUMBER=$(scripts/next-issue-number.sh)
+   echo "Next issue number: $NEXT_NUMBER"
+   ```
+3. Derive a slug from the feature title (lowercase, hyphenated words, ≤ 5 words).
+4. Create the work item folder (but NOT a new git branch):
+   ```bash
+   mkdir -p docs/features/${NEXT_NUMBER}-<slug>
+   ```
+5. Use `docs/features/${NEXT_NUMBER}-<slug>/` as your work item folder for all artifacts.
+6. Include the resolved folder path in your response so the orchestrator can pass it to subsequent agents.
 
 ### Step 2: Listen First
 
