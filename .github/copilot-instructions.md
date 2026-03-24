@@ -67,6 +67,7 @@ GitHub no longer automatically creates a draft PR when a coding agent session st
 1. **Before pushing**: Run the `pre-push-validation` skill (lint, type-check, test, build, markdownlint) locally. Do not push code that fails any check.
 2. **After pushing**: Load and follow the `watch-pr-validation` skill. It covers the complete loop: find the triggered PR Validation run, watch it, read failure logs if it fails, fix issues, re-validate locally, and push again.
 3. **Before handoff**: Confirm CI is green. Do not hand off a PR with failing checks to the next agent or to the Maintainer.
+4. ⛔ **HARD RULE — NO HANDOFF WITH DRAFT PR**: Before ending your session, verify the PR is **not** in draft state. A draft PR means PR Validation was never triggered — "no failures" is **not** the same as "CI passed". Call `scripts/pr-github.sh mark-ready` (idempotent — safe to call even if already ready), then watch CI via the `watch-pr-validation` skill until green. **Handing off with a draft PR is a workflow violation.**
 
 ### Why Manual Git Commands Fail
 
