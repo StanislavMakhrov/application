@@ -95,9 +95,11 @@ jobs:
           context: .
           file: src/Dockerfile
           push: true
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           tags: |
             ghcr.io/${{ steps.repo.outputs.name }}:pr-${{ github.event.pull_request.number }}-${{ steps.repo.outputs.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: UAT instructions
         if: steps.dockerfile_check.outputs.exists == 'true'

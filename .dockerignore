@@ -1,0 +1,42 @@
+# Git
+.git
+.gitignore
+
+# Node dependencies (re-installed in Docker)
+src/node_modules
+node_modules
+
+# Next.js build output (re-built in Docker)
+src/.next
+.next
+
+# Test files
+e2e-tests
+coverage
+src/coverage
+
+# Documentation
+docs
+*.md
+!README.md
+
+# IDE and OS files
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# TypeScript build info
+*.tsbuildinfo
+src/next-env.d.ts
+
+# Husky
+.husky
+
+# GitHub Actions / CI
+.github
