@@ -5,6 +5,21 @@
 **Workflow Type:** Feature
 **Created:** 2025-01-28
 
+## Required Agents
+
+| Agent | Status |
+|-------|--------|
+| Requirements Engineer | ✅ Complete |
+| Architect | ✅ Complete |
+| Quality Engineer | ⬜ Pending |
+| Task Planner | ⬜ Pending |
+| Developer | ⬜ Pending |
+| Technical Writer | ⬜ Pending |
+| Code Reviewer | ⬜ Pending |
+| UAT Tester | ⚠️ Required (user-facing feature) |
+| Release Manager | ⬜ Pending |
+| Retrospective | ⬜ Pending |
+
 ## Agent Work Log
 
 <!-- Each agent appends their entry below when they complete their work. -->

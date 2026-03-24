@@ -499,6 +499,17 @@ The first agent in the workflow creates `work-protocol.md` using this template:
 **Workflow Type:** Feature / Bug Fix / Workflow
 **Created:** YYYY-MM-DD
 
+## Required Agents
+
+<!-- List required agents for this workflow type. Update Status to ✅ Complete as each agent logs their work below. -->
+<!-- Feature agents: Requirements Engineer, Architect, Quality Engineer, Task Planner, Developer, Technical Writer, Code Reviewer, UAT Tester (if user-facing), Release Manager, Retrospective -->
+<!-- Bug Fix agents: Issue Analyst, Developer, Technical Writer, Code Reviewer, UAT Tester (if needed), Release Manager, Retrospective -->
+<!-- Workflow agents: Workflow Engineer, Release Manager -->
+
+| Agent | Status |
+|-------|--------|
+| <Agent Name> | ⬜ Pending |
+
 ## Agent Work Log
 
 <!-- Each agent appends their entry below when they complete their work. -->
