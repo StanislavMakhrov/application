@@ -1,10 +1,4 @@
-# Stage 1: Install only production dependencies
-FROM node:20-alpine AS deps
-WORKDIR /app
-COPY src/package*.json ./
-RUN npm ci --only=production
-
-# Stage 2: Build the Next.js application
+# Stage 1: Build the Next.js application
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY src/package*.json ./
@@ -17,10 +11,8 @@ COPY public/ ./public/
 # Generate Prisma client for all binary targets
 RUN npx prisma generate
 RUN npm run build
-# Ensure public directory exists (Next.js standalone requires it)
-RUN mkdir -p /app/public
 
-# Stage 3: Production runner with embedded PostgreSQL
+# Stage 2: Production runner with embedded PostgreSQL
 FROM node:20-alpine AS runner
 
 # Install PostgreSQL and supervisor (postgresql = default version for this Alpine)
