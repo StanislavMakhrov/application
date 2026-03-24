@@ -5,11 +5,12 @@
  * Uses @react-pdf/renderer for server-side PDF generation.
  *
  * Structure:
- * 1. Company header with logo, year, location
+ * 1. Company header with logo, year, reporting period
  * 2. Executive summary: total CO₂e, per-employee, vs benchmark
- * 3. Scope 1/2/3 breakdown tables
- * 4. Scope 3 materials table
- * 5. Methodology section with UBA 2024 factor citations
+ * 3. Scope 1/2/3 breakdown tables (Scope 3 includes GHG Protocol category numbers)
+ * 4. Scope 3 materials table (Category 1)
+ * 5. Methodology section: UBA 2024 factor citations, organisational/operational
+ *    boundary disclosures required by GHG Protocol Corporate Standard
  */
 
 import {
@@ -21,7 +22,7 @@ import {
   Image,
 } from '@react-pdf/renderer';
 import type { CO2eTotals, CompanyProfileData } from '@/types';
-import { CATEGORY_LABELS, CATEGORY_UNITS } from '@/types';
+import { CATEGORY_LABELS, CATEGORY_UNITS, CATEGORY_GHG_SCOPE3_NUMBER } from '@/types';
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, fontFamily: 'Helvetica', color: '#1a1a1a' },
@@ -68,10 +69,35 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
   const scope2Entries = entries.filter((e) => e.scope === 'SCOPE2');
   const scope3Entries = entries.filter((e) => e.scope === 'SCOPE3');
 
+  const MethodologySection = () => (
+    <View>
+      <Text style={styles.sectionTitle}>Methodik & Systemgrenzen</Text>
+      <Text style={{ fontSize: 9, color: '#555', lineHeight: 1.6 }}>
+        Diese CO₂-Bilanz wurde nach dem GHG Protocol Corporate Standard (World Resources Institute /
+        World Business Council for Sustainable Development) erstellt.
+      </Text>
+      <Text style={{ fontSize: 9, color: '#555', lineHeight: 1.6, marginTop: 6 }}>
+        Organisationsgrenze: Operational-Control-Ansatz — erfasst werden alle Quellen und Senken,
+        über die das Unternehmen operative Kontrolle ausübt.
+      </Text>
+      <Text style={{ fontSize: 9, color: '#555', lineHeight: 1.6, marginTop: 6 }}>
+        Operative Grenze: Scope 1 (direkte Emissionen aus eigenen Quellen), Scope 2 (indirekte
+        Emissionen aus bezogener Energie) sowie Scope 3 Kategorien 1 (Eingekaufte Waren),
+        5 (Abfallentsorgung), 6 (Dienstreisen) und 7 (Pendlerverkehr).
+      </Text>
+      <Text style={{ fontSize: 9, color: '#555', lineHeight: 1.6, marginTop: 6 }}>
+        Emissionsfaktoren: Umweltbundesamt (UBA), Datenbericht 2024. Berechnung nach dem
+        Ansatz: CO₂e = Aktivitätsdaten × Emissionsfaktor. Negative Werte (z. B.
+        Altmetall-Recycling) stellen anerkannte Gutschriften dar.
+      </Text>
+    </View>
+  );
+
   const renderScopeTable = (
     scopeEntries: typeof entries,
     scopeLabel: string,
-    scopeTotal: number
+    scopeTotal: number,
+    showGhgCat = false
   ) => (
     <View style={styles.table}>
       <Text style={styles.scopeLabel}>{scopeLabel}</Text>
@@ -84,10 +110,16 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
       {scopeEntries.map((entry, i) => {
         const co2e = totals.byCategory[entry.category] ?? 0;
         const isNeg = co2e < 0;
+        const ghgCat = showGhgCat
+          ? (CATEGORY_GHG_SCOPE3_NUMBER as Record<string, string>)[entry.category]
+          : undefined;
+        const categoryLabel =
+          (CATEGORY_LABELS as Record<string, string>)[entry.category] ?? entry.category;
+        const displayLabel = ghgCat ? `${categoryLabel} (${ghgCat})` : categoryLabel;
         return (
           <View key={entry.category} style={i % 2 === 0 ? styles.tableRow : styles.tableRowAlt}>
             <Text style={[styles.tableCell, styles.col1]}>
-              {(CATEGORY_LABELS as Record<string, string>)[entry.category] ?? entry.category}
+              {displayLabel}
               {entry.isOekostrom ? ' (Ökostrom)' : ''}
             </Text>
             <Text style={[styles.tableCell, styles.col2]}>{entry.quantity.toLocaleString('de-DE')}</Text>
@@ -115,9 +147,10 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>🌿 GrünBilanz CO₂-Bericht</Text>
+            <Text style={styles.title}>GrünBilanz CO₂-Bilanz</Text>
             <Text style={styles.subtitle}>{profile.firmenname}</Text>
             <Text style={styles.note}>{profile.standort} · Berichtsjahr {year}</Text>
+            <Text style={styles.note}>Berichtszeitraum: 01.01.{year} – 31.12.{year}</Text>
           </View>
           <View style={styles.headerRight}>
             <Text style={[styles.note, { fontSize: 9 }]}>GHG Protocol Corporate Standard</Text>
@@ -152,8 +185,8 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
         {/* Scope Tables */}
         <Text style={styles.sectionTitle}>Emissionen nach Scope (GHG Protocol)</Text>
         {renderScopeTable(scope1Entries, 'Scope 1 — Direkte Emissionen', totals.scope1)}
-        {renderScopeTable(scope2Entries, 'Scope 2 — Energiebedingte Emissionen', totals.scope2)}
-        {renderScopeTable(scope3Entries, 'Scope 3 — Vorgelagerte Emissionen', totals.scope3)}
+        {renderScopeTable(scope2Entries, 'Scope 2 — Energiebedingte indirekte Emissionen', totals.scope2)}
+        {renderScopeTable(scope3Entries, 'Scope 3 — Sonstige indirekte Emissionen', totals.scope3, true)}
 
         {/* Footer */}
         <Text style={styles.footer}>
@@ -186,15 +219,18 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
           </View>
 
           {/* Methodology */}
-          <Text style={styles.sectionTitle}>Methodik</Text>
-          <Text style={{ fontSize: 9, color: '#555', lineHeight: 1.6 }}>
-            Diese CO₂-Bilanz wurde nach dem GHG Protocol Corporate Standard erstellt. 
-            Alle Emissionsfaktoren stammen aus dem Umweltbundesamt (UBA) Datenbericht 2024.
-            Die Berechnung folgt dem Ansatz: CO₂e = Aktivitätsdaten × Emissionsfaktor.
-            Scope 3 Kategorie 1 umfasst vorgelagerte Emissionen eingekaufter Waren und Dienstleistungen.
-            Negative Werte (z.B. Altmetall-Recycling) stellen anerkannte Gutschriften dar.
-          </Text>
+          <MethodologySection />
 
+          <Text style={styles.footer}>
+            GrünBilanz · GHG Protocol Corporate Standard · Emissionsfaktoren: UBA 2024 · Seite 2
+          </Text>
+        </Page>
+      )}
+
+      {/* Methodology Page (shown when there are no materials, otherwise on page 2) */}
+      {materials.length === 0 && (
+        <Page size="A4" style={styles.page}>
+          <MethodologySection />
           <Text style={styles.footer}>
             GrünBilanz · GHG Protocol Corporate Standard · Emissionsfaktoren: UBA 2024 · Seite 2
           </Text>

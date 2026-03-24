@@ -21,6 +21,13 @@ import { renderPdf } from '@/lib/pdf';
 import { GHGReport } from '@/components/reports/GHGReport';
 import { CSRDQuestionnaire } from '@/components/reports/CSRDQuestionnaire';
 
+type EmissionEntryRow = {
+  category: string;
+  quantity: number;
+  isOekostrom: boolean;
+  scope: string;
+};
+
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const yearIdStr = searchParams.get('yearId');
@@ -77,7 +84,7 @@ export async function GET(req: NextRequest) {
         profile,
         year: reportingYear.year,
         totals,
-        entries: reportingYear.entries.map((e) => ({
+        entries: reportingYear.entries.map((e: EmissionEntryRow) => ({
           category: e.category,
           quantity: e.quantity,
           isOekostrom: e.isOekostrom,

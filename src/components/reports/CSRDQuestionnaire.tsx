@@ -57,15 +57,20 @@ export function CSRDQuestionnaire({ profile, year, totals }: CSRDQuestionnairePr
           <Row label="Hauptstandort" value={profile.standort} />
           <Row label="Anzahl Mitarbeitende" value={String(profile.mitarbeiter)} />
           <Row label="Berichtsjahr" value={String(year)} />
-          <Row label="Berichtsstandard" value="GHG Protocol Corporate Standard" />
+          <Row label="Berichtszeitraum" value={`01.01.${year} – 31.12.${year}`} />
+          <Row label="Berichtsstandard" value="GHG Protocol Corporate Standard / ESRS E1" />
         </View>
 
         {/* GHG Data */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>2. Treibhausgasemissionen (CO₂-Äquivalente)</Text>
           <Row label="Scope 1 — Direkte Emissionen" value={`${totals.scope1.toFixed(2)} t CO₂e`} />
-          <Row label="Scope 2 — Energiebedingte Emissionen" value={`${totals.scope2.toFixed(2)} t CO₂e`} />
-          <Row label="Scope 3 — Vorgelagerte Emissionen" value={`${totals.scope3.toFixed(2)} t CO₂e`} />
+          <Row label="Scope 2 — Energiebedingte indirekte Emissionen" value={`${totals.scope2.toFixed(2)} t CO₂e`} />
+          <Row label="Scope 3 — Sonstige indirekte Emissionen" value={`${totals.scope3.toFixed(2)} t CO₂e`} />
+          <Row label="  davon Kat. 1 (Eingekaufte Waren)" value="siehe Anhang" />
+          <Row label="  davon Kat. 5 (Abfallentsorgung)" value="in Scope 3 enthalten" />
+          <Row label="  davon Kat. 6 (Dienstreisen)" value="in Scope 3 enthalten" />
+          <Row label="  davon Kat. 7 (Pendlerverkehr)" value="in Scope 3 enthalten" />
           <Row label="Gesamt CO₂e" value={`${totals.total.toFixed(2)} t CO₂e`} />
           <Row label="CO₂e pro Mitarbeiter" value={`${co2ePerEmployee.toFixed(2)} t CO₂e/MA`} />
         </View>
@@ -75,8 +80,11 @@ export function CSRDQuestionnaire({ profile, year, totals }: CSRDQuestionnairePr
           <Text style={styles.sectionTitle}>3. Methodik & Datenquellen</Text>
           <Row label="Berechnungsmethode" value="Aktivitätsdaten × Emissionsfaktor" />
           <Row label="Emissionsfaktoren" value="UBA 2024 (Umweltbundesamt)" />
-          <Row label="Systemgrenzen" value="Scope 1, 2, 3 (Kategorie 1, 6, 7)" />
-          <Row label="Software" value="GrünBilanz v0.1" />
+          <Row label="Systemgrenzen" value="Scope 1, 2, 3 (Kat. 1, 5, 6, 7)" />
+          <Row label="Organisationsgrenze" value="Operational-Control-Ansatz" />
+          <Row label="Berichtsstandard (GHG)" value="GHG Protocol Corporate Standard" />
+          <Row label="Berichtsstandard (ESG)" value="ESRS E1 — Klimawandel (EU 2023/2772)" />
+          <Row label="Software" value="GrünBilanz" />
         </View>
 
         {/* Attestation */}

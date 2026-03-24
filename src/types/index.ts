@@ -177,6 +177,24 @@ export const CATEGORY_UNITS: Record<EmissionCategory, string> = {
   SONSTIGE_KAELTEMITTEL: 'kg',
 };
 
+/**
+ * Maps Scope 3 emission categories to their GHG Protocol Corporate Standard
+ * category number. Only Scope 3 categories are listed here.
+ * - Category 1: Purchased goods and services (MaterialEntries, shown separately)
+ * - Category 5: Waste generated in operations
+ * - Category 6: Business travel
+ * - Category 7: Employee commuting
+ */
+export const CATEGORY_GHG_SCOPE3_NUMBER: Partial<Record<EmissionCategory, string>> = {
+  ABFALL_RESTMUELL: 'Kat. 5',
+  ABFALL_BAUSCHUTT: 'Kat. 5',
+  ABFALL_ALTMETALL: 'Kat. 5',
+  ABFALL_SONSTIGES: 'Kat. 5',
+  GESCHAEFTSREISEN_FLUG: 'Kat. 6',
+  GESCHAEFTSREISEN_BAHN: 'Kat. 6',
+  PENDLERVERKEHR: 'Kat. 7',
+};
+
 /** Maps each emission category to its scope */
 export const CATEGORY_SCOPE: Record<EmissionCategory, Scope> = {
   ERDGAS: 'SCOPE1',
