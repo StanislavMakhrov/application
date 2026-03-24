@@ -263,22 +263,24 @@ Kategorie 11 (eingesetzte Produkte):      — Nicht relevant (Dienstleister)
 
 ## Open Questions
 
-1. **Scope 3 acknowledgement UX**: For GHG-W01, should the "Scope 3 not yet
-   captured" acknowledgement be a checkbox on the dashboard, or a dismiss action
-   on the ConformityPanel warning? The Architect should decide which approach
-   fits the current data model (a boolean flag on `ReportingYear` vs. localStorage).
+1. ✅ **Scope 3 acknowledgement UX** *(Resolved by Architect — ADR-001)*: `scope3Acknowledged`
+   is stored as a boolean field on `ReportingYear` in the database. The UX is a
+   checkbox in the ConformityPanel warning for GHG-W01, not a dismiss-only action.
+   A new `acknowledgeScope3(yearId)` Server Action writes the flag to the DB.
 
-2. **Double-count resolution**: When DC-01 fires, should the wizard offer a
-   one-click "Remove fuel entries / Remove km entries" action, or just navigate
-   the user manually? This affects wizard screen complexity.
+2. ✅ **Double-count resolution** *(Resolved by Architect — ADR-001)*: Navigation only —
+   no one-click entry removal. The amber `PlausibilityWarning` persists on Screen 3
+   until the user manually removes the conflicting entry. This is consistent with
+   the principle "the feature warns and suggests; it never silently modifies confirmed
+   emission entries."
 
-3. **Conformity check API**: Should the conformity check run as a new
-   `GET /api/conformity?yearId=N` API route (so it can be called independently),
-   or should it be bundled into the existing `GET /api/report` route as a
-   pre-flight step? The Architect should decide based on the desired separation
-   of concerns.
+3. ✅ **Conformity check API** *(Resolved by Architect — ADR-001)*: A dedicated
+   `GET /api/conformity?yearId=N` route is used. The conformity engine
+   (`src/lib/conformity.ts`) is a pure synchronous function; both the API route and
+   the Dashboard Server Component call it directly. Report generation is not
+   gated by conformity results.
 
-4. **Persistence of dismissed notices**: The specification proposes `localStorage`
-   for dismissed info notices. If the app ever supports multiple users or
-   devices, this should move to the database. For now, `localStorage` is
-   acceptable given the single-tenant architecture.
+4. ✅ **Persistence of dismissed notices** *(Confirmed acceptable)*: `localStorage`
+   is used for per-screen per-year dismissal of `InfoNotice` prompts, keyed as
+   `${dismissKey}-${year}`. This is acceptable for the current single-tenant
+   architecture. Migration to DB is deferred.
