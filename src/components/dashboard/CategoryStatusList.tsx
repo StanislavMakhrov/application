@@ -2,8 +2,8 @@
 
 /**
  * Per-category completion status list for the dashboard.
- * Shows ✓ erfasst (green) or ○ nicht erfasst (gray) for each emission category.
- * Kältemittel categories are also included in the Scope 1 section.
+ * Shows pill-style badges for each emission category grouped by scope —
+ * green (captured) or gray (not yet captured).
  */
 
 import { CATEGORY_LABELS, CATEGORY_SCOPE } from '@/types';
@@ -24,6 +24,11 @@ const ALL_CATEGORIES: EmissionCategory[] = [
 ];
 
 const SCOPE_LABELS = { SCOPE1: 'Scope 1', SCOPE2: 'Scope 2', SCOPE3: 'Scope 3' };
+const SCOPE_COLORS = {
+  SCOPE1: 'text-brand-green',
+  SCOPE2: 'text-brand-green-light',
+  SCOPE3: 'text-gray-400',
+};
 
 export function CategoryStatusList({ capturedCategories }: CategoryStatusListProps) {
   const byScope: Record<string, EmissionCategory[]> = { SCOPE1: [], SCOPE2: [], SCOPE3: [] };
@@ -33,29 +38,38 @@ export function CategoryStatusList({ capturedCategories }: CategoryStatusListPro
 
   return (
     <div className="space-y-4">
-      {(['SCOPE1', 'SCOPE2', 'SCOPE3'] as const).map((scope) => (
-        <div key={scope}>
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
-            {SCOPE_LABELS[scope]}
-          </p>
-          <div className="grid grid-cols-2 gap-1">
-            {byScope[scope].map((cat) => {
-              const captured = capturedCategories.has(cat);
-              return (
-                <div
-                  key={cat}
-                  className={`flex items-center gap-2 rounded px-2 py-1 text-xs ${
-                    captured ? 'bg-brand-green-pale text-green-600' : 'bg-gray-50 text-gray-400'
-                  }`}
-                >
-                  <span>{captured ? '✓' : '○'}</span>
-                  <span>{CATEGORY_LABELS[cat]}</span>
-                </div>
-              );
-            })}
+      {(['SCOPE1', 'SCOPE2', 'SCOPE3'] as const).map((scope) => {
+        const cats = byScope[scope];
+        const captured = cats.filter((c) => capturedCategories.has(c)).length;
+        return (
+          <div key={scope}>
+            <div className="flex items-center justify-between mb-2">
+              <p className={`text-xs font-semibold uppercase tracking-wide ${SCOPE_COLORS[scope]}`}>
+                {SCOPE_LABELS[scope]}
+              </p>
+              <span className="text-xs text-gray-400">{captured}/{cats.length}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-1">
+              {cats.map((cat) => {
+                const done = capturedCategories.has(cat);
+                return (
+                  <div
+                    key={cat}
+                    className={`flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs transition-colors ${
+                      done
+                        ? 'bg-brand-green-pale text-brand-green font-medium'
+                        : 'bg-gray-50 text-gray-400'
+                    }`}
+                  >
+                    <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${done ? 'bg-brand-green' : 'bg-gray-300'}`} />
+                    <span className="truncate">{CATEGORY_LABELS[cat]}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
