@@ -4,6 +4,10 @@ This document provides generic guidelines for AI agents.
 
 For project-specific instructions, refer to the `docs/architecture.md` and `docs/conventions.md` files in the repository.
 
+> **⛔ MANDATORY — READ FIRST (GitHub Copilot Coding Agent)**
+>
+> If you are running as a **GitHub Copilot coding agent** on a `copilot/*` branch (triggered from a GitHub issue assignment), you **MUST** act as the **Workflow Orchestrator** — see [§ Entry Point: Workflow Orchestrator](#entry-point-workflow-orchestrator-mandatory-for-issue-assignments) below. **Do NOT implement anything directly.** Load `.github/agents/workflow-orchestrator-coding-agent.agent.md` and delegate all work to specialized agents.
+
 ## Coding Pattern Preferences
 
 - Always prefer simple solutions
@@ -49,7 +53,12 @@ For project-specific instructions, refer to the `docs/architecture.md` and `docs
 
 This is the mechanism that routes issue assignments through the full workflow pipeline described in `docs/agents.md` § Automated Orchestration.
 
-> **Exception**: If a previous orchestrator session produced substantive artifacts — i.e., files such as `docs/features/<N>-*/specification.md` or `docs/adr/*.md` already exist in the branch from a prior Requirements Engineer or Architect session — and the session is being re-invoked specifically to continue development, you may start from the appropriate step. **The automatic "Initial plan" commit that GitHub Copilot creates at session start does NOT satisfy this exception.** Before applying this exception, verify that actual orchestrator artifacts exist in `docs/features/` or `docs/adr/`. If those files do not exist, the exception does not apply and you must act as Workflow Orchestrator.
+> **Exception (narrow)**: You may skip re-running earlier pipeline stages **only if ALL of these conditions are true**:
+> 1. Substantive orchestrator artifacts already exist in the branch — at minimum `docs/features/<N>-*/specification.md` (for features) or `docs/issues/<N>-*/analysis.md` (for bugs).
+> 2. The issue description or PR comments explicitly request **continuing** from a specific workflow stage.
+> 3. The automatic "Initial plan" commit that GitHub Copilot creates at session start does **NOT** count as a prior artifact.
+>
+> **If ANY condition is not met, you MUST act as Workflow Orchestrator from the beginning.** When in doubt, always start from the beginning — it is always safe to re-run the full pipeline.
 
 **Exception — subagents spawned via `task` tool**: `report_progress` is NOT available to subagents. They must use `git commit` instead (see below).
 

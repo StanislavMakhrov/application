@@ -30,6 +30,9 @@ The routing is controlled by `.github/copilot-instructions.md`. That file contai
 **Bypassing the Orchestrator (known failure mode)**:
 When GitHub starts a coding agent session it automatically creates an "Initial plan" commit on the `copilot/*` branch. A previous version of the Exception clause in `copilot-instructions.md` allowed bypass when "prior commits" existed — the agent misread the automatic commit as evidence of a prior orchestrator session and implemented the feature directly. The clause was tightened to require actual orchestrator artifacts (`docs/features/<N>-*/specification.md` or `docs/adr/*.md`) before the exception can apply.
 
+**Work Item Folder on `copilot/*` branches**:
+On standard branches (`feature/NNN-*`, `fix/NNN-*`, `workflow/NNN-*`), agents derive the work item folder from the branch name. On `copilot/*` branches, there is no NNN in the branch name. The orchestrator resolves the work item folder (by delegating `scripts/next-issue-number.sh` to the entry-point agent) and passes it explicitly to every subsequent agent. All agent definitions accept an orchestrator-provided folder path as their first resolution step.
+
 **Workflow**:
 - The orchestrator **never asks clarifying questions** - it immediately delegates to the appropriate entry point agent (Requirements Engineer for features, Issue Analyst for bugs)
 - The orchestrator **never implements anything itself** - it purely delegates to specialized agents in sequence
