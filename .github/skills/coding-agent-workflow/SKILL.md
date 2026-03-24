@@ -87,6 +87,18 @@ This skill is automatically loaded by all coding agents. It defines the core wor
 
    **Do not hand off to the next agent with a failing build.**
 
+   > ⛔ **HARD RULE — NO HANDOFF WITH DRAFT PR**
+   > Before ending your session or handing off to the next agent, you **MUST** verify
+   > that the PR is **not** in draft state. A draft PR means CI was never triggered —
+   > "no failures" is not the same as "CI passed".
+   >
+   > Convert if still draft and confirm CI:
+   > ```bash
+   > scripts/pr-github.sh mark-ready   # idempotent — safe to call even if already ready
+   > ```
+   > Then follow the `watch-pr-validation` skill to confirm CI passes before handing off.
+   > **Ending a session with a draft PR is a workflow violation.**
+
 4b. **Create the Pull Request and Trigger Validation (primary agent only)**:
 
    Once all work is committed and pushed via `report_progress`, use the **`create-pr-github`** skill to open the PR. The agent is
@@ -134,6 +146,7 @@ This skill is automatically loaded by all coding agents. It defines the core wor
 - **GitHub creates branches automatically** - never attempt to create or switch branches yourself
 - **Agent creates draft PRs** - after pushing all work with `report_progress`, use the `create-pr-github` skill to create a **draft** PR; do NOT wait for the user to click "Create Pull Request" in the GitHub UI
 - **Always call `mark-ready` after creating the PR** - run `scripts/pr-github.sh mark-ready` to convert the draft to ready-for-review; this is the single trigger for PR Validation
+- **⛔ NEVER hand off with a draft PR** - before ending your session, verify the PR is not in draft state (a draft PR means CI was never triggered; "no failures" ≠ "CI passed"); call `scripts/pr-github.sh mark-ready` if needed, then watch CI until green
 - **Never create a duplicate PR** - check if one already exists for your branch before creating
 - **`report_progress` is only available to the primary agent** - subagents spawned via `task` tool must use `git commit` instead
 - **Always use `report_progress`** for commits and pushes (primary agent) - never use manual `git push` commands
