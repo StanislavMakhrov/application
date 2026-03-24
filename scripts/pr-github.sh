@@ -13,6 +13,8 @@ Usage:
 
   scripts/pr-github.sh create-and-merge --title <title> --body-from-stdin
 
+  scripts/pr-github.sh mark-ready [<pr-number>]
+
 Options:
   --title <title>         PR title (use Conventional Commits style)
   --body-from-stdin       Read PR body from stdin
@@ -20,7 +22,9 @@ Options:
 Notes:
   - Required: provide an explicit title + body via stdin (agent-authored description)
   - This script intentionally does not guess title/body
-  - **Agent guidance:** This script is the **authoritative** repo tool for creating and merging PRs. Use `scripts/pr-github.sh create` to create PRs and `scripts/pr-github.sh create-and-merge` to merge them (rebase + delete branch). Body must be piped via stdin.
+  - PRs are created as **drafts** by default. Call `mark-ready` when all work is
+    complete — this converts the draft to ready-for-review and triggers PR Validation.
+  - **Agent guidance:** This script is the **authoritative** repo tool for creating and merging PRs. Use `scripts/pr-github.sh create` to create PRs (as draft) and `scripts/pr-github.sh mark-ready` to trigger PR Validation. Use `scripts/pr-github.sh create-and-merge` to merge them (rebase + delete branch). Body must be piped via stdin.
   - **Fallback:** Use GitHub chat tools (`github/*`) only when the script does not support a necessary advanced operation or for quick inspection of checks.
   - Requires: git + GitHub CLI (gh) authenticated when used as a CLI fallback
   - Merge policy: uses rebase-and-merge for linear history (per CONTRIBUTING.md)
@@ -107,6 +111,7 @@ parse_args() {
 }
 
 ensure_pr_exists() {
+  local use_draft="${1:-true}"
   local branch
   branch="$(git branch --show-current)"
 
@@ -118,10 +123,15 @@ ensure_pr_exists() {
     return 0
   fi
 
-  echo "No open PR found for branch '$branch'; creating..." >&2
   require_non_empty "$TITLE" "PR title"
   require_non_empty "$BODY_TEXT" "PR body"
-  echo "$BODY_TEXT" | gh_safe pr create --base main --head "$branch" --title "$TITLE" --body-file -
+  if [[ "$use_draft" == "true" ]]; then
+    echo "No open PR found for branch '$branch'; creating draft PR..." >&2
+    echo "$BODY_TEXT" | gh_safe pr create --base main --head "$branch" --title "$TITLE" --body-file - --draft
+  else
+    echo "No open PR found for branch '$branch'; creating PR..." >&2
+    echo "$BODY_TEXT" | gh_safe pr create --base main --head "$branch" --title "$TITLE" --body-file -
+  fi
 }
 
 get_pr_number() {
@@ -140,6 +150,20 @@ get_pr_number() {
   gh_safe pr view --json number -q '.number'
 }
 
+# Same as get_pr_number but exits with an error if no open PR is found (used by mark-ready).
+get_pr_number_for_branch() {
+  local branch
+  branch="$(git branch --show-current)"
+
+  local open_pr_number
+  open_pr_number="$(gh_safe pr list --head "$branch" --state open --json number -q '.[0].number' 2>/dev/null || true)"
+  if [[ -z "${open_pr_number//[[:space:]]/}" ]]; then
+    echo "Error: no open PR found for branch '$branch'. Create one first with 'scripts/pr-github.sh create'." >&2
+    exit 2
+  fi
+  echo "$open_pr_number"
+}
+
 main() {
   if [[ $# -lt 1 ]]; then
     usage
@@ -152,6 +176,26 @@ main() {
 
   case "$cmd" in
     create|create-and-merge)
+      ;;
+    mark-ready)
+      require_not_main
+      if ! command -v gh >/dev/null 2>&1; then
+        echo "Error: gh is not installed." >&2
+        exit 2
+      fi
+      if ! gh auth status >/dev/null 2>&1; then
+        echo "Error: gh is not authenticated. Run: gh auth login" >&2
+        exit 2
+      fi
+      local pr_arg="${1:-}"
+      if [[ -z "$pr_arg" ]]; then
+        pr_arg="$(get_pr_number_for_branch)"
+      fi
+      require_non_empty "$pr_arg" "PR number"
+      echo "Converting PR #${pr_arg} from draft to ready for review..." >&2
+      gh_safe pr ready "$pr_arg"
+      echo "✓ PR #${pr_arg} is now ready for review — PR Validation will trigger." >&2
+      return 0
       ;;
     *)
       echo "Error: unknown command: $cmd" >&2
@@ -188,7 +232,11 @@ main() {
     git push -u origin HEAD
   fi
 
-  ensure_pr_exists
+  local use_draft="true"
+  if [[ "$cmd" == "create-and-merge" ]]; then
+    use_draft="false"
+  fi
+  ensure_pr_exists "$use_draft"
 
   local pr
   pr="$(get_pr_number)"

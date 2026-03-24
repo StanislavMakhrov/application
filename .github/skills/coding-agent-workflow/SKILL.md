@@ -74,25 +74,37 @@ This skill is automatically loaded by all coding agents. It defines the core wor
 
 4a. **Watch PR Validation and Fix Failures (primary agent only)**:
 
-   After every `report_progress` call that pushes code changes, load and follow the
-   **`watch-pr-validation`** skill. This skill covers the complete loop:
+   PR Validation only runs on **non-draft** PRs. It is triggered when you call
+   `scripts/pr-github.sh mark-ready` (step 4b) to convert the draft to ready-for-review.
+
+   After calling `mark-ready`, load and follow the **`watch-pr-validation`** skill:
 
    - Find the automatically-triggered PR Validation run for your branch
    - Watch it until completion
    - If it **fails**: read the error logs, fix the issues, re-run `pre-push-validation`
-     locally, call `report_progress` again, and repeat
+     locally, call `report_progress` again (PR stays ready, new commit triggers validation again), and repeat
    - Only proceed to the next step once CI is **green**
 
    **Do not hand off to the next agent with a failing build.**
 
-4b. **Create the Pull Request (primary agent only)**:
+4b. **Create the Pull Request and Trigger Validation (primary agent only)**:
 
-   Once CI is green, use the **`create-pr-github`** skill to open the PR. The agent is
+   Once all work is committed and pushed via `report_progress`, use the **`create-pr-github`** skill to open the PR. The agent is
    responsible for creating the PR — do not wait for the user to click "Create Pull Request"
    in the GitHub UI.
 
    - Check first that no open PR already exists for this branch
    - Use the standard PR body template (Problem / Change / Verification)
+   - PRs are created as **drafts** — PR Validation does NOT run on draft PRs
+   - After creating the draft PR, call `scripts/pr-github.sh mark-ready` to convert it to
+     ready-for-review. This is the **single trigger** for PR Validation and ensures the
+     pipeline only runs once the work is complete.
+
+   ```bash
+   # After report_progress has pushed all commits:
+   echo "..." | scripts/pr-github.sh create --title "feat: ..." --body-from-stdin
+   scripts/pr-github.sh mark-ready
+   ```
 
 5. **Create Summary Comment (After PR Created)**: Post a PR comment with:
    - **Summary**: Brief description of what you completed
@@ -120,7 +132,8 @@ This skill is automatically loaded by all coding agents. It defines the core wor
 ## Key Principles
 
 - **GitHub creates branches automatically** - never attempt to create or switch branches yourself
-- **Agent creates PRs** - after pushing and CI is green, always use the `create-pr-github` skill to open the PR; do NOT wait for the user to click "Create Pull Request" in the GitHub UI
+- **Agent creates draft PRs** - after pushing all work with `report_progress`, use the `create-pr-github` skill to create a **draft** PR; do NOT wait for the user to click "Create Pull Request" in the GitHub UI
+- **Always call `mark-ready` after creating the PR** - run `scripts/pr-github.sh mark-ready` to convert the draft to ready-for-review; this is the single trigger for PR Validation
 - **Never create a duplicate PR** - check if one already exists for your branch before creating
 - **`report_progress` is only available to the primary agent** - subagents spawned via `task` tool must use `git commit` instead
 - **Always use `report_progress`** for commits and pushes (primary agent) - never use manual `git push` commands
