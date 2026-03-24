@@ -9,6 +9,13 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import type { CO2eTotals } from '@/types';
 
+// Brand colors aligned with tailwind.config.ts / globals.css
+const COLOR_SCOPE1 = '#2D6A4F'; // brand-green
+const COLOR_SCOPE2 = '#52B788'; // brand-green-light
+const COLOR_SCOPE3 = '#95D5B2'; // brand-green-pale (darker tint)
+const MAX_BAR_SIZE = 56;
+const BAR_TOP_RADIUS: [number, number, number, number] = [4, 4, 0, 0];
+
 interface YearOverYearChartProps {
   year1: number;
   totals1: CO2eTotals;
@@ -79,9 +86,9 @@ export function YearOverYearChart({ year1, totals1, year2, totals2 }: YearOverYe
             iconSize={8}
             formatter={(v) => <span className="text-xs text-gray-600">{v}</span>}
           />
-          <Bar dataKey="Scope 1" stackId="a" fill="#2D6A4F" maxBarSize={56} />
-          <Bar dataKey="Scope 2" stackId="a" fill="#52B788" maxBarSize={56} />
-          <Bar dataKey="Scope 3" stackId="a" fill="#95D5B2" radius={[4, 4, 0, 0]} maxBarSize={56} />
+          <Bar dataKey="Scope 1" stackId="a" fill={COLOR_SCOPE1} maxBarSize={MAX_BAR_SIZE} />
+          <Bar dataKey="Scope 2" stackId="a" fill={COLOR_SCOPE2} maxBarSize={MAX_BAR_SIZE} />
+          <Bar dataKey="Scope 3" stackId="a" fill={COLOR_SCOPE3} radius={BAR_TOP_RADIUS} maxBarSize={MAX_BAR_SIZE} />
         </BarChart>
       </ResponsiveContainer>
     </div>

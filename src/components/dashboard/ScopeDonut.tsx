@@ -15,6 +15,11 @@ interface ScopeDonutProps {
 
 const COLORS = ['#2D6A4F', '#52B788', '#95D5B2'];
 
+// Donut geometry constants
+const INNER_RADIUS = 70;
+const OUTER_RADIUS = 105;
+const PADDING_ANGLE = 3;
+
 interface CustomTooltipProps {
   active?: boolean;
   payload?: Array<{ name: string; value: number; payload: { name: string; value: number } }>;
@@ -55,9 +60,9 @@ export function ScopeDonut({ scope1, scope2, scope3 }: ScopeDonutProps) {
             data={data}
             cx="50%"
             cy="45%"
-            innerRadius={70}
-            outerRadius={105}
-            paddingAngle={3}
+            innerRadius={INNER_RADIUS}
+            outerRadius={OUTER_RADIUS}
+            paddingAngle={PADDING_ANGLE}
             dataKey="value"
             strokeWidth={0}
           >
@@ -73,8 +78,8 @@ export function ScopeDonut({ scope1, scope2, scope3 }: ScopeDonutProps) {
           />
         </PieChart>
       </ResponsiveContainer>
-      {/* Center label showing total CO₂e */}
-      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center" style={{ top: '-20px' }}>
+      {/* Center label showing total CO₂e — positioned to sit inside the donut hole */}
+      <div className="pointer-events-none absolute inset-0 flex flex-col items-center -mt-5 justify-center">
         <span className="text-2xl font-bold text-gray-900">{total.toFixed(1)}</span>
         <span className="text-xs text-gray-400 mt-0.5">t CO₂e</span>
       </div>

@@ -1,8 +1,9 @@
-'use client';
-
 /**
  * KPI card for the dashboard — shows a large metric with optional label, icon, and trend.
  * Uses colored top border accent and hover shadow for a modern card appearance.
+ *
+ * NOTE: This is intentionally a Server Component (no 'use client') so that
+ * Lucide icon component references can be passed from the Server Component page.
  */
 
 import { cn } from '@/lib/utils';

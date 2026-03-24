@@ -24,6 +24,10 @@ const SCOPE_COLORS: Record<string, string> = {
   KUNSTSTOFF_PVC: '#95D5B2', BETON: '#95D5B2', FARBEN_LACKE: '#95D5B2', SONSTIGE: '#95D5B2',
 };
 
+// Bar styling constants
+const BAR_BORDER_RADIUS: [number, number, number, number] = [0, 6, 6, 0];
+const MAX_BAR_SIZE = 22;
+
 interface TooltipProps {
   active?: boolean;
   payload?: Array<{ value: number; payload: { name: string } }>;
@@ -76,7 +80,7 @@ export function CategoryBarChart({ byCategory }: CategoryBarChartProps) {
           tickLine={false}
         />
         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(45,106,79,0.05)' }} />
-        <Bar dataKey="value" radius={[0, 6, 6, 0]} maxBarSize={22}>
+        <Bar dataKey="value" radius={BAR_BORDER_RADIUS} maxBarSize={MAX_BAR_SIZE}>
           {data.map((entry) => (
             <Cell key={entry.key} fill={SCOPE_COLORS[entry.key] ?? '#74C69D'} />
           ))}
