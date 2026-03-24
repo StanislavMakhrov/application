@@ -83,7 +83,7 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
   const scope3Entries = entries.filter((e) => e.scope === 'SCOPE3');
 
   const hasOekostrom = entries.some((e) => e.scope === 'SCOPE2' && e.isOekostrom);
-  const scope2LocationBased = totals.scope2LocationBased ?? totals.scope2;
+  const scope2LocationBased = totals.scope2LocationBased;
   const scope2DifferenceTonnes = scope2LocationBased - totals.scope2;
 
   const ProfileRow = ({ label, value }: { label: string; value: string }) => (
