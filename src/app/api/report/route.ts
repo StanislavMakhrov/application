@@ -82,6 +82,7 @@ export async function GET(req: NextRequest) {
           quantity: e.quantity,
           isOekostrom: e.isOekostrom,
           scope: e.scope,
+          inputMethod: e.inputMethod,
         })),
         materials: reportingYear.materialEntries,
         benchmarkValue: benchmark?.co2ePerEmployeePerYear,

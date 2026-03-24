@@ -65,7 +65,7 @@ export function CSRDQuestionnaire({ profile, year, totals }: CSRDQuestionnairePr
           <Text style={styles.sectionTitle}>2. Treibhausgasemissionen (CO₂-Äquivalente)</Text>
           <Row label="Scope 1 — Direkte Emissionen" value={`${totals.scope1.toFixed(2)} t CO₂e`} />
           <Row label="Scope 2 — Energiebedingte Emissionen" value={`${totals.scope2.toFixed(2)} t CO₂e`} />
-          <Row label="Scope 3 — Vorgelagerte Emissionen" value={`${totals.scope3.toFixed(2)} t CO₂e`} />
+          <Row label="Scope 3 — Indirekte Emissionen" value={`${totals.scope3.toFixed(2)} t CO₂e`} />
           <Row label="Gesamt CO₂e" value={`${totals.total.toFixed(2)} t CO₂e`} />
           <Row label="CO₂e pro Mitarbeiter" value={`${co2ePerEmployee.toFixed(2)} t CO₂e/MA`} />
         </View>
@@ -74,8 +74,10 @@ export function CSRDQuestionnaire({ profile, year, totals }: CSRDQuestionnairePr
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>3. Methodik & Datenquellen</Text>
           <Row label="Berechnungsmethode" value="Aktivitätsdaten × Emissionsfaktor" />
+          <Row label="Konsolidierungsansatz" value="Operationale Kontrolle" />
+          <Row label="Erfasste Treibhausgase" value="CO₂, CH₄, N₂O, HFCs (als CO₂e)" />
           <Row label="Emissionsfaktoren" value="UBA 2024 (Umweltbundesamt)" />
-          <Row label="Systemgrenzen" value="Scope 1, 2, 3 (Kategorie 1, 6, 7)" />
+          <Row label="Systemgrenzen" value="Scope 1, 2, 3 (Kategorie 1, 5, 6, 7)" />
           <Row label="Software" value="GrünBilanz v0.1" />
         </View>
 

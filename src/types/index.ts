@@ -177,6 +177,21 @@ export const CATEGORY_UNITS: Record<EmissionCategory, string> = {
   SONSTIGE_KAELTEMITTEL: 'kg',
 };
 
+/**
+ * GHG Protocol Corporate Standard — Scope 3 category numbers for each emission category.
+ * Only Scope 3 categories are listed here; Scope 1/2 entries do not have Protocol category numbers.
+ * Materials (Scope 3 Category 1) are tracked separately as MaterialEntries.
+ */
+export const SCOPE3_GHG_PROTOCOL_CATEGORY: Partial<Record<EmissionCategory, string>> = {
+  ABFALL_RESTMUELL: 'Kat. 5',
+  ABFALL_BAUSCHUTT: 'Kat. 5',
+  ABFALL_ALTMETALL: 'Kat. 5',
+  ABFALL_SONSTIGES: 'Kat. 5',
+  GESCHAEFTSREISEN_FLUG: 'Kat. 6',
+  GESCHAEFTSREISEN_BAHN: 'Kat. 6',
+  PENDLERVERKEHR: 'Kat. 7',
+};
+
 /** Maps each emission category to its scope */
 export const CATEGORY_SCOPE: Record<EmissionCategory, Scope> = {
   ERDGAS: 'SCOPE1',
