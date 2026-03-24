@@ -6,19 +6,54 @@
   --brand-green: #2D6A4F;
   --brand-green-light: #52B788;
   --brand-green-pale: #D8F3DC;
+  --brand-green-dark: #1B4332;
+  --brand-amber: #F4A261;
+  --brand-red: #E76F51;
   --font-sans: 'Inter', system-ui, sans-serif;
-  --background: #F7F6F2;
+  --background: #F0F4F0;
   --card: #FFFFFF;
-  --card-border: #E5E7EB;
+  --card-border: #E2EAE5;
+  --shadow-card: 0 2px 8px 0 rgba(45, 106, 79, 0.08), 0 0 1px 0 rgba(45, 106, 79, 0.12);
+  --shadow-card-hover: 0 8px 24px 0 rgba(45, 106, 79, 0.15), 0 0 1px 0 rgba(45, 106, 79, 0.15);
+  --gradient-green: linear-gradient(135deg, #2D6A4F 0%, #52B788 100%);
+  --gradient-pale: linear-gradient(135deg, #D8F3DC 0%, #F0F4F0 100%);
+  --radius: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background-color: var(--background);
+  background-image: radial-gradient(ellipse at 20% 0%, rgba(82, 183, 136, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(45, 106, 79, 0.05) 0%, transparent 60%);
+  background-attachment: fixed;
   font-family: var(--font-sans);
   @apply text-gray-900 antialiased;
 }
 
 /* Smooth transitions on interactive elements */
 button, a, input, select, textarea {
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(45, 106, 79, 0.25);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(45, 106, 79, 0.45);
 }

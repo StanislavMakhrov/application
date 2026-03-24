@@ -1,13 +1,14 @@
 'use client';
 
 /**
- * Wizard layout with side navigation and progress bar.
- * Shows all 7 screens, marks current screen, and tracks completion.
+ * Wizard layout with side navigation, numbered steps, and gradient progress bar.
+ * Shows all 7 screens, marks current/completed steps with visual differentiation.
  */
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { Leaf } from 'lucide-react';
 
 const WIZARD_STEPS = [
   { id: 1, label: 'Firmenprofil', sublabel: 'Name, Branche, MA' },
@@ -27,23 +28,30 @@ export default function WizardLayout({ children }: { children: React.ReactNode }
   const progress = (currentScreen / WIZARD_STEPS.length) * 100;
 
   return (
-    <div className="min-h-screen bg-[#F7F6F2] flex flex-col">
+    <div className="min-h-screen flex flex-col">
       {/* Top bar */}
-      <header className="border-b border-gray-200 bg-white px-6 py-3 shadow-sm">
+      <header className="border-b border-brand-green/20 bg-white/90 backdrop-blur-sm px-6 py-3 sticky top-0 z-20 shadow-sm">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
-          <Link href="/" className="text-lg font-bold text-brand-green hover:opacity-80">
-            🌿 GrünBilanz
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-brand-green to-brand-green-light">
+              <Leaf className="h-4 w-4 text-white" />
+            </div>
+            <span className="text-base font-bold text-brand-green">GrünBilanz</span>
           </Link>
-          <span className="text-sm text-gray-500">
-            Schritt {currentScreen} von {WIZARD_STEPS.length}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-gray-400">Schritt {currentScreen} von {WIZARD_STEPS.length}</span>
+            <span className="text-xs font-semibold text-brand-green">{Math.round(progress)}%</span>
+          </div>
         </div>
         {/* Progress bar */}
-        <div className="mx-auto max-w-7xl mt-2">
-          <div className="h-1.5 w-full rounded-full bg-gray-200">
+        <div className="mx-auto max-w-7xl mt-2.5">
+          <div className="h-1 w-full rounded-full bg-gray-100">
             <div
-              className="h-1.5 rounded-full bg-brand-green transition-all duration-300"
-              style={{ width: `${progress}%` }}
+              className="h-1 rounded-full transition-all duration-500"
+              style={{
+                width: `${progress}%`,
+                background: 'linear-gradient(90deg, #2D6A4F, #52B788)',
+              }}
             />
           </div>
         </div>
@@ -51,7 +59,7 @@ export default function WizardLayout({ children }: { children: React.ReactNode }
 
       <div className="mx-auto max-w-7xl w-full flex flex-1 gap-0 md:gap-6 px-4 md:px-6 py-6">
         {/* Sidebar navigation */}
-        <nav className="hidden md:flex flex-col gap-1 w-52 shrink-0">
+        <nav className="hidden md:flex flex-col gap-1 w-56 shrink-0">
           {WIZARD_STEPS.map((step) => {
             const isActive = step.id === currentScreen;
             const isDone = step.id < currentScreen;
@@ -60,21 +68,31 @@ export default function WizardLayout({ children }: { children: React.ReactNode }
                 key={step.id}
                 href={`/wizard/${step.id}`}
                 className={cn(
-                  'flex flex-col rounded-md px-3 py-2.5 text-sm transition-colors',
+                  'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all',
                   isActive
-                    ? 'border-l-[3px] border-l-[#1B4332] bg-brand-green text-white font-medium pl-[calc(0.75rem-3px)]'
+                    ? 'bg-gradient-to-r from-brand-green to-brand-green-light text-white shadow-sm font-medium'
                     : isDone
-                    ? 'bg-brand-green-pale text-brand-green hover:bg-brand-green-pale/80'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-brand-green-pale text-brand-green hover:bg-brand-green-pale/70'
+                    : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
                 )}
               >
-                <span className="font-medium">
-                  {isDone ? '✓ ' : `${step.id}. `}
-                  {step.label}
+                {/* Step number / checkmark badge */}
+                <span className={cn(
+                  'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold',
+                  isActive
+                    ? 'bg-white/20 text-white'
+                    : isDone
+                    ? 'bg-brand-green text-white'
+                    : 'bg-gray-200 text-gray-500'
+                )}>
+                  {isDone ? '✓' : step.id}
                 </span>
-                <span className={cn('text-xs mt-0.5', isActive ? 'text-white/75' : 'text-gray-400')}>
-                  {step.sublabel}
-                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium leading-tight">{step.label}</p>
+                  <p className={cn('text-xs leading-tight truncate mt-0.5', isActive ? 'text-white/70' : 'text-gray-400')}>
+                    {step.sublabel}
+                  </p>
+                </div>
               </Link>
             );
           })}
