@@ -1565,8 +1565,10 @@ Quality
 | Handwerksbetrieb | German craft / trade business (electrician, plumber, carpenter, etc.) |
 | Heizöl | Heating oil |
 | InputMethod | How data was entered: MANUAL, OCR, or CSV |
+| Jahresabrechnung | Annual bill / settlement |
 | Kältemittel | Refrigerant — HFC/HFO gases that leak from cooling and air-conditioning equipment |
 | Kältemittelprotokoll | Refrigerant service log — records how much refrigerant was refilled per service |
+| Lieferschein | Delivery receipt |
 | Mitarbeiter | Employees / headcount |
 | Nicht erfasst | Not recorded — category with no data entry for the year |
 | OCR | Optical Character Recognition — used to extract numbers from utility bill PDFs |
@@ -1580,5 +1582,3 @@ Quality
 | Teilweise | Partially recorded — some but not all fields in a wizard screen are filled |
 | UBA | Umweltbundesamt — German Federal Environment Agency; publishes official emission factors |
 | Vollständig | Complete — all required fields in a wizard screen are filled |
-| Lieferschein | Delivery receipt |
-| Jahresabrechnung | Annual bill / settlement |
