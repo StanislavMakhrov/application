@@ -12,10 +12,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { prisma } from './prisma';
+import type { AuditAction } from '@prisma/client';
 import type { Scope, EmissionCategory, MaterialCategory, Branche, InputMethod } from '@/types';
-// AuditAction is defined in the Prisma schema but the generated client exposes it under @prisma/client
-// When Prisma client returns `any`, we define the type inline for strict TypeScript compatibility
-type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE';
 
 type ActionResult = { success: boolean; error?: string };
 

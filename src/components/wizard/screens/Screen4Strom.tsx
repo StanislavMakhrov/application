@@ -178,7 +178,8 @@ export default function Screen4Strom({ year }: Screen4Props) {
             billingMonth: idx + 1,
             providerName,
             documentId: docId,
-            // Market-based fields are shared across all monthly entries
+            // Market-based fields apply to the entire contract/tariff period, so the
+            // same supplier factor and certificate note are used for all monthly entries.
             supplierEmissionFactor,
             renewableCertificateNote,
           })
