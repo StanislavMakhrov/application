@@ -50,6 +50,20 @@ On standard branches (`feature/NNN-*`, `fix/NNN-*`, `workflow/NNN-*`), agents de
 - Single-agent tasks (just use that agent)
 - Highly interactive work requiring maintainer decisions at each step
 
+### Session-Triggered Coding Agent (Interactive)
+
+When a Maintainer starts a coding agent session directly (not from an issue assignment) and types a prompt:
+
+- The agent works **directly on the task** described in the prompt — no orchestrator pipeline.
+- The agent uses `report_progress` to push commits, but does **NOT** create a PR. The Maintainer clicks "Create PR" in the GitHub UI when satisfied.
+- The Maintainer is actively present in the session and can guide the work, so the full orchestation pipeline (Requirements Engineer → Architect → …) is unnecessary.
+- The agent detects this context by the absence of a GitHub issue reference in the session.
+
+**Best for**:
+- Quick tasks, refactors, or exploratory changes where the Maintainer is actively guiding
+- Work that doesn't warrant the full pipeline
+- Iterating on code with real-time Maintainer feedback
+
 **PR Validation and draft PRs**:
 The `PR Validation` pipeline only runs on **ready (non-draft) PRs**. When a coding agent pushes commits to a draft PR, the `synchronize` event triggers the workflow but all jobs are intentionally skipped — this is expected and the "skipped" run in the Actions history is not a failure. The pipeline runs for real only when `scripts/pr-github.sh mark-ready` converts the draft PR to ready-for-review (firing the `ready_for_review` event). This design prevents wasted CI resources on intermediate commits during development.
 
@@ -68,9 +82,10 @@ All agents exist in two variants optimized for their execution environment:
 - **File naming**: Standard name (e.g., `developer.agent.md`)
 
 ### Coding Agents (GitHub Cloud)
-- **Usage**: Automatically used when GitHub assigns issues to `@copilot` or when running as PR coding agent
+- **Usage**: Automatically used when GitHub assigns issues to `@copilot`, when running as PR coding agent, or when a Maintainer starts a coding agent session
 - **Tools**: No explicit tool list (defaults to all available tools in cloud environment)
 - **Behavior**: Autonomous operation, may ask multiple questions via comments, relies on CI/CD for validation
+- **PR creation**: Issue-triggered sessions → agent creates the PR; session-triggered sessions → Maintainer creates the PR from the UI
 - **File naming**: Name with ` (coding agent)` suffix (e.g., `developer-coding-agent.agent.md`)
 
 The workflow diagram and agent descriptions below refer to the conceptual agent roles, not the specific variants. Both variants follow the same workflow patterns and handoff relationships.

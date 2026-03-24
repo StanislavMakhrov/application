@@ -6,7 +6,9 @@ For project-specific instructions, refer to the `docs/architecture.md` and `docs
 
 > **⛔ MANDATORY — READ FIRST (GitHub Copilot Coding Agent)**
 >
-> If you are running as a **GitHub Copilot coding agent** on a `copilot/*` branch (triggered from a GitHub issue assignment), you **MUST** act as the **Workflow Orchestrator** — see [§ Entry Point: Workflow Orchestrator](#entry-point-workflow-orchestrator-mandatory-for-issue-assignments) below. **Do NOT implement anything directly.** Load `.github/agents/workflow-orchestrator-coding-agent.agent.md` and delegate all work to specialized agents.
+> If you are running as a **GitHub Copilot coding agent** triggered from a **GitHub issue assignment** (i.e. an issue was assigned to `@copilot`), you **MUST** act as the **Workflow Orchestrator** — see [§ Entry Point: Workflow Orchestrator](#entry-point-workflow-orchestrator-mandatory-for-issue-assignments) below. **Do NOT implement anything directly.** Load `.github/agents/workflow-orchestrator-coding-agent.agent.md` and delegate all work to specialized agents.
+>
+> If you are running as a coding agent from a **Maintainer-started session** (no issue assignment), work directly on the task. Do **NOT** create a PR — the Maintainer will click "Create PR" in the UI.
 
 ## Coding Pattern Preferences
 
@@ -38,7 +40,16 @@ For project-specific instructions, refer to the `docs/architecture.md` and `docs
 
 ## GitHub Copilot Coding Agent Workflow (CRITICAL)
 
-**If you are running as a GitHub Copilot coding agent** (assigned issues via `@copilot`, PR coding agent on `copilot/*` branches), you **MUST** use the `report_progress` tool for all commits and pushes. **Manual `git push` commands will fail.**
+GitHub Copilot coding agent sessions come in **two flavors** — the agent MUST detect which one applies:
+
+| | Issue-triggered | Session-triggered |
+|---|---|---|
+| **How it starts** | A GitHub issue is assigned to `@copilot` | Maintainer opens a coding agent session and types a prompt |
+| **Orchestrator?** | **YES** — full pipeline (see below) | **NO** — agent works directly on the task |
+| **PR creation** | Agent creates the PR via `create-pr-github` skill | Agent does **NOT** create a PR — the Maintainer clicks "Create PR" in the UI |
+| **How to detect** | The session context references a GitHub issue number/link | No issue is referenced; the prompt is the sole input |
+
+**In both cases**, the agent **MUST** use the `report_progress` tool for all commits and pushes. **Manual `git push` commands will fail.**
 
 ### Entry Point: Workflow Orchestrator (MANDATORY for Issue Assignments)
 
@@ -64,10 +75,10 @@ This is the mechanism that routes issue assignments through the full workflow pi
 
 ### Pull Request Creation
 
-GitHub no longer automatically creates a draft PR when a coding agent session starts. The agent is responsible for creating the PR:
+PR creation depends on how the session was triggered:
 
-- After all work is pushed with `report_progress` and CI is green, always use the **`create-pr-github`** skill to open the PR.
-- **Never create a duplicate PR** if one already exists for your branch.
+- **Issue-triggered sessions**: After all work is pushed with `report_progress` and CI is green, use the **`create-pr-github`** skill to open the PR. **Never create a duplicate PR** if one already exists for your branch.
+- **Session-triggered sessions**: Do **NOT** create a PR. The Maintainer will click "Create PR" in the GitHub UI when ready. Your job is to push commits via `report_progress` and ensure they are clean — the Maintainer controls when the PR is created.
 
 ### CI Accountability (MANDATORY)
 
