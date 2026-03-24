@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.4](https://github.com/StanislavMakhrov/application/compare/v0.1.3...v0.1.4) (2026-03-24)
+
+
+### Features
+
+* add Add Year button to dashboard year selector ([28bba89](https://github.com/StanislavMakhrov/application/commit/28bba896b61c37cd31a4828a0cb962c77cbcad74))
+* add Settings page with year management (add + delete) ([f10f459](https://github.com/StanislavMakhrov/application/commit/f10f45908e79f8b96222505bec96c0b1e341164d))
+
+
+### Bug Fixes
+
+* route [@copilot](https://github.com/copilot) issue assignments through Workflow Orchestrator ([824d334](https://github.com/StanislavMakhrov/application/commit/824d334dcf0464e3ed46641e103b65b2afad8729))
+
 ## [0.1.3](https://github.com/StanislavMakhrov/application/compare/v0.1.2...v0.1.3) (2026-03-24)
 
 
