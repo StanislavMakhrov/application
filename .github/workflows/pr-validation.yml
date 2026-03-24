@@ -19,6 +19,12 @@ jobs:
   docker:
     name: Build & Push Docker Image for UAT
     runs-on: ubuntu-latest
+    # Only run on ready (non-draft) PRs.
+    # When a coding agent pushes commits to a draft PR a `synchronize` event fires, but
+    # all jobs below are intentionally skipped — this is expected behaviour and the
+    # resulting "skipped" run in the Actions history is not a failure.
+    # The pipeline runs for real only when `scripts/pr-github.sh mark-ready` converts
+    # the draft PR to ready-for-review, which fires the `ready_for_review` event.
     if: github.event.pull_request.draft == false
 
     steps:
@@ -124,6 +130,11 @@ jobs:
     name: E2E Tests
     runs-on: ubuntu-latest
     needs: docker
+    # Skipped for draft PRs (same guard as the `docker` job).
+    # Pushes to a draft PR trigger a `synchronize` event but all jobs are intentionally
+    # skipped — the pipeline only runs after `scripts/pr-github.sh mark-ready` converts
+    # the PR from draft to ready-for-review (the `ready_for_review` event).
+    if: github.event.pull_request.draft == false
 
     steps:
       - name: Checkout

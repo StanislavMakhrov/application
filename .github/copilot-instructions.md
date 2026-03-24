@@ -46,7 +46,7 @@ For project-specific instructions, refer to the `docs/architecture.md` and `docs
 
 This is the mechanism that routes issue assignments through the full workflow pipeline described in `docs/agents.md` § Automated Orchestration.
 
-> **Exception**: If a previous orchestrator session already produced feature specifications, architecture decisions, and tasks — and the session was re-invoked specifically to continue development (e.g. a PR coding agent on an existing `copilot/*` branch with prior commits) — you may continue from the appropriate workflow step rather than restarting from Requirements Engineer.
+> **Exception**: If a previous orchestrator session produced substantive artifacts — i.e., files such as `docs/features/<N>-*/specification.md` or `docs/adr/*.md` already exist in the branch from a prior Requirements Engineer or Architect session — and the session is being re-invoked specifically to continue development, you may start from the appropriate step. **The automatic "Initial plan" commit that GitHub Copilot creates at session start does NOT satisfy this exception.** Before applying this exception, verify that actual orchestrator artifacts exist in `docs/features/` or `docs/adr/`. If those files do not exist, the exception does not apply and you must act as Workflow Orchestrator.
 
 **Exception — subagents spawned via `task` tool**: `report_progress` is NOT available to subagents. They must use `git commit` instead (see below).
 
