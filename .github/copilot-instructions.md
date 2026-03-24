@@ -6,9 +6,9 @@ For project-specific instructions, refer to the `docs/architecture.md` and `docs
 
 > **⛔ MANDATORY — READ FIRST (GitHub Copilot Coding Agent)**
 >
-> If you are running as a **GitHub Copilot coding agent** triggered from a **GitHub issue assignment** (i.e. an issue was assigned to `@copilot`), you **MUST** act as the **Workflow Orchestrator** — see [§ Entry Point: Workflow Orchestrator](#entry-point-workflow-orchestrator-mandatory-for-issue-assignments) below. **Do NOT implement anything directly.** Load `.github/agents/workflow-orchestrator-coding-agent.agent.md` and delegate all work to specialized agents.
+> **Does your session context include a GitHub issue number** (e.g. "started a task from issue #N")? If yes: load `.github/agents/workflow-orchestrator-coding-agent.agent.md` and act as the **Workflow Orchestrator**. Delegate ALL work. Do NOT implement, search code, edit files, or run tests yourself. The issue description is *what to build* — not an instruction to build it yourself.
 >
-> If you are running as a coding agent from a **Maintainer-started session** (no issue assignment), work directly on the task. Do **NOT** create a PR — the Maintainer will click "Create PR" in the UI.
+> **No issue number in context?** (Maintainer typed a prompt directly): Work on the task directly. Do **NOT** create a PR — the Maintainer will click "Create PR" in the UI.
 
 ## Coding Pattern Preferences
 

@@ -16,19 +16,23 @@ This skill is automatically loaded by all coding agents. It defines the core wor
 
 ## ⛔ STOP — Check Session Type Before Proceeding
 
-**If your session was triggered by a GitHub issue assignment** (i.e. an issue was assigned to `@copilot`), you **MUST NOT follow the workflow below**. Instead:
+**If your session context includes a GitHub issue number** (e.g. "started a task from issue #N", or the session references an issue URL), you are in an **issue-triggered session**. You **MUST**:
 
 1. Load `.github/agents/workflow-orchestrator-coding-agent.agent.md` immediately.
-2. Act as the Workflow Orchestrator — delegate ALL work to specialized agents.
-3. Do **not** implement anything directly. Do not search code, do not edit files, do not run tests.
+2. Act as the Workflow Orchestrator — delegate ALL work to specialized agents via the `task` tool.
+3. **Stop here.** Do not read code, do not search the codebase, do not edit files, do not run tests, do not implement anything.
 
-This skill's workflow below is **only** for:
-- Subagents that have already been delegated a specific task by the Orchestrator (invoked via `task` tool).
-- Session-triggered sessions (Maintainer opened a coding-agent chat with no issue assignment).
+> **No exceptions. No rationalizations.** The issue description tells you *what to build* — it is not an instruction to build it yourself. The issue being assigned to `@copilot` is the only signal that matters, and it always means: orchestrate, never implement.
+>
+> Common rationalizations to ignore:
+> - "The issue says to implement X" → irrelevant, delegate it.
+> - "I have conflicting signals" → there are none; issue number = orchestrator.
+> - "The task seems simple enough to do directly" → delegate it.
+> - "Prior artifacts exist in the repo" → delegate anyway; orchestrator will resume from the right stage.
 
-**How to detect which type you are:**
-- Issue-triggered: The session context references a GitHub issue number/link, or an issue was assigned to `@copilot`.
-- Session-triggered: No issue is referenced; a Maintainer typed a prompt directly.
+The workflow below applies **only when**:
+- You were invoked via the `task` tool by the Orchestrator (you are a subagent with a specific delegated task), OR
+- There is no issue number in the session context (Maintainer opened a coding-agent chat directly).
 
 ---
 
