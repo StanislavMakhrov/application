@@ -55,6 +55,14 @@ Constraints for release notes:
 
 ⚠️ <If any, include migration steps>
 
+## 🐳 Docker image
+
+> Appended automatically by the release workflow — do not add to hand-written notes.
+
+```bash
+docker pull ghcr.io/<owner>/<repo>:<version>
+```
+
 ## ▶️ Getting started (only if usage changed)
 
 > Include this section only when there are changes to how users run the tool (new flags, changed defaults, new required config, etc.).
