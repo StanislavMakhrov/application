@@ -24,7 +24,10 @@ For well-defined features or bugs, use the **Workflow Orchestrator** agent to au
 
 - **GitHub (Cloud) - RECOMMENDED**: Assign a GitHub issue to `@copilot` to trigger automated orchestration from issue to release. The orchestrator runs as a coding agent with full delegation capabilities via the `task` tool.
 
-**How It Works**:
+**How It Works (Technical)**:
+The routing is controlled by `.github/copilot-instructions.md`. That file contains an explicit rule: when the coding agent session is triggered from a GitHub issue assignment, it **must** load `.github/agents/workflow-orchestrator-coding-agent.agent.md` and act as the Workflow Orchestrator rather than implementing directly. Without this rule, the coding agent would bypass the pipeline and implement directly as a developer.
+
+**Workflow**:
 - The orchestrator **never asks clarifying questions** - it immediately delegates to the appropriate entry point agent (Requirements Engineer for features, Issue Analyst for bugs)
 - The orchestrator **never implements anything itself** - it purely delegates to specialized agents in sequence
 - Entry point agents (Requirements Engineer, Issue Analyst) handle requirements gathering and ask any needed clarifying questions

@@ -6,7 +6,7 @@
  */
 
 import Link from 'next/link';
-import { Leaf, TrendingDown, Users, Zap, BarChart3 } from 'lucide-react';
+import { Leaf, TrendingDown, Users, Zap, BarChart3, Settings } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { getTotalCO2e } from '@/lib/emissions';
 import { KpiCard } from '@/components/dashboard/KpiCard';
@@ -32,6 +32,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const selectedYear = searchParams.year
     ? parseInt(searchParams.year, 10)
     : years[years.length - 1] ?? new Date().getFullYear();
+  const nextYear = years.length > 0 ? years[years.length - 1] + 1 : new Date().getFullYear();
 
   const currentYearRecord = await prisma.reportingYear.findUnique({
     where: { year: selectedYear },
@@ -88,7 +89,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {years.length > 0 && <YearSelector years={years} selectedYear={selectedYear} />}
+            <YearSelector years={years} selectedYear={selectedYear} nextYear={nextYear} />
             <Link
               href="/wizard/1"
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-green px-4 py-2 text-sm font-semibold text-white hover:bg-brand-green-dark min-h-[38px] shadow-sm transition-colors"
@@ -107,6 +108,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             >
               Bericht erstellen
             </a>
+            <Link
+              href="/settings"
+              title="Einstellungen"
+              className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-50 min-h-[38px] w-[38px] transition-colors"
+            >
+              <Settings className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </header>
