@@ -159,4 +159,47 @@ describe('getTotalCO2e', () => {
     expect(result.scope3).toBeCloseTo(1.824); // 1824 kg = 1.824 t
     expect(result.byCategory['KUPFER']).toBeCloseTo(1.824);
   });
+
+  it('scope2 equals scope2LocationBased when isOekostrom is false', async () => {
+    vi.mocked(prisma.reportingYear.findUniqueOrThrow).mockResolvedValueOnce({
+      id: 4,
+      year: 2024,
+      createdAt: new Date(),
+    });
+    vi.mocked(prisma.emissionEntry.findMany).mockResolvedValueOnce([
+      { id: 1, reportingYearId: 4, scope: 'SCOPE2', category: 'STROM', quantity: 1000, isOekostrom: false, memo: null, inputMethod: 'MANUAL', billingMonth: null, isFinalAnnual: false, providerName: null, createdAt: new Date(), updatedAt: new Date() },
+    ]);
+    vi.mocked(prisma.materialEntry.findMany).mockResolvedValueOnce([]);
+
+    // STROM grid factor: 1000 × 0.380 = 380 kg = 0.380 t
+    vi.mocked(getEmissionFactor).mockResolvedValueOnce(0.38);
+
+    const result = await getTotalCO2e(4);
+    expect(result.scope2).toBeCloseTo(0.38);
+    expect(result.scope2LocationBased).toBeCloseTo(0.38);
+    expect(result.scope2).toBe(result.scope2LocationBased);
+  });
+
+  it('scope2 uses Ökostrom factor and scope2LocationBased uses grid factor when isOekostrom is true', async () => {
+    vi.mocked(prisma.reportingYear.findUniqueOrThrow).mockResolvedValueOnce({
+      id: 5,
+      year: 2024,
+      createdAt: new Date(),
+    });
+    vi.mocked(prisma.emissionEntry.findMany).mockResolvedValueOnce([
+      { id: 1, reportingYearId: 5, scope: 'SCOPE2', category: 'STROM', quantity: 1000, isOekostrom: true, memo: null, inputMethod: 'MANUAL', billingMonth: null, isFinalAnnual: false, providerName: null, createdAt: new Date(), updatedAt: new Date() },
+    ]);
+    vi.mocked(prisma.materialEntry.findMany).mockResolvedValueOnce([]);
+
+    // First call: STROM_OEKOSTROM factor for market-based: 1000 × 0.030 = 30 kg = 0.030 t
+    // Second call: STROM grid factor for location-based: 1000 × 0.380 = 380 kg = 0.380 t
+    vi.mocked(getEmissionFactor)
+      .mockResolvedValueOnce(0.03)  // STROM_OEKOSTROM (market-based)
+      .mockResolvedValueOnce(0.38); // STROM grid (location-based)
+
+    const result = await getTotalCO2e(5);
+    expect(result.scope2).toBeCloseTo(0.03);            // market-based
+    expect(result.scope2LocationBased).toBeCloseTo(0.38); // location-based (grid average)
+    expect(result.total).toBeCloseTo(0.03);             // total uses market-based scope2
+  });
 });

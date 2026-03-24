@@ -96,9 +96,10 @@ export interface ReportingYearData {
 
 export interface CO2eTotals {
   scope1: number; // tonnes
-  scope2: number; // tonnes
+  scope2: number; // tonnes — market-based (primary)
+  scope2LocationBased: number; // tonnes — always grid-average (location-based)
   scope3: number; // tonnes
-  total: number; // tonnes
+  total: number; // tonnes — uses market-based scope2
   byCategory: Record<string, number>; // tonnes
 }
 

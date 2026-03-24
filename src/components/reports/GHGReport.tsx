@@ -49,6 +49,11 @@ const styles = StyleSheet.create({
   kpiLabel: { fontSize: 8, color: '#555' },
   kpiValue: { fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#2D6A4F', marginTop: 2 },
   note: { fontSize: 8, color: '#777', marginTop: 4 },
+  comparisonBox: { flexDirection: 'row', gap: 12, marginTop: 12, marginBottom: 8 },
+  comparisonCard: { flex: 1, backgroundColor: '#f0fdf4', borderRadius: 4, padding: 10, borderWidth: 0.5, borderColor: '#2D6A4F' },
+  comparisonLabel: { fontSize: 8, color: '#555', marginBottom: 2 },
+  comparisonValue: { fontSize: 14, fontFamily: 'Helvetica-Bold', color: '#2D6A4F' },
+  comparisonNote: { fontSize: 7.5, color: '#777', marginTop: 8, lineHeight: 1.5 },
   footer: { position: 'absolute', bottom: 30, left: 40, right: 40, fontSize: 8, color: '#aaa', textAlign: 'center' },
   scopeLabel: { fontSize: 10, fontFamily: 'Helvetica-Bold', color: '#fff', backgroundColor: '#2D6A4F', padding: '3 8', borderRadius: 3, marginBottom: 4 },
   highlight: { color: '#E76F51', fontFamily: 'Helvetica-Bold' },
@@ -76,6 +81,10 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
   const scope1Entries = entries.filter((e) => e.scope === 'SCOPE1');
   const scope2Entries = entries.filter((e) => e.scope === 'SCOPE2');
   const scope3Entries = entries.filter((e) => e.scope === 'SCOPE3');
+
+  const hasOekostrom = entries.some((e) => e.scope === 'SCOPE2' && e.isOekostrom);
+  const scope2LocationBased = totals.scope2LocationBased ?? totals.scope2;
+  const scope2DifferenceTonnes = scope2LocationBased - totals.scope2;
 
   const ProfileRow = ({ label, value }: { label: string; value: string }) => (
     <View style={styles.profileRow}>
@@ -203,6 +212,31 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
         <Text style={styles.sectionTitle}>Emissionen nach Scope (GHG Protocol)</Text>
         {renderScopeTable(scope1Entries, 'Scope 1 — Direkte Emissionen', totals.scope1)}
         {renderScopeTable(scope2Entries, 'Scope 2 — Energiebedingte Emissionen', totals.scope2)}
+
+        {/* Scope 2 dual-method comparison block — shown only when Ökostrom evidence exists */}
+        {hasOekostrom && (
+          <View>
+            <Text style={[styles.sectionTitle, { fontSize: 11 }]}>
+              Scope 2: Vergleich locationbasiert vs. marktbasiert
+            </Text>
+            <View style={styles.comparisonBox}>
+              <View style={styles.comparisonCard}>
+                <Text style={styles.comparisonLabel}>Marktbasierter Ansatz (Scope 2, market-based)</Text>
+                <Text style={styles.comparisonValue}>{totals.scope2.toFixed(3)} t CO₂e</Text>
+                <Text style={styles.comparisonNote}>Verwendet Ökostrom-Faktor (0,030 kg/kWh) gemäß Lieferantenvertrag.</Text>
+              </View>
+              <View style={styles.comparisonCard}>
+                <Text style={styles.comparisonLabel}>Locationbasierter Ansatz (Scope 2, location-based)</Text>
+                <Text style={styles.comparisonValue}>{scope2LocationBased.toFixed(3)} t CO₂e</Text>
+                <Text style={styles.comparisonNote}>Verwendet Netzstrom-Durchschnittsfaktor (0,380 kg/kWh, UBA 2024).</Text>
+              </View>
+            </View>
+            <Text style={styles.comparisonNote}>
+              Differenz: {scope2DifferenceTonnes.toFixed(3)} t CO₂e · Gemäß GHG Protocol Corporate Standard § 6.3 sind beide Methoden offenzulegen, wenn marktbasierte Instrumente (Zertifikate, Lieferantenverträge) vorliegen. Die Differenz erklärt sich durch den Einsatz von Ökostrom-Zertifikaten.
+            </Text>
+          </View>
+        )}
+
         {renderScopeTable(scope3Entries, 'Scope 3 — Vorgelagerte Emissionen', totals.scope3)}
 
         {/* Reporting Boundaries — always shown on page 1 */}
