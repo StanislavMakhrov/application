@@ -1,7 +1,7 @@
 # Feature: Check Report Conformity
 
 **Feature ID:** 001
-**Status:** 🔲 Planned
+**Status:** ✅ Implemented
 **Issue:** [Feature]: Check report conformity
 
 ---
