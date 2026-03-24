@@ -58,6 +58,9 @@ model EmissionEntry {
   isFinalAnnual   Boolean       @default(false)
   // Energy/service provider name — enables mid-year provider changes
   providerName    String?
+  // GHG Protocol Scope 2 Guidance — market-based method fields (STROM only)
+  supplierEmissionFactor   Float?   // kg CO₂e per kWh from supplier contract/tariff
+  renewableCertificateNote String?  // description of green tariff or renewable energy certificate
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   auditLogs       AuditLog[]

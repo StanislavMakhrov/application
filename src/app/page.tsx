@@ -28,7 +28,7 @@ interface DashboardPageProps {
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const allYears = await prisma.reportingYear.findMany({ orderBy: { year: 'asc' } });
-  const years = allYears.map((y) => y.year);
+  const years = allYears.map((y: { year: number }) => y.year);
   const selectedYear = searchParams.year
     ? parseInt(searchParams.year, 10)
     : years[years.length - 1] ?? new Date().getFullYear();
@@ -44,7 +44,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     ? await prisma.industryBenchmark.findUnique({ where: { branche: companyProfile.branche } })
     : null;
 
-  const emptyTotals: CO2eTotals = { scope1: 0, scope2: 0, scope3: 0, total: 0, byCategory: {} };
+  const emptyTotals: CO2eTotals = { scope1: 0, scope2: 0, scope2LocationBased: 0, scope2MarketBased: null, scope3: 0, total: 0, byCategory: {} };
   const currentTotals = currentYearRecord ? await getTotalCO2e(currentYearRecord.id) : emptyTotals;
 
   const prevYear = selectedYear - 1;
@@ -55,8 +55,9 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const co2ePerEmployee = mitarbeiter > 0 ? currentTotals.total / mitarbeiter : 0;
   const benchmarkPerEmployee = benchmark?.co2ePerEmployeePerYear ?? 12.5;
 
+  type EntryShape = { quantity: number; category: string };
   const capturedCategories = new Set<string>(
-    (currentYearRecord?.entries ?? []).filter((e) => e.quantity > 0).map((e) => e.category)
+    (currentYearRecord?.entries ?? []).filter((e: EntryShape) => e.quantity > 0).map((e: EntryShape) => e.category)
   );
   for (const mat of currentYearRecord?.materialEntries ?? []) {
     if (mat.quantityKg > 0) capturedCategories.add(mat.material);

@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
   const allYears = await prisma.reportingYear.findMany({ orderBy: { year: 'asc' } });
-  const years = allYears.map((y) => y.year);
+  const years = allYears.map((y: { year: number }) => y.year);
   const nextYear = years.length > 0 ? years[years.length - 1] + 1 : new Date().getFullYear();
 
   return (

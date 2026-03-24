@@ -9,6 +9,9 @@
  * - STROM with isOekostrom=true uses the STROM_OEKOSTROM factor (0.030 kg/kWh)
  * - ABFALL_ALTMETALL has a negative factor (recycling credit), which correctly
  *   reduces the total
+ * - GHG Protocol Scope 2 Guidance: when supplierEmissionFactor is set on a STROM
+ *   entry, it is used to compute the market-based Scope 2 total in addition to the
+ *   standard location-based total.
  *
  * Monthly billing aggregation rules (Item 4):
  * - If a category has an isFinalAnnual=true entry, use ONLY that entry (it
@@ -82,6 +85,11 @@ export async function getTotalCO2e(yearId: number): Promise<CO2eTotals> {
   let scope2Kg = 0;
   let scope3Kg = 0;
 
+  // Track market-based Scope 2 separately (GHG Protocol Scope 2 Guidance).
+  // Only computed when at least one STROM entry carries a supplierEmissionFactor.
+  let scope2MarketBasedKg = 0;
+  let hasMarketBasedData = false;
+
   // Determine which categories have a final-annual entry — those entries
   // supersede all monthly/provider-specific rows for that category.
   const finalAnnualCategories = new Set(
@@ -100,8 +108,22 @@ export async function getTotalCO2e(yearId: number): Promise<CO2eTotals> {
     byCategory[entry.category] = (byCategory[entry.category] ?? 0) + kg;
 
     if (entry.scope === 'SCOPE1') scope1Kg += kg;
-    else if (entry.scope === 'SCOPE2') scope2Kg += kg;
-    else scope3Kg += kg;
+    else if (entry.scope === 'SCOPE2') {
+      scope2Kg += kg;
+
+      // Market-based Scope 2: use supplier-specific factor when available (STROM only).
+      // For non-STROM Scope 2 categories (e.g. FERNWAERME) or STROM entries without a
+      // supplier factor, fall back to the location-based result so the total remains
+      // comparable.
+      if (entry.category === 'STROM' && entry.supplierEmissionFactor != null) {
+        hasMarketBasedData = true;
+        scope2MarketBasedKg += entry.quantity * entry.supplierEmissionFactor;
+      } else {
+        scope2MarketBasedKg += kg;
+      }
+    } else {
+      scope3Kg += kg;
+    }
   }
 
   // Process material entries (always Scope 3, Category 1 — upstream emissions)
@@ -121,6 +143,9 @@ export async function getTotalCO2e(yearId: number): Promise<CO2eTotals> {
 
   return {
     scope1: kgToTonnes(scope1Kg),
+    scope2LocationBased: kgToTonnes(scope2Kg),
+    scope2MarketBased: hasMarketBasedData ? kgToTonnes(scope2MarketBasedKg) : null,
+    // Backward-compatible alias — always points to the location-based total
     scope2: kgToTonnes(scope2Kg),
     scope3: kgToTonnes(scope3Kg),
     total: kgToTonnes(scope1Kg + scope2Kg + scope3Kg),

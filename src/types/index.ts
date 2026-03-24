@@ -76,6 +76,10 @@ export interface EmissionEntryData {
   memo?: string | null;
   isOekostrom: boolean;
   inputMethod: InputMethod;
+  /** Market-based method: kg CO₂e per kWh from supplier contract/tariff (STROM only) */
+  supplierEmissionFactor?: number | null;
+  /** Optional note describing the green tariff or renewable energy certificate */
+  renewableCertificateNote?: string | null;
 }
 
 export interface MaterialEntryData {
@@ -96,6 +100,15 @@ export interface ReportingYearData {
 
 export interface CO2eTotals {
   scope1: number; // tonnes
+  /** Location-based Scope 2 total (grid emission factor). Alias: scope2. */
+  scope2LocationBased: number; // tonnes
+  /**
+   * Market-based Scope 2 total (supplier-specific emission factor per GHG Protocol
+   * Scope 2 Guidance). Only populated when at least one STROM entry carries a
+   * supplierEmissionFactor; otherwise null.
+   */
+  scope2MarketBased: number | null; // tonnes
+  /** Alias for scope2LocationBased — kept for backward compatibility. */
   scope2: number; // tonnes
   scope3: number; // tonnes
   total: number; // tonnes

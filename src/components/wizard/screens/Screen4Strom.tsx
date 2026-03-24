@@ -70,6 +70,13 @@ const schema = z.object({
   // When true, the annual total overrides any monthly entries
   isFinalAnnual: z.boolean().default(false),
   monthly: monthlySchema.default({}),
+  // GHG Protocol Scope 2 Guidance — market-based method (optional)
+  // Empty string from the HTML input should be treated as "not set"
+  supplierEmissionFactor: z.preprocess(
+    (v) => (v === '' || v === null ? undefined : v),
+    z.coerce.number().min(0).optional()
+  ),
+  renewableCertificateNote: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -83,6 +90,8 @@ export default function Screen4Strom({ year }: Screen4Props) {
   // documentId is carried from OCR/CSV result to saveEntry for audit linkage
   const [lastDocumentId, setLastDocumentId] = useState<number | undefined>();
   const [warnings, setWarnings] = useState<Record<string, string | null>>({});
+  // Controls visibility of the optional market-based method section
+  const [showMarketBased, setShowMarketBased] = useState(false);
 
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } =
     useForm<FormValues>({
@@ -94,6 +103,8 @@ export default function Screen4Strom({ year }: Screen4Props) {
         useMonthly: false,
         isFinalAnnual: false,
         monthly: { m1: 0, m2: 0, m3: 0, m4: 0, m5: 0, m6: 0, m7: 0, m8: 0, m9: 0, m10: 0, m11: 0, m12: 0 },
+        supplierEmissionFactor: undefined,
+        renewableCertificateNote: '',
       },
     });
 
@@ -107,12 +118,21 @@ export default function Screen4Strom({ year }: Screen4Props) {
       setYearId(y.id);
       fetch(`/api/entries?yearId=${y.id}&scope=SCOPE2`)
         .then((r) => r.json())
-        .then((entries: Array<{ category: string; quantity: number; isOekostrom: boolean; billingMonth?: number | null }>) => {
+        .then((entries: Array<{ category: string; quantity: number; isOekostrom: boolean; billingMonth?: number | null; supplierEmissionFactor?: number | null; renewableCertificateNote?: string | null }>) => {
           // Load annual entries into the main fields
           for (const e of entries) {
             if (e.category === 'STROM' && !e.billingMonth) {
               setValue('strom', e.quantity);
               setValue('isOekostrom', e.isOekostrom);
+              // Restore market-based fields if present
+              if (e.supplierEmissionFactor != null) {
+                setValue('supplierEmissionFactor', e.supplierEmissionFactor);
+                setShowMarketBased(true);
+              }
+              if (e.renewableCertificateNote) {
+                setValue('renewableCertificateNote', e.renewableCertificateNote);
+                setShowMarketBased(true);
+              }
             }
             if (e.category === 'FERNWAERME' && !e.billingMonth) setValue('fernwaerme', e.quantity);
           }
@@ -135,6 +155,15 @@ export default function Screen4Strom({ year }: Screen4Props) {
     if (!yearId) return;
     const docId = lastDocumentId;
     const providerName = values.providerName || undefined;
+    // Only pass market-based fields when the section is visible and has a value
+    const supplierEmissionFactor =
+      showMarketBased && values.supplierEmissionFactor !== undefined
+        ? values.supplierEmissionFactor
+        : undefined;
+    const renewableCertificateNote =
+      showMarketBased && values.renewableCertificateNote
+        ? values.renewableCertificateNote
+        : undefined;
 
     if (values.useMonthly && !values.isFinalAnnual) {
       // Save one entry per month for Strom — use MONTHLY_KEYS to derive the month key
@@ -149,6 +178,9 @@ export default function Screen4Strom({ year }: Screen4Props) {
             billingMonth: idx + 1,
             providerName,
             documentId: docId,
+            // Market-based fields are shared across all monthly entries
+            supplierEmissionFactor,
+            renewableCertificateNote,
           })
         )
       );
@@ -165,6 +197,8 @@ export default function Screen4Strom({ year }: Screen4Props) {
         isFinalAnnual: values.isFinalAnnual,
         providerName,
         documentId: docId,
+        supplierEmissionFactor,
+        renewableCertificateNote,
       });
       if (!stromResult.success) { toast.error('Fehler beim Speichern.'); return; }
     }
@@ -294,6 +328,58 @@ export default function Screen4Strom({ year }: Screen4Props) {
           <p className="text-xs text-gray-400 mt-1 ml-7">
             Ökostrom-Zertifikat vorhanden? Reduziert den Emissionsfaktor erheblich.
           </p>
+        </div>
+
+        {/* Market-based method — collapsible optional section */}
+        <div className="rounded-md border border-blue-100 bg-blue-50 p-4 space-y-3">
+          <button
+            type="button"
+            className="flex items-center gap-2 text-sm font-medium text-blue-800 w-full text-left"
+            onClick={() => setShowMarketBased((v) => !v)}
+            aria-expanded={showMarketBased}
+          >
+            <span>{showMarketBased ? '▾' : '▸'}</span>
+            <span>Marktbasierte Methode (optional)</span>
+            <HelpTooltip text="Gemäß GHG Protocol Scope 2 Guidance können Unternehmen neben dem standortbasierten Wert (Netzfaktor) auch einen marktbasierten Wert ausweisen. Dieser basiert auf dem Emissionsfaktor Ihres Lieferantenvertrags oder Grünstromnachweises." />
+          </button>
+          {showMarketBased && (
+            <div className="space-y-4 pt-1">
+              <div className="space-y-1.5">
+                <Label htmlFor="supplierEmissionFactor">
+                  Lieferanten-Emissionsfaktor (kg CO₂e/kWh)
+                  <HelpTooltip text="Der vom Stromanbieter vertraglich zugesagte Emissionsfaktor, z. B. aus einem Ökostromtarif oder PPA (Power Purchase Agreement). Bei zertifiziertem Ökostrom ohne eigenen Faktor kann 0 eingegeben werden." />
+                </Label>
+                <Input
+                  id="supplierEmissionFactor"
+                  type="number"
+                  step="0.001"
+                  min={0}
+                  placeholder="z. B. 0.000 für 100% Ökostrom"
+                  {...register('supplierEmissionFactor')}
+                />
+                {errors.supplierEmissionFactor && (
+                  <p className="text-xs text-red-600">{errors.supplierEmissionFactor.message}</p>
+                )}
+                <p className="text-xs text-gray-500">
+                  Der marktbasierte Wert wird im GHG-Bericht neben dem standortbasierten Wert ausgewiesen.
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="renewableCertificateNote">
+                  Grünstromnachweis / Zertifikatshinweis (optional)
+                </Label>
+                <Input
+                  id="renewableCertificateNote"
+                  type="text"
+                  placeholder="z. B. RECS-Zertifikat, Herkunftsnachweis, PPA mit Windpark XY"
+                  {...register('renewableCertificateNote')}
+                />
+                <p className="text-xs text-gray-500">
+                  Beschreibung des Grünstromtarifs oder Zertifikats für die Berichtsdokumentation.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Fernwärme */}

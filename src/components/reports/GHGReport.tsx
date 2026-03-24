@@ -203,6 +203,35 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
         <Text style={styles.sectionTitle}>Emissionen nach Scope (GHG Protocol)</Text>
         {renderScopeTable(scope1Entries, 'Scope 1 — Direkte Emissionen', totals.scope1)}
         {renderScopeTable(scope2Entries, 'Scope 2 — Energiebedingte Emissionen', totals.scope2)}
+
+        {/* Scope 2 dual-reporting: show location-based vs market-based when both are available */}
+        {totals.scope2MarketBased !== null && (
+          <View style={{ marginBottom: 12, padding: 10, backgroundColor: '#EFF6FF', borderRadius: 4, borderWidth: 0.5, borderColor: '#BFDBFE' }}>
+            <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: '#1E40AF', marginBottom: 6 }}>
+              Scope 2 — Doppelausweis (GHG Protocol Scope 2 Guidance)
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <View style={{ flex: 1, backgroundColor: '#DBEAFE', padding: 8, borderRadius: 3 }}>
+                <Text style={{ fontSize: 8, color: '#374151' }}>Standortbasiert</Text>
+                <Text style={{ fontSize: 14, fontFamily: 'Helvetica-Bold', color: '#1E40AF', marginTop: 2 }}>
+                  {totals.scope2LocationBased.toFixed(3)} t CO₂e
+                </Text>
+                <Text style={{ fontSize: 7, color: '#6B7280', marginTop: 2 }}>Nationaler Netzfaktor (UBA)</Text>
+              </View>
+              <View style={{ flex: 1, backgroundColor: '#D1FAE5', padding: 8, borderRadius: 3 }}>
+                <Text style={{ fontSize: 8, color: '#374151' }}>Marktbasiert</Text>
+                <Text style={{ fontSize: 14, fontFamily: 'Helvetica-Bold', color: '#065F46', marginTop: 2 }}>
+                  {totals.scope2MarketBased.toFixed(3)} t CO₂e
+                </Text>
+                <Text style={{ fontSize: 7, color: '#6B7280', marginTop: 2 }}>Lieferantenvertrag / Grünstromnachweis</Text>
+              </View>
+            </View>
+            <Text style={{ fontSize: 7, color: '#6B7280', marginTop: 6, lineHeight: 1.5 }}>
+              Der marktbasierte Wert berücksichtigt Lieferantenverträge und Grünstromnachweise gemäß GHG Protocol Scope 2 Guidance.
+            </Text>
+          </View>
+        )}
+
         {renderScopeTable(scope3Entries, 'Scope 3 — Vorgelagerte Emissionen', totals.scope3)}
 
         {/* Reporting Boundaries — always shown on page 1 */}

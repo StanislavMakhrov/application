@@ -13,7 +13,9 @@
 import { revalidatePath } from 'next/cache';
 import { prisma } from './prisma';
 import type { Scope, EmissionCategory, MaterialCategory, Branche, InputMethod } from '@/types';
-import type { AuditAction } from '@prisma/client';
+// AuditAction is defined in the Prisma schema but the generated client exposes it under @prisma/client
+// When Prisma client returns `any`, we define the type inline for strict TypeScript compatibility
+type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE';
 
 type ActionResult = { success: boolean; error?: string };
 
@@ -191,6 +193,9 @@ export interface SaveEntryInput {
   providerName?: string;
   // ID of the source document (returned by OCR/CSV upload endpoints)
   documentId?: number;
+  // GHG Protocol Scope 2 Guidance — market-based method (STROM only)
+  supplierEmissionFactor?: number;
+  renewableCertificateNote?: string;
 }
 
 /**
@@ -229,6 +234,9 @@ export async function saveEntry(input: SaveEntryInput): Promise<ActionResult> {
           inputMethod: newMethod,
           isFinalAnnual: input.isFinalAnnual ?? false,
           providerName: input.providerName ?? null,
+          // Market-based Scope 2 fields — null when not provided (clears previous value)
+          supplierEmissionFactor: input.supplierEmissionFactor ?? null,
+          renewableCertificateNote: input.renewableCertificateNote ?? null,
         },
       });
       entryId = existing.id;
@@ -245,6 +253,9 @@ export async function saveEntry(input: SaveEntryInput): Promise<ActionResult> {
           billingMonth: input.billingMonth ?? null,
           isFinalAnnual: input.isFinalAnnual ?? false,
           providerName: input.providerName ?? null,
+          // Market-based Scope 2 fields
+          supplierEmissionFactor: input.supplierEmissionFactor ?? null,
+          renewableCertificateNote: input.renewableCertificateNote ?? null,
         },
       });
       entryId = created.id;
@@ -341,7 +352,7 @@ export async function saveMaterialEntries(input: {
   try {
     // Use an interactive transaction so the pre-deletion snapshot, the
     // delete, and the create all occur atomically — no race conditions.
-    const { deleted, created } = await prisma.$transaction(async (tx) => {
+    const txResult = await prisma.$transaction(async (tx) => {
       // Snapshot existing rows before deletion (within the same transaction)
       const existingRows = await tx.materialEntry.findMany({
         where: { reportingYearId: input.yearId },
@@ -367,6 +378,7 @@ export async function saveMaterialEntries(input: {
 
       return { deleted: existingRows, created };
     });
+    const { deleted, created } = txResult;
 
     // Audit DELETE events for every row that was removed
     for (const row of deleted) {
