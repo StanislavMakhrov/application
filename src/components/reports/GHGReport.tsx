@@ -6,10 +6,12 @@
  *
  * Structure:
  * 1. Company header with logo, year, location
- * 2. Executive summary: total CO₂e, per-employee, vs benchmark
- * 3. Scope 1/2/3 breakdown tables
- * 4. Scope 3 materials table
- * 5. Methodology section with UBA 2024 factor citations
+ * 2. Company profile summary (name, sector, employees, year, standard)
+ * 3. Executive summary: total CO₂e, per-employee, vs benchmark
+ * 4. Scope 1/2/3 breakdown tables
+ * 5. Reporting boundaries & exclusions
+ * 6. Scope 3 materials table (page 2)
+ * 7. Methodology section with UBA 2024 factor citations
  */
 
 import {
@@ -21,7 +23,8 @@ import {
   Image,
 } from '@react-pdf/renderer';
 import type { CO2eTotals, CompanyProfileData } from '@/types';
-import { CATEGORY_LABELS, CATEGORY_UNITS } from '@/types';
+import { CATEGORY_LABELS, CATEGORY_UNITS, BRANCHE_LABELS } from '@/types';
+import type { Branche } from '@/types';
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, fontFamily: 'Helvetica', color: '#1a1a1a' },
@@ -52,6 +55,9 @@ const styles = StyleSheet.create({
   boundaryBox: { backgroundColor: '#f0fdf4', borderRadius: 4, padding: 10, marginTop: 6, marginBottom: 2 },
   boundaryLabel: { fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#2D6A4F', marginBottom: 3 },
   boundaryText: { fontSize: 8, color: '#444', lineHeight: 1.5 },
+  profileRow: { flexDirection: 'row', marginBottom: 4 },
+  profileLabel: { width: '40%', color: '#555', fontSize: 9 },
+  profileValue: { width: '60%', fontFamily: 'Helvetica-Bold', fontSize: 9 },
 });
 
 interface GHGReportProps {
@@ -70,6 +76,36 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
   const scope1Entries = entries.filter((e) => e.scope === 'SCOPE1');
   const scope2Entries = entries.filter((e) => e.scope === 'SCOPE2');
   const scope3Entries = entries.filter((e) => e.scope === 'SCOPE3');
+
+  const ProfileRow = ({ label, value }: { label: string; value: string }) => (
+    <View style={styles.profileRow}>
+      <Text style={styles.profileLabel}>{label}</Text>
+      <Text style={styles.profileValue}>{value}</Text>
+    </View>
+  );
+
+  const ReportingBoundaries = () => (
+    <View style={{ marginTop: 14 }}>
+      <Text style={styles.sectionTitle}>Berichtsgrenzen</Text>
+      {profile.reportingBoundaryNotes ? (
+        <View style={styles.boundaryBox}>
+          <Text style={styles.boundaryLabel}>Systemgrenzen & Berichtsrahmen</Text>
+          <Text style={styles.boundaryText}>{profile.reportingBoundaryNotes}</Text>
+        </View>
+      ) : null}
+      {profile.exclusions ? (
+        <View style={[styles.boundaryBox, { marginTop: 6 }]}>
+          <Text style={styles.boundaryLabel}>Ausschlüsse & Annahmen</Text>
+          <Text style={styles.boundaryText}>{profile.exclusions}</Text>
+        </View>
+      ) : null}
+      {!profile.reportingBoundaryNotes && !profile.exclusions && (
+        <View style={styles.boundaryBox}>
+          <Text style={styles.boundaryText}>Keine besonderen Ausschlüsse oder Einschränkungen dokumentiert.</Text>
+        </View>
+      )}
+    </View>
+  );
 
   const renderScopeTable = (
     scopeEntries: typeof entries,
@@ -129,6 +165,17 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
           </View>
         </View>
 
+        {/* Company Profile Summary */}
+        <Text style={styles.sectionTitle}>Unternehmensprofil</Text>
+        <View style={{ marginBottom: 16 }}>
+          <ProfileRow label="Unternehmensname" value={profile.firmenname} />
+          <ProfileRow label="Branche" value={BRANCHE_LABELS[profile.branche as Branche] ?? profile.branche} />
+          <ProfileRow label="Standort(e)" value={profile.standort} />
+          <ProfileRow label="Anzahl Mitarbeitende" value={String(profile.mitarbeiter)} />
+          <ProfileRow label="Berichtsjahr" value={String(year)} />
+          <ProfileRow label="Berichtsstandard" value="GHG Protocol Corporate Standard" />
+        </View>
+
         {/* Executive Summary KPIs */}
         <Text style={styles.sectionTitle}>Executive Summary</Text>
         <View style={styles.kpiBox}>
@@ -158,24 +205,8 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
         {renderScopeTable(scope2Entries, 'Scope 2 — Energiebedingte Emissionen', totals.scope2)}
         {renderScopeTable(scope3Entries, 'Scope 3 — Vorgelagerte Emissionen', totals.scope3)}
 
-        {/* Reporting Boundaries — only shown here when no materials page follows */}
-        {materials.length === 0 && (profile.reportingBoundaryNotes || profile.exclusions) && (
-          <View style={{ marginTop: 14 }}>
-            <Text style={styles.sectionTitle}>Berichtsgrenzen</Text>
-            {profile.reportingBoundaryNotes ? (
-              <View style={styles.boundaryBox}>
-                <Text style={styles.boundaryLabel}>Systemgrenzen & Berichtsrahmen</Text>
-                <Text style={styles.boundaryText}>{profile.reportingBoundaryNotes}</Text>
-              </View>
-            ) : null}
-            {profile.exclusions ? (
-              <View style={[styles.boundaryBox, { marginTop: 6 }]}>
-                <Text style={styles.boundaryLabel}>Ausschlüsse & Annahmen</Text>
-                <Text style={styles.boundaryText}>{profile.exclusions}</Text>
-              </View>
-            ) : null}
-          </View>
-        )}
+        {/* Reporting Boundaries — always shown on page 1 */}
+        <ReportingBoundaries />
 
         {/* Footer */}
         <Text style={styles.footer}>
@@ -216,25 +247,6 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
             Scope 3 Kategorie 1 umfasst vorgelagerte Emissionen eingekaufter Waren und Dienstleistungen.
             Negative Werte (z.B. Altmetall-Recycling) stellen anerkannte Gutschriften dar.
           </Text>
-
-          {/* Reporting Boundaries */}
-          {(profile.reportingBoundaryNotes || profile.exclusions) && (
-            <View style={{ marginTop: 14 }}>
-              <Text style={styles.sectionTitle}>Berichtsgrenzen</Text>
-              {profile.reportingBoundaryNotes ? (
-                <View style={styles.boundaryBox}>
-                  <Text style={styles.boundaryLabel}>Systemgrenzen & Berichtsrahmen</Text>
-                  <Text style={styles.boundaryText}>{profile.reportingBoundaryNotes}</Text>
-                </View>
-              ) : null}
-              {profile.exclusions ? (
-                <View style={[styles.boundaryBox, { marginTop: 6 }]}>
-                  <Text style={styles.boundaryLabel}>Ausschlüsse & Annahmen</Text>
-                  <Text style={styles.boundaryText}>{profile.exclusions}</Text>
-                </View>
-              ) : null}
-            </View>
-          )}
 
           <Text style={styles.footer}>
             GrünBilanz · GHG Protocol Corporate Standard · Emissionsfaktoren: UBA 2024 · Seite 2
