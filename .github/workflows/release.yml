@@ -218,6 +218,30 @@ jobs:
             fi
           fi
 
+      - name: Append Docker image info to release notes
+        if: steps.version.outputs.version != ''
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          REPO="ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}"
+          REPO=$(echo "$REPO" | tr '[:upper:]' '[:lower:]')
+          IS_PRERELEASE="${{ steps.version.outputs.is_prerelease }}"
+          {
+            echo ""
+            echo "## 🐳 Docker image"
+            echo ""
+            echo "\`\`\`bash"
+            echo "docker pull ${REPO}:${VERSION}"
+            echo "\`\`\`"
+            if [ "$IS_PRERELEASE" != "true" ]; then
+              echo ""
+              echo "Also available as \`latest\`:"
+              echo ""
+              echo "\`\`\`bash"
+              echo "docker pull ${REPO}:latest"
+              echo "\`\`\`"
+            fi
+          } >> release-notes.md
+
       - name: Create GitHub Release
         if: steps.version.outputs.version != ''
         uses: softprops/action-gh-release@v2
