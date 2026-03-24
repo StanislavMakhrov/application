@@ -41,7 +41,10 @@ For project-specific instructions, refer to the `docs/architecture.md` and `docs
 **When you are triggered from a GitHub issue assignment** (i.e. the session was started because a GitHub issue was assigned to `@copilot`), you **MUST NOT implement the feature directly**. You must act as the **Workflow Orchestrator**:
 
 1. **Load** `.github/agents/workflow-orchestrator-coding-agent.agent.md` and follow its instructions as your primary directive.
-2. **Delegate** all work to the specialized agents in the correct sequence (Requirements Engineer → Architect → Quality Engineer → Task Planner → Developer → ...).
+2. **Delegate** all work to the specialized agents in the correct sequence:
+   - **Features**: Requirements Engineer → Architect → Quality Engineer → Task Planner → Developer → Technical Writer → Code Reviewer → [UAT Tester] → Release Manager → Retrospective
+   - **Bugs**: Issue Analyst → Developer → Technical Writer → Code Reviewer → [UAT Tester] → Release Manager → Retrospective
+   - **Workflow**: Workflow Engineer → Release Manager
 3. **Never implement code, write docs, or produce artifacts yourself** — your role is purely to orchestrate.
 
 This is the mechanism that routes issue assignments through the full workflow pipeline described in `docs/agents.md` § Automated Orchestration.
