@@ -79,6 +79,26 @@ export async function getOrCreateYear(year: number): Promise<{ id: number; year:
   }
 }
 
+/**
+ * Creates a new ReportingYear for the given calendar year.
+ * Used by the dashboard "Add year" button.
+ * Returns the year value on success so the caller can redirect to it.
+ */
+export async function createYear(year: number): Promise<ActionResult & { year?: number }> {
+  try {
+    await prisma.reportingYear.upsert({
+      where: { year },
+      update: {},
+      create: { year },
+    });
+    revalidatePath('/');
+    return { success: true, year };
+  } catch (error) {
+    console.error('createYear error:', error);
+    return { success: false, error: 'Berichtsjahr konnte nicht erstellt werden.' };
+  }
+}
+
 // ─── Audit Logging ────────────────────────────────────────────────────────────
 
 interface AuditEventInput {
