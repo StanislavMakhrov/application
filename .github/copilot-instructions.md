@@ -64,13 +64,6 @@ GitHub Copilot coding agent sessions come in **two flavors** — the agent MUST 
 
 This is the mechanism that routes issue assignments through the full workflow pipeline described in `docs/agents.md` § Automated Orchestration.
 
-> **Exception (narrow)**: You may skip re-running earlier pipeline stages **only if ALL of these conditions are true**:
-> 1. Substantive orchestrator artifacts already exist in the branch — at minimum `docs/features/<N>-*/specification.md` (for features) or `docs/issues/<N>-*/analysis.md` (for bugs).
-> 2. The issue description or PR comments explicitly request **continuing** from a specific workflow stage.
-> 3. The automatic "Initial plan" commit that GitHub Copilot creates at session start does **NOT** count as a prior artifact.
->
-> **If ANY condition is not met, you MUST act as Workflow Orchestrator from the beginning.** When in doubt, always start from the beginning — it is always safe to re-run the full pipeline.
-
 **Exception — subagents spawned via `task` tool**: `report_progress` is NOT available to subagents. They must use `git commit` instead (see below).
 
 ### Pull Request Creation

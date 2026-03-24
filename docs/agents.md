@@ -27,8 +27,14 @@ For well-defined features or bugs, use the **Workflow Orchestrator** agent to au
 **How It Works (Technical)**:
 The routing is controlled by `.github/copilot-instructions.md`. That file contains an explicit rule: when the coding agent session is triggered from a GitHub issue assignment, it **must** load `.github/agents/workflow-orchestrator-coding-agent.agent.md` and act as the Workflow Orchestrator rather than implementing directly. Without this rule, the coding agent would bypass the pipeline and implement directly as a developer.
 
-**Bypassing the Orchestrator (known failure mode)**:
-When GitHub starts a coding agent session it automatically creates an "Initial plan" commit on the `copilot/*` branch. A previous version of the Exception clause in `copilot-instructions.md` allowed bypass when "prior commits" existed — the agent misread the automatic commit as evidence of a prior orchestrator session and implemented the feature directly. The clause was tightened to require actual orchestrator artifacts (`docs/features/<N>-*/specification.md` or `docs/adr/*.md`) before the exception can apply.
+**Bypassing the Orchestrator (known failure modes)**:
+Two bypass patterns were observed, both exploiting the old "Exception" clause that allowed skipping pipeline stages:
+
+1. **"Initial plan" commit misread as prior work** — GitHub automatically creates an "Initial plan" commit on `copilot/*` when a session starts. The agent misread this as evidence of a prior orchestrator session.
+
+2. **Feature docs from `main` misread as branch artifacts** — Feature docs merged to `main` from a previous pipeline run are visible in the working tree of a new session. The agent found them and bypassed the orchestrator.
+
+Both patterns are now eliminated by removing the Exception clause entirely. Issue assignment always triggers the full orchestrator pipeline — the orchestrator itself observes what artifacts already exist and delegates only to the remaining agents.
 
 **Work Item Folder on `copilot/*` branches**:
 On standard branches (`feature/NNN-*`, `fix/NNN-*`, `workflow/NNN-*`), agents derive the work item folder from the branch name. On `copilot/*` branches, there is no NNN in the branch name. The orchestrator resolves the work item folder (by delegating `scripts/next-issue-number.sh` to the entry-point agent) and passes it explicitly to every subsequent agent. All agent definitions accept an orchestrator-provided folder path as their first resolution step.
