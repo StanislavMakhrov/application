@@ -94,6 +94,19 @@ This skill is automatically loaded by all coding agents. It defines the core wor
    - Check first that no open PR already exists for this branch
    - Use the standard PR body template (Problem / Change / Verification)
 
+4c. **Mark PR Ready for Review (primary agent only, MANDATORY)**:
+
+   GitHub Copilot automatically creates PRs as drafts. After the PR exists, you **must**
+   convert it from draft to ready-for-review so that PR Validation triggers and reviewers
+   are notified:
+
+   ```bash
+   scripts/pr-github.sh mark-ready
+   ```
+
+   This step is **required** — a PR left in draft will not trigger CI and will not be
+   reviewed. Do not skip it.
+
 5. **Create Summary Comment (After PR Created)**: Post a PR comment with:
    - **Summary**: Brief description of what you completed
    - **Changes**: List of key files/features modified
@@ -121,6 +134,7 @@ This skill is automatically loaded by all coding agents. It defines the core wor
 
 - **GitHub creates branches automatically** - never attempt to create or switch branches yourself
 - **Agent creates PRs** - after pushing and CI is green, always use the `create-pr-github` skill to open the PR; do NOT wait for the user to click "Create Pull Request" in the GitHub UI
+- **Always mark PR ready** - GitHub Copilot auto-creates PRs as drafts; always run `scripts/pr-github.sh mark-ready` after the PR exists to trigger CI and notify reviewers
 - **Never create a duplicate PR** - check if one already exists for your branch before creating
 - **`report_progress` is only available to the primary agent** - subagents spawned via `task` tool must use `git commit` instead
 - **Always use `report_progress`** for commits and pushes (primary agent) - never use manual `git push` commands

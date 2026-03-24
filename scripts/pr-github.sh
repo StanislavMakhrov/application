@@ -13,6 +13,8 @@ Usage:
 
   scripts/pr-github.sh create-and-merge --title <title> --body-from-stdin
 
+  scripts/pr-github.sh mark-ready
+
 Options:
   --title <title>         PR title (use Conventional Commits style)
   --body-from-stdin       Read PR body from stdin
@@ -20,7 +22,7 @@ Options:
 Notes:
   - Required: provide an explicit title + body via stdin (agent-authored description)
   - This script intentionally does not guess title/body
-  - **Agent guidance:** This script is the **authoritative** repo tool for creating and merging PRs. Use `scripts/pr-github.sh create` to create PRs and `scripts/pr-github.sh create-and-merge` to merge them (rebase + delete branch). Body must be piped via stdin.
+  - **Agent guidance:** This script is the **authoritative** repo tool for creating and merging PRs. Use `scripts/pr-github.sh create` to create PRs, `scripts/pr-github.sh mark-ready` to convert a draft PR to ready-for-review (triggers PR Validation), and `scripts/pr-github.sh create-and-merge` to merge them (rebase + delete branch). Body must be piped via stdin.
   - **Fallback:** Use GitHub chat tools (`github/*`) only when the script does not support a necessary advanced operation or for quick inspection of checks.
   - Requires: git + GitHub CLI (gh) authenticated when used as a CLI fallback
   - Merge policy: uses rebase-and-merge for linear history (per CONTRIBUTING.md)
@@ -152,6 +154,23 @@ main() {
 
   case "$cmd" in
     create|create-and-merge)
+      ;;
+    mark-ready)
+      require_not_main
+      if ! command -v gh >/dev/null 2>&1; then
+        echo "Error: gh is not installed." >&2
+        exit 2
+      fi
+      if ! gh auth status >/dev/null 2>&1; then
+        echo "Error: gh is not authenticated. Run: gh auth login" >&2
+        exit 2
+      fi
+      local pr
+      pr="$(get_pr_number)"
+      echo "Marking PR #$pr ready for review..." >&2
+      gh_safe pr ready "$pr"
+      echo "PR #$pr is now ready for review. PR Validation will trigger automatically." >&2
+      exit 0
       ;;
     *)
       echo "Error: unknown command: $cmd" >&2
