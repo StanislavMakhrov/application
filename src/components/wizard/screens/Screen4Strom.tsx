@@ -292,7 +292,10 @@ export default function Screen4Strom({ year }: Screen4Props) {
             onChange={(e) => setValue('isOekostrom', e.target.checked)}
           />
           <p className="text-xs text-gray-400 mt-1 ml-7">
-            Ökostrom-Zertifikat vorhanden? Reduziert den Emissionsfaktor erheblich.
+            Ökostrom-Zertifikat vorhanden? Aktiviert den marktbasierten Ansatz (GHG Protocol § 6.3):
+            Der Emissionsfaktor sinkt auf 0,030 kg CO₂e/kWh. Im Bericht werden zusätzlich der
+            locationbasierte Netzstrom-Durchschnitt (0,380 kg CO₂e/kWh) und die Differenz zwischen
+            beiden Methoden ausgewiesen.
           </p>
         </div>
 

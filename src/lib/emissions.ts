@@ -80,6 +80,7 @@ export async function getTotalCO2e(yearId: number): Promise<CO2eTotals> {
   const byCategory: Record<string, number> = {};
   let scope1Kg = 0;
   let scope2Kg = 0;
+  let scope2LocationKg = 0;
   let scope3Kg = 0;
 
   // Determine which categories have a final-annual entry — those entries
@@ -100,8 +101,21 @@ export async function getTotalCO2e(yearId: number): Promise<CO2eTotals> {
     byCategory[entry.category] = (byCategory[entry.category] ?? 0) + kg;
 
     if (entry.scope === 'SCOPE1') scope1Kg += kg;
-    else if (entry.scope === 'SCOPE2') scope2Kg += kg;
-    else scope3Kg += kg;
+    else if (entry.scope === 'SCOPE2') {
+      scope2Kg += kg;
+      // Location-based: always use grid-average factor (isOekostrom: false).
+      // For Ökostrom entries the two factors differ (STROM_OEKOSTROM vs STROM),
+      // requiring a second lookup. For all other Scope 2 entries the two values
+      // are identical so we reuse kg directly.
+      if (entry.category === 'STROM' && entry.isOekostrom) {
+        const locationKg = await calculateCO2e(entry.category, entry.quantity, year, {
+          isOekostrom: false,
+        });
+        scope2LocationKg += locationKg;
+      } else {
+        scope2LocationKg += kg;
+      }
+    } else scope3Kg += kg;
   }
 
   // Process material entries (always Scope 3, Category 1 — upstream emissions)
@@ -122,6 +136,7 @@ export async function getTotalCO2e(yearId: number): Promise<CO2eTotals> {
   return {
     scope1: kgToTonnes(scope1Kg),
     scope2: kgToTonnes(scope2Kg),
+    scope2LocationBased: kgToTonnes(scope2LocationKg),
     scope3: kgToTonnes(scope3Kg),
     total: kgToTonnes(scope1Kg + scope2Kg + scope3Kg),
     byCategory: byCategoryTonnes,

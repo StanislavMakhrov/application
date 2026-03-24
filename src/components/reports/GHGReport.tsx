@@ -58,6 +58,12 @@ const styles = StyleSheet.create({
   profileRow: { flexDirection: 'row', marginBottom: 4 },
   profileLabel: { width: '40%', color: '#555', fontSize: 9 },
   profileValue: { width: '60%', fontFamily: 'Helvetica-Bold', fontSize: 9 },
+  scope2CompareBox: { flexDirection: 'row', gap: 12, marginTop: 8, marginBottom: 4 },
+  scope2CompareCard: { flex: 1, backgroundColor: '#f0fdf4', borderRadius: 4, padding: 10 },
+  scope2CompareCardAlt: { flex: 1, backgroundColor: '#fff7ed', borderRadius: 4, padding: 10 },
+  scope2CompareLabel: { fontSize: 8, color: '#555', marginBottom: 2 },
+  scope2CompareValue: { fontSize: 14, fontFamily: 'Helvetica-Bold', color: '#2D6A4F' },
+  scope2CompareNote: { fontSize: 8, color: '#777', marginTop: 6, lineHeight: 1.5 },
 });
 
 interface GHGReportProps {
@@ -203,6 +209,38 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
         <Text style={styles.sectionTitle}>Emissionen nach Scope (GHG Protocol)</Text>
         {renderScopeTable(scope1Entries, 'Scope 1 — Direkte Emissionen', totals.scope1)}
         {renderScopeTable(scope2Entries, 'Scope 2 — Energiebedingte Emissionen', totals.scope2)}
+
+        {/* Scope 2 dual-method comparison block (only when Ökostrom data present) */}
+        {scope2Entries.some((e) => e.isOekostrom && e.category === 'STROM') && (() => {
+          const scope2DifferenceTonnes = totals.scope2LocationBased - totals.scope2;
+          return (
+            <View style={{ marginBottom: 10 }}>
+              <Text style={[styles.sectionTitle, { fontSize: 11 }]}>
+                Scope 2: Vergleich locationbasiert vs. marktbasiert
+              </Text>
+              <View style={styles.scope2CompareBox}>
+                <View style={styles.scope2CompareCard}>
+                  <Text style={styles.scope2CompareLabel}>Locationbasiert (Netzstrom-Ø)</Text>
+                  <Text style={styles.scope2CompareValue}>{totals.scope2LocationBased.toFixed(3)} t CO₂e</Text>
+                </View>
+                <View style={styles.scope2CompareCardAlt}>
+                  <Text style={styles.scope2CompareLabel}>Marktbasiert (Ökostrom-Tarif)</Text>
+                  <Text style={[styles.scope2CompareValue, { color: '#E76F51' }]}>{totals.scope2.toFixed(3)} t CO₂e</Text>
+                </View>
+              </View>
+              <Text style={styles.scope2CompareNote}>
+                {/* scope2DifferenceTonnes is positive when grid > Ökostrom, which is the normal case;
+                    the sign guard is kept for robustness in case future factor updates change this. */}
+                Differenz: {scope2DifferenceTonnes >= 0 ? '+' : ''}{scope2DifferenceTonnes.toFixed(3)} t CO₂e —
+                Gemäß GHG Protocol Corporate Standard § 6.3 sind beide Methoden auszuweisen, wenn marktbasierte
+                Instrumente (z. B. Herkunftsnachweise, Ökostromverträge) vorliegen. Der locationbasierte Wert
+                spiegelt den tatsächlichen Netzmix wider; der marktbasierte Wert berücksichtigt vertragliche
+                Vereinbarungen mit dem Stromanbieter.
+              </Text>
+            </View>
+          );
+        })()}
+
         {renderScopeTable(scope3Entries, 'Scope 3 — Vorgelagerte Emissionen', totals.scope3)}
 
         {/* Reporting Boundaries — always shown on page 1 */}

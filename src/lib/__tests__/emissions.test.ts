@@ -116,6 +116,50 @@ describe('getTotalCO2e', () => {
     expect(result.total).toBeCloseTo(2.434);
   });
 
+  it('scope2 equals scope2LocationBased when isOekostrom is false', async () => {
+    vi.mocked(prisma.reportingYear.findUniqueOrThrow).mockResolvedValueOnce({
+      id: 10,
+      year: 2024,
+      createdAt: new Date(),
+    });
+    vi.mocked(prisma.emissionEntry.findMany).mockResolvedValueOnce([
+      { id: 1, reportingYearId: 10, scope: 'SCOPE2', category: 'STROM', quantity: 1000, isOekostrom: false, memo: null, inputMethod: 'MANUAL', billingMonth: null, isFinalAnnual: false, providerName: null, createdAt: new Date(), updatedAt: new Date() },
+    ]);
+    vi.mocked(prisma.materialEntry.findMany).mockResolvedValueOnce([]);
+
+    // Grid factor: 0.380 kg/kWh → 380 kg = 0.380 t
+    vi.mocked(getEmissionFactor).mockResolvedValueOnce(0.38);
+
+    const result = await getTotalCO2e(10);
+    expect(result.scope2).toBeCloseTo(0.38);
+    expect(result.scope2LocationBased).toBeCloseTo(0.38);
+    expect(result.scope2).toBe(result.scope2LocationBased);
+  });
+
+  it('scope2LocationBased uses grid factor while scope2 uses Ökostrom factor when isOekostrom is true', async () => {
+    vi.mocked(prisma.reportingYear.findUniqueOrThrow).mockResolvedValueOnce({
+      id: 11,
+      year: 2024,
+      createdAt: new Date(),
+    });
+    vi.mocked(prisma.emissionEntry.findMany).mockResolvedValueOnce([
+      { id: 1, reportingYearId: 11, scope: 'SCOPE2', category: 'STROM', quantity: 1000, isOekostrom: true, memo: null, inputMethod: 'MANUAL', billingMonth: null, isFinalAnnual: false, providerName: null, createdAt: new Date(), updatedAt: new Date() },
+    ]);
+    vi.mocked(prisma.materialEntry.findMany).mockResolvedValueOnce([]);
+
+    // First call: STROM_OEKOSTROM factor for market-based (0.030 kg/kWh → 30 kg = 0.030 t)
+    // Second call: STROM grid factor for location-based (0.380 kg/kWh → 380 kg = 0.380 t)
+    vi.mocked(getEmissionFactor)
+      .mockResolvedValueOnce(0.03)  // STROM_OEKOSTROM (market-based)
+      .mockResolvedValueOnce(0.38); // STROM grid average (location-based)
+
+    const result = await getTotalCO2e(11);
+    expect(result.scope2).toBeCloseTo(0.03);           // market-based: 30 kg = 0.030 t
+    expect(result.scope2LocationBased).toBeCloseTo(0.38); // location-based: 380 kg = 0.380 t
+    // total uses market-based scope2
+    expect(result.total).toBeCloseTo(0.03);
+  });
+
   it('correctly reduces total when ABFALL_ALTMETALL has negative factor', async () => {
     vi.mocked(prisma.reportingYear.findUniqueOrThrow).mockResolvedValueOnce({
       id: 2,
