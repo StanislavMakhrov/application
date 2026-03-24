@@ -1,7 +1,7 @@
 # GrünBilanz — arc42 Architecture Documentation
 
-**Version:** 1.0  
-**Date:** 2026-03-21  
+**Version:** 1.1  
+**Date:** 2026-03-24  
 **Status:** Accepted
 
 ---
@@ -61,14 +61,16 @@ The table below is the canonical reference for what data enters the system, how 
 | Mitarbeiter (Anzahl) | Profile | Manual | Once / annual | Betriebsinhaber | HR records | Per-employee CO₂e KPI |
 | Standort | Profile | Manual | Once | Betriebsinhaber | — | PDF header |
 | Logo | Profile | Image upload | Once | Betriebsinhaber | JPEG/PNG | PDF & badge |
+| Berichtsgrenzen & Ausschlüsse | Profile | Manual (text) | Once / annual | Betriebsinhaber | — | PDF Berichtsgrenzen section, CSRD questionnaire |
 | Berichtsjahr | Header | Dropdown / create | Once per year | Betriebsinhaber | — | Year selector |
 | Erdgas | Scope 1 | Manual / OCR / CSV | Annual | Betriebsinhaber | Gas-Jahresabrechnung (m³) | CO₂e Scope 1 |
 | Heizöl | Scope 1 | Manual / OCR / CSV | Annual (per delivery) | Betriebsinhaber | Lieferschein (L) | CO₂e Scope 1 |
 | Flüssiggas | Scope 1 | Manual / OCR / CSV | Annual (per delivery) | Betriebsinhaber | Lieferschein (kg) | CO₂e Scope 1 |
+| Kältemittel (R410A, R32, R134A, Sonstige) | Scope 1 | Manual | Annual / per service | Betriebsinhaber | Kältemittelprotokoll (kg) | CO₂e Scope 1 |
 | Diesel Fuhrpark | Scope 1 | Manual / OCR / CSV | Monthly–Annual | Betriebsinhaber | Tankbelege / DATEV (L) | CO₂e Scope 1 |
 | Benzin Fuhrpark | Scope 1 | Manual / OCR / CSV | Monthly–Annual | Betriebsinhaber | Tankbelege / DATEV (L) | CO₂e Scope 1 |
 | Fahrzeug-km (PKW/Transporter/LKW) | Scope 1 | Manual / CSV | Annual | Betriebsinhaber | Fahrtenbuch / DATEV (km) | CO₂e Scope 1 |
-| Strom (inkl. Ökostrom-Flag) | Scope 2 | Manual / OCR / CSV | Annual | Betriebsinhaber | Strom-Jahresabrechnung (kWh) | CO₂e Scope 2 |
+| Strom (inkl. Ökostrom-Flag, monatlich oder jährlich) | Scope 2 | Manual / OCR / CSV | Annual or monthly | Betriebsinhaber | Strom-Jahresabrechnung (kWh) | CO₂e Scope 2 |
 | Fernwärme | Scope 2 | Manual / OCR / CSV | Annual | Betriebsinhaber | Fernwärme-Abrechnung (kWh) | CO₂e Scope 2 |
 | Geschäftsreisen Flug | Scope 3 | Manual / CSV | Annual | Betriebsinhaber | Expense reports (km) | CO₂e Scope 3 |
 | Geschäftsreisen Bahn | Scope 3 | Manual / CSV | Annual | Betriebsinhaber | Expense reports (km) | CO₂e Scope 3 |
@@ -77,6 +79,7 @@ The table below is the canonical reference for what data enters the system, how 
 | Materialien (Kupfer, Stahl, Alu, Holz, PVC, Beton, Farben, Sonstige) | Scope 3 Cat.1 | Manual table | Annual | Betriebsinhaber | Lieferscheine / purchasing (kg) | CO₂e Scope 3 |
 | PDF upload (OCR) | Transient | PDF/image upload | Per bill | Betriebsinhaber | Stromrechnung / Gasrechnung | Pre-filled numeric field |
 | CSV import (DATEV) | Transient | .csv / .xlsx | Per period | Betriebsinhaber | DATEV export | Mapped wizard fields |
+| Belege / Rechnungen (FieldDocuments) | Evidence | PDF/image upload per field | Per bill | Betriebsinhaber | Any utility bill, receipt | Attached to audit log entry |
 
 ### 1.5 User Session Narratives
 
@@ -224,6 +227,8 @@ The table below is the canonical reference for what data enters the system, how 
 | Security during CSV parsing | Server-side CSV parsing (never client-side eval) | ADR-004 |
 | Fast, reliable PDF generation | React-PDF on Node.js runtime | ADR-005 |
 | Auditability of calculations | Emission factors versioned by `valid_year` in DB | ADR-006 |
+| Traceability of data changes | Immutable `AuditLog` table linked to source documents | — |
+| OCR replaceability | Thin interface (`lib/ocr/index.ts`) isolating stub from UI | — |
 
 ### 4.2 Technology Mapping
 
@@ -248,36 +253,67 @@ src/
 ├── app/                        # Next.js App Router
 │   ├── page.tsx                # Dashboard (root — no login redirect)
 │   ├── layout.tsx              # Root layout (German locale, font)
+│   ├── settings/
+│   │   └── page.tsx            # Settings page — year management (add + delete)
 │   ├── wizard/
 │   │   ├── [screen]/
 │   │   │   └── page.tsx        # Wizard screens 1–7
 │   │   └── layout.tsx          # Wizard shell (side nav, progress bar)
 │   └── api/
-│       ├── ocr/route.ts        # POST /api/ocr — proxy to Tesseract
+│       ├── ocr/route.ts        # POST /api/ocr — proxy to Tesseract (or stub)
 │       ├── csv/route.ts        # POST /api/csv — parse & return mapped data
 │       ├── report/route.ts     # POST /api/report — generate PDF
-│       ├── badge/route.ts      # GET  /api/badge — generate badge PNG/SVG
-│       └── entries/route.ts    # CRUD for emission entries
+│       ├── badge/route.ts      # GET  /api/badge — generate badge PNG/SVG/HTML
+│       ├── entries/route.ts    # CRUD for emission entries
+│       ├── audit/route.ts      # GET  /api/audit — query audit log
+│       ├── documents/
+│       │   └── [id]/route.ts   # GET  /api/documents/[id] — download uploaded file
+│       └── field-documents/
+│           └── route.ts        # GET/POST /api/field-documents — per-field attachments
 ├── components/
-│   ├── dashboard/              # Dashboard widgets (donut chart, KPI cards, …)
+│   ├── dashboard/              # Dashboard widgets
+│   │   ├── KpiCard.tsx         # Total CO₂e, per-employee, YoY trend
+│   │   ├── ScopeDonut.tsx      # Scope 1/2/3 donut chart
+│   │   ├── CategoryBarChart.tsx # Per-category bar chart within each scope
+│   │   ├── YearOverYearChart.tsx # Year-over-year comparison chart
+│   │   ├── BranchenvergleichCard.tsx # Branchenvergleich benchmark card
+│   │   ├── CategoryStatusList.tsx # Per-category completion status
+│   │   ├── YearSelector.tsx    # Year dropdown + "+ Neues Jahr" link
+│   │   └── AuditLogPanel.tsx   # Collapsible audit log (last 50 changes)
 │   ├── wizard/                 # Wizard screen components
 │   │   ├── WizardNav.tsx       # Side navigation + progress bar
 │   │   ├── UploadOCR.tsx       # PDF upload + OCR result confirmation
 │   │   ├── CsvImport.tsx       # CSV upload + column mapping UI
-│   │   └── MaterialTable.tsx   # Dynamic table for Scope 3 materials
+│   │   ├── FieldDocumentZone.tsx # Per-field invoice/receipt attachment zone
+│   │   ├── PlausibilityWarning.tsx # Inline amber warning for out-of-range values
+│   │   ├── ScreenChangeLog.tsx # Collapsible last-5-changes log per wizard section
+│   │   └── screens/
+│   │       ├── Screen1Firmenprofil.tsx  # Company profile + reporting boundaries
+│   │       ├── Screen2Heizung.tsx       # Heating: Erdgas, Heizöl, Flüssiggas, Kältemittel
+│   │       ├── Screen3Fuhrpark.tsx      # Fleet: Diesel, Benzin, vehicle km
+│   │       ├── Screen4Strom.tsx         # Electricity (annual/monthly/provider) + Fernwärme
+│   │       ├── Screen5Dienstreisen.tsx  # Business travel + commuting
+│   │       ├── Screen6Materialien.tsx   # Dynamic materials table
+│   │       └── Screen7Abfall.tsx        # Waste categories
 │   ├── reports/                # React-PDF document components
-│   │   ├── GHGReport.tsx       # Full GHG Protocol PDF
+│   │   ├── GHGReport.tsx       # Full GHG Protocol PDF (incl. Berichtsgrenzen section)
 │   │   └── CSRDQuestionnaire.tsx # CSRD supplier questionnaire PDF
+│   ├── settings/
+│   │   └── YearManagement.tsx  # Year add + delete UI
 │   └── ui/                     # shadcn/ui re-exports
 ├── lib/
 │   ├── prisma.ts               # Prisma client singleton
+│   ├── actions.ts              # Server Actions (saveEntry, saveCompanyProfile, …)
 │   ├── emissions.ts            # CO₂e calculation engine
 │   ├── factors.ts              # Emission factor lookup (by key + valid_year)
-│   ├── ocr.ts                  # Tesseract HTTP client + regex extraction
-│   ├── csv.ts                  # CSV/XLSX parsing and column mapping
-│   └── pdf.ts                  # React-PDF render-to-buffer helper
+│   ├── ocr/
+│   │   └── index.ts            # OCR interface (stub → future Claude/Tesseract call)
+│   ├── csv/
+│   │   └── index.ts            # CSV import interface (stub)
+│   ├── pdf.ts                  # React-PDF render-to-buffer helper
+│   └── utils.ts                # Shared utilities
 ├── types/
-│   └── index.ts                # Shared TypeScript types (Scope, Category, …)
+│   └── index.ts                # Shared TypeScript types (Scope, Category, labels, …)
 └── prisma/
     ├── schema.prisma
     └── migrations/
@@ -309,15 +345,18 @@ datasource db {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Company Profile — single row (id = 1 always)
+// Added: reportingBoundaryNotes and exclusions for GHG Protocol Berichtsgrenzen section
 // ─────────────────────────────────────────────────────────────────────────────
 model CompanyProfile {
-  id          Int      @id @default(1)
-  firmenname  String
-  branche     Branche
-  mitarbeiter Int
-  standort    String   // "München, Bayern"
-  logoPath    String?  // relative path inside container or base64
-  updatedAt   DateTime @updatedAt
+  id                      Int      @id @default(1)
+  firmenname              String
+  branche                 Branche
+  mitarbeiter             Int
+  standort                String   // "München, Bayern"
+  logoPath                String?  // relative path inside container or base64
+  reportingBoundaryNotes  String?  // free text — appears in PDF Berichtsgrenzen section
+  exclusions              String?  // free text — Ausschlüsse & Annahmen
+  updatedAt               DateTime @updatedAt
 }
 
 enum Branche {
@@ -345,37 +384,33 @@ model ReportingYear {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Emission Entries — Scope 1, Scope 2, and Scope 3 activities
-// One row per (year, category).
-// Missing category = no row (NULL rows are never created).
-// This design avoids nullable quantity columns and keeps aggregation simple.
-//
+// Emission Entries — Scope 1, Scope 2, and Scope 3 activities.
 // Decision: unified table with scope+category discriminator (see ADR-002).
+//
+// Extended fields added post-MVP:
+//   billingMonth   — 1–12 for a monthly entry; null = annual entry
+//   isFinalAnnual  — when true, this annual entry supersedes any monthly entries
+//   providerName   — enables mid-year energy provider changes
+//   auditLogs      — back-reference to AuditLog entries for this row
 // ─────────────────────────────────────────────────────────────────────────────
 model EmissionEntry {
   id              Int           @id @default(autoincrement())
   reportingYearId Int
   reportingYear   ReportingYear @relation(fields: [reportingYearId], references: [id], onDelete: Cascade)
+  scope           Scope
+  category        EmissionCategory
+  quantity        Float
+  memo            String?
+  isOekostrom     Boolean       @default(false)
+  inputMethod     InputMethod   @default(MANUAL)
+  billingMonth    Int?          // 1–12 for monthly entry; null for annual
+  isFinalAnnual   Boolean       @default(false)
+  providerName    String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  auditLogs       AuditLog[]
 
-  scope    Scope
-  category EmissionCategory
-
-  // The confirmed numeric quantity. Unit depends on category (m³, L, kg, kWh, km).
-  quantity Float
-
-  // Optional memo — used for CSV import source tracking, not calculations
-  memo String?
-
-  // Ökostrom flag — only meaningful for category STROM
-  isOekostrom Boolean @default(false)
-
-  // Which input method produced this entry
-  inputMethod InputMethod @default(MANUAL)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([reportingYearId, scope, category])
+  @@unique([reportingYearId, scope, category, billingMonth, providerName])
 }
 
 enum Scope {
@@ -385,7 +420,7 @@ enum Scope {
 }
 
 enum EmissionCategory {
-  // Scope 1
+  // Scope 1 — direct
   ERDGAS
   HEIZOEL
   FLUESSIGGAS
@@ -395,7 +430,11 @@ enum EmissionCategory {
   PKW_DIESEL_KM
   TRANSPORTER_KM
   LKW_KM
-  // Scope 2
+  R410A_KAELTEMITTEL    // refrigerant leak — Scope 1 direct
+  R32_KAELTEMITTEL
+  R134A_KAELTEMITTEL
+  SONSTIGE_KAELTEMITTEL
+  // Scope 2 — indirect energy
   STROM
   FERNWAERME
   // Scope 3 — activities
@@ -416,23 +455,20 @@ enum InputMethod {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Material Entries — Scope 3 Category 1 (Purchased Materials)
-// Separate table because:
-//   (a) multiple rows per year (a table of materials, not one value per category)
-//   (b) has a supplier name memo field
-//   (c) uses a MaterialCategory discriminator independent of EmissionCategory
+// Separate table because: multiple rows per year (a table, not one value per category)
+// and has a supplier name memo field (see ADR-002).
 // ─────────────────────────────────────────────────────────────────────────────
 model MaterialEntry {
   id              Int           @id @default(autoincrement())
   reportingYearId Int
   reportingYear   ReportingYear @relation(fields: [reportingYearId], references: [id], onDelete: Cascade)
-
-  material      MaterialCategory
-  quantityKg    Float
-  supplierName  String?           // Memo only — not used in calculations
-  inputMethod   InputMethod       @default(MANUAL)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  material        MaterialCategory
+  quantityKg      Float
+  supplierName    String?           // Memo only — not used in calculations
+  inputMethod     InputMethod       @default(MANUAL)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  auditLogs       AuditLog[]
 }
 
 enum MaterialCategory {
@@ -448,19 +484,18 @@ enum MaterialCategory {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Emission Factors — seeded from UBA 2024, versioned by valid_year
-// Lookup: SELECT * FROM EmissionFactor WHERE key = $key AND valid_year = $year
-//         ORDER BY valid_year DESC LIMIT 1
-// If no exact match: fall back to latest available year ≤ requested year.
+// Lookup: SELECT * FROM EmissionFactor WHERE key = $key AND validYear <= $year
+//         ORDER BY validYear DESC LIMIT 1
 // ─────────────────────────────────────────────────────────────────────────────
 model EmissionFactor {
-  id         Int      @id @default(autoincrement())
-  key        String   // e.g. "ERDGAS", "STROM_MIX", "KUPFER"
-  validYear  Int      // e.g. 2024
-  factorKg   Float    // kg CO₂e per unit
-  unit       String   // "m³", "L", "kg", "kWh", "km"
-  source     String   // "UBA 2024", "Ecoinvent 3.10"
-  scope      Scope
-  createdAt  DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  key       String   // e.g. "ERDGAS", "STROM_MIX", "KUPFER"
+  validYear Int      // e.g. 2024
+  factorKg  Float    // kg CO₂e per unit
+  unit      String   // "m³", "L", "kg", "kWh", "km"
+  source    String   // "UBA 2024", "Ecoinvent 3.10"
+  scope     Scope
+  createdAt DateTime @default(now())
 
   @@unique([key, validYear])
 }
@@ -468,22 +503,20 @@ model EmissionFactor {
 // ─────────────────────────────────────────────────────────────────────────────
 // Staging Entries — OCR and CSV import results before user confirmation
 // Created when OCR/CSV produces a value; deleted after user confirms or cancels.
-// This avoids polluting EmissionEntry with unconfirmed data (see ADR-003).
+// Avoids polluting EmissionEntry with unconfirmed data (see ADR-003).
 // ─────────────────────────────────────────────────────────────────────────────
 model StagingEntry {
   id              Int           @id @default(autoincrement())
   reportingYearId Int
   reportingYear   ReportingYear @relation(fields: [reportingYearId], references: [id], onDelete: Cascade)
-
-  scope      Scope
-  category   EmissionCategory
-  quantity   Float
-  confidence Float?   // 0.0–1.0; populated by OCR, null for CSV
-  rawText    String?  // original OCR text for debugging
-  source     StagingSource
-
-  createdAt DateTime @default(now())
-  expiresAt DateTime // staging entries auto-expire after 24h if not confirmed
+  scope           Scope
+  category        EmissionCategory
+  quantity        Float
+  confidence      Float?   // 0.0–1.0; populated by OCR, null for CSV
+  rawText         String?  // original OCR text for debugging
+  source          StagingSource
+  createdAt       DateTime @default(now())
+  expiresAt       DateTime // staging entries auto-expire after 24h if not confirmed
 
   @@unique([reportingYearId, scope, category])
 }
@@ -500,10 +533,9 @@ model Report {
   id              Int           @id @default(autoincrement())
   reportingYearId Int
   reportingYear   ReportingYear @relation(fields: [reportingYearId], references: [id], onDelete: Cascade)
-
-  type        ReportType
-  filePath    String      // path inside container, served as static file
-  generatedAt DateTime    @default(now())
+  type            ReportType
+  filePath        String        // path inside container, served as static file
+  generatedAt     DateTime      @default(now())
 }
 
 enum ReportType {
@@ -519,22 +551,109 @@ model IndustryBenchmark {
   branche               Branche @unique
   co2ePerEmployeePerYear Float   // t CO₂e per employee per year
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Field Documents — per-field invoice/receipt attachments
+// One attachment per (fieldKey, year). Stored on the container filesystem.
+// fieldKey is a category string (e.g. "ERDGAS_2024"). Displayed as a green
+// dashed zone under each numeric input field in the wizard.
+// ─────────────────────────────────────────────────────────────────────────────
+model FieldDocument {
+  id               Int      @id @default(autoincrement())
+  fieldKey         String   // e.g. "ERDGAS_2024"
+  year             Int
+  filePath         String
+  originalFilename String
+  mimeType         String
+  uploadedAt       DateTime @default(now())
+
+  @@unique([fieldKey, year])
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Uploaded Documents — original source documents stored in the DB
+// Bytes are stored directly in PostgreSQL for self-contained deployment.
+// Referenced by AuditLog entries to provide download evidence.
+// ─────────────────────────────────────────────────────────────────────────────
+model UploadedDocument {
+  id          Int        @id @default(autoincrement())
+  filename    String
+  mimeType    String
+  sizeBytes   Int
+  content     Bytes      // file bytes stored in DB
+  uploadedAt  DateTime   @default(now())
+  auditLogs   AuditLog[]
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Audit Log — immutable record of every change to emission/material data.
+// Supports field-level change tracking (oldValue → newValue).
+// Links to source documents when data was imported via OCR or CSV.
+// Shown in: AuditLogPanel on the Dashboard and ScreenChangeLog in wizard screens.
+// ─────────────────────────────────────────────────────────────────────────────
+model AuditLog {
+  id              Int               @id @default(autoincrement())
+  entityType      String            // "EmissionEntry", "MaterialEntry", "CompanyProfile"
+  entityId        Int?
+  action          AuditAction
+  fieldName       String?           // which field changed
+  oldValue        String?           // previous value serialised as string
+  newValue        String?           // new value serialised as string
+  inputMethod     InputMethod       @default(MANUAL)
+  documentId      Int?
+  document        UploadedDocument? @relation(fields: [documentId], references: [id])
+  metadata        String?           // JSON: {"category":"ERDGAS", ...}
+  emissionEntryId Int?
+  emissionEntry   EmissionEntry?    @relation(fields: [emissionEntryId], references: [id], onDelete: SetNull)
+  materialEntryId Int?
+  materialEntry   MaterialEntry?    @relation(fields: [materialEntryId], references: [id], onDelete: SetNull)
+  createdAt       DateTime          @default(now())
+}
 ```
 
 ### 5.3 Key Schema Design Decisions
 
 #### EmissionEntry vs MaterialEntry (see ADR-002)
 
-`EmissionEntry` uses a unified table with `scope` and `category` discriminators. This covers all Scope 1, Scope 2, and Scope 3 activity entries (travel, commute, waste). A `@@unique([reportingYearId, scope, category])` constraint ensures exactly one row per category per year.
+`EmissionEntry` uses a unified table with `scope` and `category` discriminators. This covers all Scope 1, Scope 2, and Scope 3 activity entries (travel, commute, waste, refrigerants). The unique constraint is `@@unique([reportingYearId, scope, category, billingMonth, providerName])` — `null` `billingMonth` means an annual entry; non-null values are monthly entries (currently used for Strom Screen 4 monthly mode).
 
-`MaterialEntry` is a **separate table** because Scope 3 Category 1 (purchased materials) is fundamentally a list — not a set of fixed categories. One year can have many `MaterialEntry` rows (one per purchased material type). The `@@unique` pattern does not apply here.
+`MaterialEntry` is a **separate table** because Scope 3 Category 1 (purchased materials) is fundamentally a list — not a set of fixed categories. One year can have many `MaterialEntry` rows (one per purchased material type).
+
+#### Monthly Electricity Billing (EmissionEntry extensions)
+
+`EmissionEntry` was extended with three optional fields to support mid-year electricity billing:
+- `billingMonth` (1–12): records a monthly sub-entry. `null` = annual entry.
+- `isFinalAnnual` (boolean): when true, this annual entry supersedes all monthly entries for the category.
+- `providerName` (string): allows separate entries per energy provider when a company switches providers mid-year.
+
+These fields are used only by Screen 4 (Strom). All other screens create standard annual entries.
+
+#### Refrigerant Tracking (Kältemittel)
+
+Refrigerant leak emissions (R410A, R32, R134A, Sonstige) are Scope 1 direct emissions. They are stored as standard `EmissionEntry` rows with dedicated `EmissionCategory` enum values. Data source is the Kältemittelprotokoll (maintenance log). Screen 2 (Heizung) collects this data.
+
+#### Audit Trail
+
+Every `saveEntry` / `deleteEntry` / `saveCompanyProfile` Server Action creates an `AuditLog` row. The audit log:
+- Records `entityType`, `action` (CREATE/UPDATE/DELETE), `fieldName`, `oldValue`, `newValue`
+- Links to the source `UploadedDocument` when data arrived via OCR or CSV
+- Is surfaced in two UIs: `AuditLogPanel` on the dashboard (global view) and `ScreenChangeLog` in each wizard screen (last 5 changes for that screen's categories)
+
+#### Document Storage
+
+Two document storage models serve different purposes:
+- `UploadedDocument`: source documents (PDFs, CSVs) stored as `Bytes` in PostgreSQL. Referenced by `AuditLog` for provenance. Available at `GET /api/documents/[id]`.
+- `FieldDocument`: one attachment per `(fieldKey, year)`. Shown as a green dashed zone under each numeric input field. Stored on the container filesystem. Available at `GET/POST /api/field-documents`.
 
 #### Partial Data Storage (missing categories)
 
-Missing categories are represented as **no row** in `EmissionEntry` / `MaterialEntry`. A row with a `NULL` quantity is never created. This design:
-- Keeps the data model clean (no nullable quantity columns)
-- Simplifies completion status query: `completedCategories = COUNT(DISTINCT category) WHERE year = $year`
-- The dashboard shows "Nicht erfasst" when a category has no row
+Missing categories are represented as **no row** in `EmissionEntry` / `MaterialEntry`. A row with a `NULL` quantity is never created. The dashboard shows "Nicht erfasst" when a category has no row.
 
 #### Emission Factor Versioning
 
@@ -545,7 +664,7 @@ WHERE key = $key AND validYear <= $requestedYear
 ORDER BY validYear DESC
 LIMIT 1
 ```
-This means: use the most recent factor available at or before the reporting year. When UBA publishes 2025 factors, they are added as new rows — existing calculations for 2024 are unaffected.
+If no factor exists at or before the requested year, a forward fallback selects the earliest factor newer than the requested year (handles 2023 data with only 2024 factors). When UBA publishes 2025 factors, they are added as new rows — existing calculations for 2024 are unaffected.
 
 #### OCR/CSV Staging Area
 
@@ -961,6 +1080,7 @@ function lookupFactor(
   options?: { isOekostrom?: boolean }
 ): EmissionFactor {
   // SELECT ... WHERE key = $key AND validYear <= $year ORDER BY validYear DESC LIMIT 1
+  // Forward fallback: if no factor ≤ year, use earliest factor > year
   // Special case: STROM → use STROM_OEKOSTROM key if isOekostrom = true
 }
 ```
@@ -969,7 +1089,40 @@ function lookupFactor(
 
 **Vehicle km handling:** If both litres (DIESEL_FUHRPARK) and km (PKW_DIESEL_KM) are entered, both calculate independently and are summed. No double-counting warning is shown.
 
-### 8.2 Error Handling
+**Kältemittel handling:** R410A, R32, R134A, and Sonstige refrigerant entries each have their own emission factor key. They are standard `EmissionEntry` rows with Scope 1 scope.
+
+### 8.2 OCR Interface (`lib/ocr/index.ts`)
+
+The OCR integration is implemented as a **stub behind a stable interface**:
+
+```typescript
+// lib/ocr/index.ts
+export async function extractFromFile(
+  file: File,
+  category: string
+): Promise<{ value: number; unit: string; confidence: number }>
+```
+
+The **current stub** simulates a 1–2 second processing delay and returns hardcoded values per category. It is designed to be replaced with a real implementation (e.g. a call to Claude claude-sonnet-4-20250514 with the document as base64, or the Tesseract HTTP service at `TESSERACT_URL`) without any changes to the wizard UI components.
+
+### 8.3 Audit Trail
+
+Every data-changing Server Action (`saveEntry`, `deleteEntry`, `saveMaterialEntry`, `saveCompanyProfile`) creates an immutable `AuditLog` row recording:
+- `entityType` + `entityId` — which record changed
+- `action` (CREATE / UPDATE / DELETE)
+- `fieldName`, `oldValue`, `newValue` — field-level change
+- `inputMethod` — MANUAL / OCR / CSV
+- `documentId` — optional link to the source `UploadedDocument`
+
+**Two UIs surface the audit log:**
+1. `AuditLogPanel` on the dashboard — collapsible; shows the 50 most recent changes across all categories. Includes download links to source documents.
+2. `ScreenChangeLog` at the bottom of each wizard screen — collapsible; shows the last 5 changes for that screen's categories. Helps users see what was previously entered.
+
+### 8.4 Plausibility Warnings
+
+`PlausibilityWarning` is a client-side component displayed inline under numeric input fields. It fires on `onBlur` using `getPlausibilityWarning(fieldKey, value)` from `lib/PlausibilityWarning.tsx`. It shows an amber banner when a value is statistically out of range for a Handwerksbetrieb (e.g. > 200,000 m³ Erdgas or < 1,000 kWh Strom). It does **not** block saving — it is informational only.
+
+### 8.5 Error Handling
 
 | Layer | Strategy |
 |---|---|
@@ -980,13 +1133,13 @@ function lookupFactor(
 | PDF generation errors | Return 500 with toast "PDF-Erstellung fehlgeschlagen. Bitte erneut versuchen." |
 | DB connection errors | Next.js error boundary catches; German error page shown |
 
-### 8.3 Internationalisation
+### 8.6 Internationalisation
 
 The app is **German-only**. No i18n framework is used. All strings are hardcoded in German in JSX components. Locale-aware formatting:
 - Numbers: `Intl.NumberFormat('de-DE')` (1.234,56 format)
 - Dates: `Intl.DateTimeFormat('de-DE')` (21.03.2026 format)
 
-### 8.4 Accessibility
+### 8.7 Accessibility
 
 - All interactive elements ≥ 44×44 px touch target (mobile-first at 375 px)
 - WCAG 2.1 AA colour contrast
@@ -994,20 +1147,22 @@ The app is **German-only**. No i18n framework is used. All strings are hardcoded
 - Form labels explicitly associated via `htmlFor`
 - Error messages linked via `aria-describedby`
 
-### 8.5 Auto-Save Behaviour
+### 8.8 Auto-Save Behaviour
 
 Wizard fields trigger `onBlur` → Server Action → UPSERT to `EmissionEntry`. The "Speichern" button calls the same action explicitly. "Weiter" saves the current screen and navigates. No client-side state is required for persistence — the browser may be closed at any point.
 
-### 8.6 Data Quality and Report Completeness
+### 8.9 Data Quality and Report Completeness
 
 The PDF report always includes a **Data Quality Section** listing every `EmissionCategory` that has no entry for the reporting year, marked "nicht erfasst". Categories with entries are marked "erfasst (gemessen)" or "erfasst (geschätzt)" based on the `inputMethod` field. This meets the GHG Protocol requirement for transparent uncertainty disclosure.
 
-### 8.7 Security
+The report also includes a **Berichtsgrenzen** (reporting boundaries) section rendered from `CompanyProfile.reportingBoundaryNotes` and `CompanyProfile.exclusions`. If these fields are empty, the section states "Keine besonderen Ausschlüsse oder Einschränkungen dokumentiert."
+
+### 8.10 Security
 
 - **No authentication** — intentional for single-tenant self-hosted deployment
 - **File uploads** — MIME type and file size validated server-side before sending to Tesseract or parsing as CSV. Max upload size: 10 MB.
 - **CSV injection prevention** — all CSV cell values are treated as numbers (parsed with `parseFloat`); no formula injection possible since output is numeric
-- **No user-supplied strings are executed** — supplier name and memo fields are stored as text and rendered with React (auto-escaped)
+- **No user-supplied strings are executed** — supplier name, memo, and boundary notes fields are stored as text and rendered with React (auto-escaped)
 - **Environment variables** — `DATABASE_URL` and `TESSERACT_URL` are server-only; never exposed to the browser
 
 ---
@@ -1362,12 +1517,13 @@ Quality
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
-| OCR accuracy for German utility bills | Medium | Medium | Confidence indicator shown; manual override always available |
+| OCR accuracy for German utility bills | Medium | Medium | Confidence indicator shown; manual override always available; OCR behind a replaceable interface |
 | Tesseract container failure | Low | Medium | OCR upload button disabled when Tesseract unreachable; manual entry unaffected |
 | PostgreSQL container crash during write | Low | High | Docker volume persists data; supervisord restarts PostgreSQL automatically |
 | XLSX parsing (binary format) | Medium | Low | Use established library (e.g., `xlsx`/`exceljs`); validate strictly server-side |
 | Emission factor accuracy | Low | High | UBA is the authoritative German source; methodology section in PDF cites source and year |
 | User enters litres AND km for same vehicle type | Low | Low | Spec explicitly states: sum both, no warning needed |
+| AuditLog table growth | Low | Low | Audit entries are append-only; archive old entries if table grows beyond ~100k rows |
 
 ### 11.2 Technical Debt
 
@@ -1378,6 +1534,9 @@ Quality
 | No authentication | Security relies entirely on network-level access control | Medium | If exposed to internet: add simple password/PIN protection or OAuth |
 | Reports stored on container filesystem | PDFs written to container FS under `/app/reports` | Low | If container is rebuilt: volume-mount `/app/reports`; document in ops guide |
 | No automated emission factor updates | Operator must manually seed new year's factors | Low | Add an admin page or CLI script for factor management |
+| OCR is a stub | `lib/ocr/index.ts` returns hardcoded values; no real Tesseract/AI call | Medium | Replace stub body with real HTTP call to `TESSERACT_URL` or Claude API when ready |
+| CSV import is a stub | `lib/csv/index.ts` returns hardcoded values; no real file parsing | Medium | Replace stub with `papaparse` / `exceljs` + column mapping logic |
+| UploadedDocument.content in PostgreSQL | Binary file bytes stored in DB; may slow queries as storage grows | Low | Move to container volume or object storage if file count grows significantly |
 
 ---
 
@@ -1386,6 +1545,7 @@ Quality
 | Term | Definition |
 |---|---|
 | Berichtsjahr | Reporting year — the calendar year for which CO₂e is being calculated |
+| Berichtsgrenzen | Reporting boundaries — defines what is included or excluded from the GHG inventory |
 | Betriebsinhaber | Business owner — the primary user of GrünBilanz |
 | Branche | Industry sector (e.g., Elektrohandwerk, SHK) |
 | Branchenvergleich | Industry comparison — benchmark CO₂e values per sector |
@@ -1397,6 +1557,7 @@ Quality
 | Erdgas | Natural gas |
 | Fahrtenbuch | Vehicle logbook recording km driven per vehicle |
 | Fernwärme | District heating |
+| FieldDocument | Per-field invoice/receipt attachment — one document per (fieldKey, year) |
 | Firmenname | Company name |
 | Flüssiggas | LPG (liquefied petroleum gas) |
 | GHG Protocol | Greenhouse Gas Protocol — international standard for corporate CO₂ accounting |
@@ -1404,6 +1565,8 @@ Quality
 | Handwerksbetrieb | German craft / trade business (electrician, plumber, carpenter, etc.) |
 | Heizöl | Heating oil |
 | InputMethod | How data was entered: MANUAL, OCR, or CSV |
+| Kältemittel | Refrigerant — HFC/HFO gases that leak from cooling and air-conditioning equipment |
+| Kältemittelprotokoll | Refrigerant service log — records how much refrigerant was refilled per service |
 | Mitarbeiter | Employees / headcount |
 | Nicht erfasst | Not recorded — category with no data entry for the year |
 | OCR | Optical Character Recognition — used to extract numbers from utility bill PDFs |
@@ -1417,6 +1580,5 @@ Quality
 | Teilweise | Partially recorded — some but not all fields in a wizard screen are filled |
 | UBA | Umweltbundesamt — German Federal Environment Agency; publishes official emission factors |
 | Vollständig | Complete — all required fields in a wizard screen are filled |
-| Berichtsjahr | Reporting year |
 | Lieferschein | Delivery receipt |
 | Jahresabrechnung | Annual bill / settlement |
