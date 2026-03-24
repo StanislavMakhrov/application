@@ -9,7 +9,8 @@ This repository uses GitHub Copilot coding agents for automated development work
 - **`COPILOT_TOKEN` secret** — a classic Personal Access Token (PAT) with `repo` scope,
   stored as an **Environment secret** in the `copilot` environment
   (**Settings → Environments → copilot → Environment secrets → COPILOT_TOKEN**).
-  This is required for the Release Manager agent (merge/release operations).
+  Required for the Release Manager agent to run `gh` commands (e.g., `gh pr merge` via
+  `scripts/pr-github.sh create-and-merge`). Not needed for regular coding agent sessions.
   > **Note:** This is separate from `RELEASE_TOKEN`, which is used by the release pipeline.
 
 ## How It Works
@@ -31,16 +32,20 @@ This repository uses GitHub Copilot coding agents for automated development work
 2. Go to **Settings → Copilot → Coding agent → ON**
 3. Create an issue and assign it to `@copilot`, or open a session from the Agents tab / Copilot chat
 4. The workflow orchestrator agent delegates work to specialized agents automatically
-5. When all work is pushed and CI is green, click **"Create Pull Request"** in the GitHub Copilot session UI to create a session-linked PR
+5. PR creation happens automatically (see below)
 
 ## How PRs are Created (Important)
 
-PRs **must** be created from the GitHub Copilot session UI ("Create Pull Request" button), not by the agent using `gh pr create` / `scripts/pr-github.sh create`.
+There are two session types — the PR creation mechanism differs:
 
-- **Session UI button** → PR is linked to the session → `@copilot` mentions continue the same session ✅
-- **`gh pr create` / `scripts/pr-github.sh create`** → PR is unlinked → `@copilot` mentions start new sessions ❌
+| Session type | How PR is created |
+|---|---|
+| Issue assigned to `@copilot` | **GitHub automatically creates** a session-linked PR at session start — no action needed |
+| Manual session (Agents tab / chat) | **Maintainer clicks "Create Pull Request"** in the GitHub Copilot session UI after work is pushed and CI is green |
 
-The `COPILOT_TOKEN` PAT and `scripts/pr-github.sh` are only used by the Release Manager agent for merge operations, not for regular PR creation.
+In both cases, **the agent must never call `gh pr create` / `scripts/pr-github.sh create`**. Using a PAT creates an unlinked PR — `@copilot` mentions in it start new sessions instead of continuing the current one.
+
+`COPILOT_TOKEN` (PAT) and `scripts/pr-github.sh` are used by the Release Manager for `gh pr merge` (merge operations), not for regular PR creation.
 
 ## UAT (User Acceptance Testing)
 

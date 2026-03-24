@@ -30,10 +30,15 @@ This skill is automatically loaded by all coding agents. It defines the core wor
 - Manual `git checkout -b` commands will fail (permission denied)
 - Branch creation is GitHub's responsibility, not yours
 
-**Pull Request Creation:**
-- **The Maintainer creates the session-linked PR from the GitHub Copilot session UI.** After you push all changes with `report_progress`, the Maintainer clicks "Create Pull Request" in the session interface. This links the PR to the session, so `@copilot` mentions continue the same session instead of starting a new one.
-- **NEVER call `create-pr-github` or `scripts/pr-github.sh create` to create a session PR.** Using `gh pr create` with a PAT creates an unlinked PR — every `@copilot` mention in it will spin up a new session. Those tools are reserved for the Release Manager only.
-- `report_progress` pushes code and updates the PR description — it does **not** create the PR.
+**Pull Request Creation — two scenarios:**
+
+**Scenario A — Issue assigned to `@copilot`:** GitHub's infrastructure automatically creates a session-linked PR when the session starts. The agent does nothing — the PR already exists. Just push via `report_progress`.
+
+**Scenario B — Manual session (Agents tab / Copilot chat):** No PR is auto-created. After work is pushed and CI is green, the Maintainer clicks "Create Pull Request" in the GitHub Copilot session UI, which creates a session-linked PR.
+
+**In both cases:** NEVER call `create-pr-github` or `scripts/pr-github.sh create` — using `gh pr create` with a PAT creates an unlinked PR where `@copilot` mentions start new sessions. Those tools are for the Release Manager (merge operations) only.
+
+- `report_progress` pushes code — it does not create the PR.
 - Never create a duplicate PR if one already exists for your branch.
 
 **PR Comment Context — Preventing Sub-PRs:**
@@ -90,17 +95,17 @@ Before invoking `create-pr-github`, the sub-branch condition is checked automati
 
    **Do not hand off to the next agent with a failing build.**
 
-4b. **PR is created by the Maintainer from the session UI (primary agent only)**:
+4b. **PR creation depends on session type (primary agent only)**:
 
-   After `report_progress` has pushed all commits and CI is green, the Maintainer
-   creates the PR by clicking "Create Pull Request" in the GitHub Copilot session UI.
-   This creates a PR that is properly **linked to the session**.
+   **Scenario A — Issue assigned to `@copilot`**: GitHub auto-created a session-linked
+   PR at session start. Nothing to do — CI is already running against that PR.
 
-   You do NOT create the PR yourself. Specifically:
-   - Do NOT call `create-pr-github` or `scripts/pr-github.sh create` — this creates
-     an unlinked PR (via a PAT, not the session token), causing all future `@copilot`
-     mentions in that PR to start new sessions instead of continuing this one.
-   - Simply complete your work, ensure CI is green, and let the Maintainer click the button.
+   **Scenario B — Manual session (Agents tab / Copilot chat)**: No PR was auto-created.
+   After CI is green, let the Maintainer know so they can click "Create Pull Request" in
+   the GitHub Copilot session UI.
+
+   **In both cases:** Do NOT call `create-pr-github` or `scripts/pr-github.sh create`.
+   These use a PAT that creates an unlinked PR, breaking session continuity.
 
 5. **Create Summary Comment (After PR Created)**: Post a PR comment with:
    - **Summary**: Brief description of what you completed
@@ -128,7 +133,7 @@ Before invoking `create-pr-github`, the sub-branch condition is checked automati
 ## Key Principles
 
 - **GitHub creates branches automatically** - never attempt to create or switch branches yourself
-- **The Maintainer creates the session-linked PR** - after all pushes and CI is green, the Maintainer clicks "Create Pull Request" in the GitHub Copilot session UI; the agent must NEVER call `create-pr-github` to do this
+- **PR creation depends on session type** — issue→@copilot: GitHub auto-creates a session-linked PR at start (agent does nothing); manual session: Maintainer clicks "Create Pull Request" in session UI after CI is green; NEVER call `create-pr-github` in either case
 - **Never create a duplicate PR** - check if one already exists for your branch before any PR creation attempt
 - **`report_progress` is only available to the primary agent** - subagents spawned via `task` tool must use `git commit` instead
 - **Always use `report_progress`** for commits and pushes (primary agent) - never use manual `git push` commands

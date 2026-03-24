@@ -40,13 +40,20 @@ For project-specific instructions, refer to the `docs/architecture.md` and `docs
 
 ### Pull Request Creation
 
-**The Maintainer creates the session-linked PR from the GitHub Copilot session UI.** After you push all changes with `report_progress`, the Maintainer clicks "Create Pull Request" in the GitHub Copilot session interface. This creates a PR that is properly linked to the session — so future `@copilot` mentions in that PR continue the same session instead of starting a new one.
+There are two session types, each with its own PR creation mechanism. **The agent must never call `create-pr-github` or `scripts/pr-github.sh create` in either case.**
 
-**Never call `create-pr-github` or `scripts/pr-github.sh create` to create a coding agent session PR.** Doing so uses a PAT (`gh pr create`) that is NOT the session token, creating an unlinked PR. An unlinked PR causes every subsequent `@copilot` mention to spin up a new session.
+**Scenario A — Issue assigned to `@copilot`:**
+GitHub's infrastructure automatically creates a session-linked PR when the session starts. The agent does nothing — the PR already exists by the time the agent begins work. Just push changes via `report_progress`.
+
+**Scenario B — Manual session (Agents tab / Copilot chat):**
+GitHub does not auto-create a PR. After you push all changes with `report_progress` and CI is green, the Maintainer clicks **"Create Pull Request"** in the GitHub Copilot session UI. This creates a PR properly linked to the session.
+
+**Why `gh pr create` / `scripts/pr-github.sh create` must never be used for session PRs:**
+These use a PAT, not the session token. A PAT-created PR is unlinked — every `@copilot` mention in it starts a new session instead of continuing this one.
 
 - `report_progress` pushes code and updates the PR description — **it does not create the PR**.
 - **Never create a duplicate PR** if one already exists for your branch.
-- `create-pr-github` / `scripts/pr-github.sh create` is reserved for the Release Manager and other non-session contexts only.
+- `create-pr-github` / `scripts/pr-github.sh create` is reserved for the Release Manager (merge operations) only.
 
 ### PR Comment Context (No Sub-PRs)
 
