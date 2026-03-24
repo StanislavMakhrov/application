@@ -49,6 +49,9 @@ const styles = StyleSheet.create({
   footer: { position: 'absolute', bottom: 30, left: 40, right: 40, fontSize: 8, color: '#aaa', textAlign: 'center' },
   scopeLabel: { fontSize: 10, fontFamily: 'Helvetica-Bold', color: '#fff', backgroundColor: '#2D6A4F', padding: '3 8', borderRadius: 3, marginBottom: 4 },
   highlight: { color: '#E76F51', fontFamily: 'Helvetica-Bold' },
+  boundaryBox: { backgroundColor: '#f0fdf4', borderRadius: 4, padding: 10, marginTop: 6, marginBottom: 2 },
+  boundaryLabel: { fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#2D6A4F', marginBottom: 3 },
+  boundaryText: { fontSize: 8, color: '#444', lineHeight: 1.5 },
 });
 
 interface GHGReportProps {
@@ -155,6 +158,25 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
         {renderScopeTable(scope2Entries, 'Scope 2 — Energiebedingte Emissionen', totals.scope2)}
         {renderScopeTable(scope3Entries, 'Scope 3 — Vorgelagerte Emissionen', totals.scope3)}
 
+        {/* Reporting Boundaries — only shown here when no materials page follows */}
+        {materials.length === 0 && (profile.reportingBoundaryNotes || profile.exclusions) && (
+          <View style={{ marginTop: 14 }}>
+            <Text style={styles.sectionTitle}>Berichtsgrenzen</Text>
+            {profile.reportingBoundaryNotes ? (
+              <View style={styles.boundaryBox}>
+                <Text style={styles.boundaryLabel}>Systemgrenzen & Berichtsrahmen</Text>
+                <Text style={styles.boundaryText}>{profile.reportingBoundaryNotes}</Text>
+              </View>
+            ) : null}
+            {profile.exclusions ? (
+              <View style={[styles.boundaryBox, { marginTop: 6 }]}>
+                <Text style={styles.boundaryLabel}>Ausschlüsse & Annahmen</Text>
+                <Text style={styles.boundaryText}>{profile.exclusions}</Text>
+              </View>
+            ) : null}
+          </View>
+        )}
+
         {/* Footer */}
         <Text style={styles.footer}>
           GrünBilanz · GHG Protocol Corporate Standard · Emissionsfaktoren: UBA 2024 · Seite 1
@@ -194,6 +216,25 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
             Scope 3 Kategorie 1 umfasst vorgelagerte Emissionen eingekaufter Waren und Dienstleistungen.
             Negative Werte (z.B. Altmetall-Recycling) stellen anerkannte Gutschriften dar.
           </Text>
+
+          {/* Reporting Boundaries */}
+          {(profile.reportingBoundaryNotes || profile.exclusions) && (
+            <View style={{ marginTop: 14 }}>
+              <Text style={styles.sectionTitle}>Berichtsgrenzen</Text>
+              {profile.reportingBoundaryNotes ? (
+                <View style={styles.boundaryBox}>
+                  <Text style={styles.boundaryLabel}>Systemgrenzen & Berichtsrahmen</Text>
+                  <Text style={styles.boundaryText}>{profile.reportingBoundaryNotes}</Text>
+                </View>
+              ) : null}
+              {profile.exclusions ? (
+                <View style={[styles.boundaryBox, { marginTop: 6 }]}>
+                  <Text style={styles.boundaryLabel}>Ausschlüsse & Annahmen</Text>
+                  <Text style={styles.boundaryText}>{profile.exclusions}</Text>
+                </View>
+              ) : null}
+            </View>
+          )}
 
           <Text style={styles.footer}>
             GrünBilanz · GHG Protocol Corporate Standard · Emissionsfaktoren: UBA 2024 · Seite 2

@@ -1,9 +1,10 @@
 'use client';
 
 /**
- * Screen 1 — Firmenprofil
- * Collects company name, industry, employee count, and location.
- * This data populates PDF headers and the Branchenvergleich benchmark.
+ * Screen 1 — Firmenprofil & Berichtsgrenzen
+ * Collects company name, industry, employee count, location, and reporting
+ * boundary notes / exclusions. This data populates PDF headers and the
+ * Branchenvergleich benchmark.
  */
 
 import { useEffect, useState } from 'react';
@@ -29,6 +30,8 @@ const schema = z.object({
     .int('Nur ganze Zahlen')
     .min(1, 'Mindestens 1 Mitarbeiter'),
   standort: z.string().min(1, 'Standort ist erforderlich'),
+  reportingBoundaryNotes: z.string().optional(),
+  exclusions: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -51,6 +54,8 @@ export default function Screen1Firmenprofil() {
       branche: 'ELEKTROHANDWERK',
       mitarbeiter: 1,
       standort: '',
+      reportingBoundaryNotes: '',
+      exclusions: '',
     },
   });
 
@@ -66,6 +71,8 @@ export default function Screen1Firmenprofil() {
           setValue('branche', data.branche);
           setValue('mitarbeiter', data.mitarbeiter);
           setValue('standort', data.standort);
+          setValue('reportingBoundaryNotes', data.reportingBoundaryNotes ?? '');
+          setValue('exclusions', data.exclusions ?? '');
         }
       })
       .catch(() => {/* profile may not exist yet */});
@@ -77,6 +84,8 @@ export default function Screen1Firmenprofil() {
       branche: values.branche as Branche,
       mitarbeiter: values.mitarbeiter,
       standort: values.standort,
+      reportingBoundaryNotes: values.reportingBoundaryNotes || undefined,
+      exclusions: values.exclusions || undefined,
     });
 
     if (result.success) {
@@ -88,9 +97,9 @@ export default function Screen1Firmenprofil() {
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-      <h1 className="text-xl font-bold text-gray-900 mb-1">Firmenprofil</h1>
+      <h1 className="text-xl font-bold text-gray-900 mb-1">Firmenprofil & Berichtsgrenzen</h1>
       <p className="text-sm text-gray-500 mb-6">
-        Grunddaten Ihres Betriebs — erscheinen auf dem PDF-Bericht und im Branchenvergleich.
+        Grunddaten Ihres Betriebs und Definition des Berichtsrahmens — erscheinen auf dem PDF-Bericht.
       </p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -139,15 +148,56 @@ export default function Screen1Firmenprofil() {
 
         {/* Standort */}
         <div className="space-y-1.5">
-          <Label htmlFor="standort">Hauptstandort</Label>
+          <Label htmlFor="standort">Hauptstandort / Standorte</Label>
           <Input
             id="standort"
-            placeholder="z.B. München, Bayern"
+            placeholder="z.B. München, Bayern · Kommasepariert für mehrere Standorte"
             {...register('standort')}
           />
           {errors.standort && (
             <p className="text-xs text-red-600">{errors.standort.message}</p>
           )}
+          <p className="text-xs text-gray-400">
+            Mehrere Standorte kommasepariert angeben, z.B. &bdquo;München, Frankfurt, Hamburg&ldquo;.
+          </p>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-gray-200 pt-4">
+          <h2 className="text-base font-semibold text-gray-800 mb-1">Berichtsgrenzen</h2>
+          <p className="text-xs text-gray-400 mb-4">
+            Definieren Sie, was in diesem Bericht erfasst ist und was ggf. ausgeschlossen wurde.
+            Diese Angaben erhöhen die methodische Transparenz im PDF-Export.
+          </p>
+        </div>
+
+        {/* Reporting Boundary Notes */}
+        <div className="space-y-1.5">
+          <Label htmlFor="reportingBoundaryNotes">Berichtsgrenzen & Systemgrenzen</Label>
+          <textarea
+            id="reportingBoundaryNotes"
+            className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-green focus:border-transparent min-h-[100px] resize-y"
+            placeholder="z.B. Operationelle Kontrolle nach GHG Protocol. Alle Standorte in Deutschland eingeschlossen. Fuhrpark umfasst Firmenfahrzeuge und Leasingfahrzeuge."
+            {...register('reportingBoundaryNotes')}
+          />
+          <p className="text-xs text-gray-400">
+            Beschreiben Sie kurz den Berichtsrahmen: welche Standorte, Geschäftsbereiche oder
+            Aktivitäten einbezogen sind und nach welchem Ansatz (z.B. operationelle Kontrolle).
+          </p>
+        </div>
+
+        {/* Exclusions */}
+        <div className="space-y-1.5">
+          <Label htmlFor="exclusions">Ausschlüsse & Annahmen (optional)</Label>
+          <textarea
+            id="exclusions"
+            className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-green focus:border-transparent min-h-[80px] resize-y"
+            placeholder="z.B. Geschäftsreisen mit privatem PKW wurden nicht erfasst. Scope 3 Kategorie 11 (Nutzung verkaufter Produkte) ist nicht relevant."
+            {...register('exclusions')}
+          />
+          <p className="text-xs text-gray-400">
+            Nennen Sie Emissionsquellen, die bewusst nicht erfasst wurden, und begründen Sie dies kurz.
+          </p>
         </div>
 
         <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">

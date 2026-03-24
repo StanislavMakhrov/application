@@ -25,6 +25,8 @@ export interface SaveCompanyProfileInput {
   mitarbeiter: number;
   standort: string;
   logoPath?: string;
+  reportingBoundaryNotes?: string;
+  exclusions?: string;
 }
 
 /**
@@ -41,6 +43,8 @@ export async function saveCompanyProfile(input: SaveCompanyProfileInput): Promis
         mitarbeiter: input.mitarbeiter,
         standort: input.standort,
         ...(input.logoPath !== undefined && { logoPath: input.logoPath }),
+        reportingBoundaryNotes: input.reportingBoundaryNotes ?? null,
+        exclusions: input.exclusions ?? null,
       },
       create: {
         id: 1,
@@ -49,6 +53,8 @@ export async function saveCompanyProfile(input: SaveCompanyProfileInput): Promis
         mitarbeiter: input.mitarbeiter,
         standort: input.standort,
         logoPath: input.logoPath,
+        reportingBoundaryNotes: input.reportingBoundaryNotes ?? null,
+        exclusions: input.exclusions ?? null,
       },
     });
     revalidatePath('/');
