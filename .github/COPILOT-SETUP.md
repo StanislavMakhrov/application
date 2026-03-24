@@ -9,8 +9,7 @@ This repository uses GitHub Copilot coding agents for automated development work
 - **`COPILOT_TOKEN` secret** — a classic Personal Access Token (PAT) with `repo` scope,
   stored as an **Environment secret** in the `copilot` environment
   (**Settings → Environments → copilot → Environment secrets → COPILOT_TOKEN**).
-  This is required for the agent to create pull requests.
-  Without it, PR creation will fail with a 403 error.
+  This is required for the Release Manager agent (merge/release operations).
   > **Note:** This is separate from `RELEASE_TOKEN`, which is used by the release pipeline.
 
 ## How It Works
@@ -24,7 +23,7 @@ This repository uses GitHub Copilot coding agents for automated development work
    - Auto-discovered by GitHub Copilot from the repository
 
 3. **Agent Skills**: `.github/skills/*/SKILL.md`
-   - Reusable workflows for common tasks (PR creation, testing, releases)
+   - Reusable workflows for common tasks (testing, releases)
 
 ## Usage
 
@@ -32,7 +31,16 @@ This repository uses GitHub Copilot coding agents for automated development work
 2. Go to **Settings → Copilot → Coding agent → ON**
 3. Create an issue and assign it to `@copilot`, or open a session from the Agents tab / Copilot chat
 4. The workflow orchestrator agent delegates work to specialized agents automatically
-5. When all work is pushed and CI is green, the agent automatically creates the pull request
+5. When all work is pushed and CI is green, click **"Create Pull Request"** in the GitHub Copilot session UI to create a session-linked PR
+
+## How PRs are Created (Important)
+
+PRs **must** be created from the GitHub Copilot session UI ("Create Pull Request" button), not by the agent using `gh pr create` / `scripts/pr-github.sh create`.
+
+- **Session UI button** → PR is linked to the session → `@copilot` mentions continue the same session ✅
+- **`gh pr create` / `scripts/pr-github.sh create`** → PR is unlinked → `@copilot` mentions start new sessions ❌
+
+The `COPILOT_TOKEN` PAT and `scripts/pr-github.sh` are only used by the Release Manager agent for merge operations, not for regular PR creation.
 
 ## UAT (User Acceptance Testing)
 
@@ -49,27 +57,11 @@ No special tokens, separate repositories, or environments are required for UAT.
 
 Ensure the repository has GitHub Actions enabled and the default `GITHUB_TOKEN` has `contents: write` permission.
 
-### Agent cannot create pull requests (403 error)
+### Verifying the workflow works
 
-The Copilot agent's built-in OAuth token (`ghu_`) is blocked from creating PRs by GitHub's
-integration policy. The fix:
+To confirm the agent workflow is set up correctly, assign an issue to `@copilot` and check that:
 
-1. Create a classic PAT with `repo` scope at **Settings → Developer settings → Personal access tokens**
-2. Store it as an **Environment secret** named `COPILOT_TOKEN` in the `copilot` environment:
-   **Settings → Environments → copilot → Environment secrets → Add secret → `COPILOT_TOKEN`**
-   > ⚠️ Do **not** store it as a repository secret (`Settings → Secrets and variables → Actions`).
-   > The Copilot agent only has access to secrets from the `copilot` environment.
-3. The `copilot-setup-steps.yml` workflow exposes `COPILOT_TOKEN` as `GH_TOKEN` via:
-   - `$GITHUB_ENV` — for subsequent GitHub Actions steps in the same job
-   - `~/.bashrc` and `~/.profile` — for the agent's interactive bash sessions (which start fresh and don't inherit `$GITHUB_ENV`)
-
-   This ensures the agent's `gh` commands use the PAT.
-
-### Verifying PR creation works
-
-To confirm the agent can create PRs, assign an issue to `@copilot` and check that the
-agent completes a session ending with a new PR. A successful PR creation confirms:
-
-- `COPILOT_TOKEN` secret is set correctly
-- `GH_TOKEN` is visible in the agent's bash session (via `~/.bashrc`/`~/.profile`)
-- The `scripts/pr-github.sh create` command exits without a 403 error
+1. The agent completes all work and pushes changes via `report_progress`
+2. CI passes on the branch
+3. You can click "Create Pull Request" in the GitHub Copilot session UI to create a linked PR
+4. `@copilot` mentions in that PR continue the same session (no new session spin-up)

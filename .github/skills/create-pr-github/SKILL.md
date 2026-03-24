@@ -6,6 +6,18 @@ compatibility: Preferred: scripts/pr-github.sh wrapper. Fallback: git + GitHub C
 
 # Create PR (GitHub)
 
+## ⚠️ NOT for Coding Agent Sessions
+
+**Do NOT use this skill to create PRs in a normal coding agent session.**
+
+In a coding agent session (started from an issue assigned to `@copilot` or from a PR comment), the PR is created automatically by GitHub's session infrastructure when `report_progress` first pushes commits. That PR is properly **linked to the session**, so `@copilot` mentions in the PR continue the same session.
+
+Calling `scripts/pr-github.sh create` or `gh pr create` here uses a PAT — not the session token — which creates an **unlinked PR**. An unlinked PR causes every subsequent `@copilot` mention to start a new session instead of continuing the current one.
+
+**This skill is only for:**
+- The **Release Manager** agent (merge operations)
+- Non-session contexts (e.g., automated scripts, manual workflows outside of a Copilot session)
+
 ## Purpose
 Create a GitHub pull request in a consistent, policy-compliant way, and include the repo's preferred merge method guidance (rebase and merge).
 

@@ -40,18 +40,21 @@ For project-specific instructions, refer to the `docs/architecture.md` and `docs
 
 ### Pull Request Creation
 
-GitHub no longer automatically creates a draft PR when a coding agent session starts. The agent is responsible for creating the PR:
+**The Maintainer creates the session-linked PR from the GitHub Copilot session UI.** After you push all changes with `report_progress`, the Maintainer clicks "Create Pull Request" in the GitHub Copilot session interface. This creates a PR that is properly linked to the session — so future `@copilot` mentions in that PR continue the same session instead of starting a new one.
 
-- After all work is pushed with `report_progress` and CI is green, always use the **`create-pr-github`** skill to open the PR.
+**Never call `create-pr-github` or `scripts/pr-github.sh create` to create a coding agent session PR.** Doing so uses a PAT (`gh pr create`) that is NOT the session token, creating an unlinked PR. An unlinked PR causes every subsequent `@copilot` mention to spin up a new session.
+
+- `report_progress` pushes code and updates the PR description — **it does not create the PR**.
 - **Never create a duplicate PR** if one already exists for your branch.
+- `create-pr-github` / `scripts/pr-github.sh create` is reserved for the Release Manager and other non-session contexts only.
 
 ### PR Comment Context (No Sub-PRs)
 
 When `@copilot` is mentioned in a **comment on an existing PR** (rather than assigned a new issue), GitHub may start a new agent session on a new `copilot/*` branch branched from the PR's head. This would result in an unintended **sub-PR** if a new PR is created from that branch.
 
 **In this context you MUST:**
-- **Do NOT create a new sub-PR.** Before calling `create-pr-github`, check if the current branch is a sub-branch of another `copilot/*` branch (i.e., another Copilot branch's commits are already included in yours but not yet in `main`).
-- **Continue work on the existing PR.** If possible, keep all commits on the parent PR's branch. Push changes using `report_progress`; the existing PR updates automatically.
+- **Do NOT create a new sub-PR.** Check if the current branch is a sub-branch of another `copilot/*` branch (i.e., another Copilot branch's commits are included in yours but not yet in `main`).
+- **Continue work on the existing PR.** Push changes using `report_progress`; the existing PR updates automatically.
 - **If you detect a sub-branch situation**, stop and leave a comment on the parent PR explaining what work was requested, rather than opening a second PR.
 
 `scripts/pr-github.sh` automatically enforces this: it exits with an error if the current `copilot/*` branch contains commits from another Copilot branch that has not yet been merged to `main`.

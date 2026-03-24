@@ -31,10 +31,10 @@ This skill is automatically loaded by all coding agents. It defines the core wor
 - Branch creation is GitHub's responsibility, not yours
 
 **Pull Request Creation:**
-- GitHub no longer automatically creates a draft PR when a session starts
-- The agent is responsible for creating the PR at the end of the session using the **`create-pr-github`** skill
-- After all work is pushed with `report_progress` and CI is green, always invoke the `create-pr-github` skill to open the PR
-- Never create a duplicate PR if one already exists for your branch
+- **The Maintainer creates the session-linked PR from the GitHub Copilot session UI.** After you push all changes with `report_progress`, the Maintainer clicks "Create Pull Request" in the session interface. This links the PR to the session, so `@copilot` mentions continue the same session instead of starting a new one.
+- **NEVER call `create-pr-github` or `scripts/pr-github.sh create` to create a session PR.** Using `gh pr create` with a PAT creates an unlinked PR — every `@copilot` mention in it will spin up a new session. Those tools are reserved for the Release Manager only.
+- `report_progress` pushes code and updates the PR description — it does **not** create the PR.
+- Never create a duplicate PR if one already exists for your branch.
 
 **PR Comment Context — Preventing Sub-PRs:**
 When `@copilot` is mentioned in a comment on an **existing PR** (not from a new issue), GitHub may create a new `copilot/*` branch branched from the PR's head. Creating a PR from that new branch would produce an unintended **sub-PR**.
@@ -90,14 +90,17 @@ Before invoking `create-pr-github`, the sub-branch condition is checked automati
 
    **Do not hand off to the next agent with a failing build.**
 
-4b. **Create the Pull Request (primary agent only)**:
+4b. **PR is created by the Maintainer from the session UI (primary agent only)**:
 
-   Once CI is green, use the **`create-pr-github`** skill to open the PR. The agent is
-   responsible for creating the PR — do not wait for the user to click "Create Pull Request"
-   in the GitHub UI.
+   After `report_progress` has pushed all commits and CI is green, the Maintainer
+   creates the PR by clicking "Create Pull Request" in the GitHub Copilot session UI.
+   This creates a PR that is properly **linked to the session**.
 
-   - Check first that no open PR already exists for this branch
-   - Use the standard PR body template (Problem / Change / Verification)
+   You do NOT create the PR yourself. Specifically:
+   - Do NOT call `create-pr-github` or `scripts/pr-github.sh create` — this creates
+     an unlinked PR (via a PAT, not the session token), causing all future `@copilot`
+     mentions in that PR to start new sessions instead of continuing this one.
+   - Simply complete your work, ensure CI is green, and let the Maintainer click the button.
 
 5. **Create Summary Comment (After PR Created)**: Post a PR comment with:
    - **Summary**: Brief description of what you completed
@@ -125,8 +128,8 @@ Before invoking `create-pr-github`, the sub-branch condition is checked automati
 ## Key Principles
 
 - **GitHub creates branches automatically** - never attempt to create or switch branches yourself
-- **Agent creates PRs** - after pushing and CI is green, always use the `create-pr-github` skill to open the PR; do NOT wait for the user to click "Create Pull Request" in the GitHub UI
-- **Never create a duplicate PR** - check if one already exists for your branch before creating
+- **The Maintainer creates the session-linked PR** - after all pushes and CI is green, the Maintainer clicks "Create Pull Request" in the GitHub Copilot session UI; the agent must NEVER call `create-pr-github` to do this
+- **Never create a duplicate PR** - check if one already exists for your branch before any PR creation attempt
 - **`report_progress` is only available to the primary agent** - subagents spawned via `task` tool must use `git commit` instead
 - **Always use `report_progress`** for commits and pushes (primary agent) - never use manual `git push` commands
 - **Subagents MUST `git commit` before completing** - uncommitted changes will be lost if only in memory; the parent's `report_progress` can pick up uncommitted files via `git add .` but this is a fallback, not the primary mechanism
