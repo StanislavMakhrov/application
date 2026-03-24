@@ -63,6 +63,8 @@ export interface CompanyProfileData {
   mitarbeiter: number;
   standort: string;
   logoPath?: string | null;
+  reportingBoundaryNotes?: string | null;
+  exclusions?: string | null;
 }
 
 export interface EmissionEntryData {

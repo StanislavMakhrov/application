@@ -10,13 +10,15 @@ datasource db {
 }
 
 model CompanyProfile {
-  id          Int      @id @default(1)
-  firmenname  String
-  branche     Branche
-  mitarbeiter Int
-  standort    String
-  logoPath    String?
-  updatedAt   DateTime @updatedAt
+  id                      Int      @id @default(1)
+  firmenname              String
+  branche                 Branche
+  mitarbeiter             Int
+  standort                String
+  logoPath                String?
+  reportingBoundaryNotes  String?
+  exclusions              String?
+  updatedAt               DateTime @updatedAt
 }
 
 enum Branche {

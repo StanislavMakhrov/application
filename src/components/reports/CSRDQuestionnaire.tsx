@@ -79,9 +79,36 @@ export function CSRDQuestionnaire({ profile, year, totals }: CSRDQuestionnairePr
           <Row label="Software" value="GrünBilanz v0.1" />
         </View>
 
+        {/* Reporting Boundaries */}
+        {(profile.reportingBoundaryNotes || profile.exclusions) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>4. Berichtsgrenzen & Annahmen</Text>
+            {profile.reportingBoundaryNotes ? (
+              <>
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#555', marginBottom: 3 }}>
+                  Systemgrenzen & Berichtsrahmen
+                </Text>
+                <Text style={{ fontSize: 9, color: '#444', lineHeight: 1.5, marginBottom: 8 }}>
+                  {profile.reportingBoundaryNotes}
+                </Text>
+              </>
+            ) : null}
+            {profile.exclusions ? (
+              <>
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#555', marginBottom: 3 }}>
+                  Ausschlüsse & Annahmen
+                </Text>
+                <Text style={{ fontSize: 9, color: '#444', lineHeight: 1.5 }}>
+                  {profile.exclusions}
+                </Text>
+              </>
+            ) : null}
+          </View>
+        )}
+
         {/* Attestation */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>4. Bestätigung</Text>
+          <Text style={styles.sectionTitle}>{profile.reportingBoundaryNotes || profile.exclusions ? '5.' : '4.'} Bestätigung</Text>
           <Text style={{ fontSize: 9, color: '#555', lineHeight: 1.6, marginBottom: 20 }}>
             Die oben genannten Daten wurden nach bestem Wissen und Gewissen ermittelt und
             entsprechen den Vorgaben des GHG Protocol Corporate Standard sowie den
