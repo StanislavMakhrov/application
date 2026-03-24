@@ -116,6 +116,50 @@ describe('getTotalCO2e', () => {
     expect(result.total).toBeCloseTo(2.434);
   });
 
+  it('returns equal scope2 and scope2LocationBased when isOekostrom is false', async () => {
+    vi.mocked(prisma.reportingYear.findUniqueOrThrow).mockResolvedValueOnce({
+      id: 10,
+      year: 2024,
+      createdAt: new Date(),
+    });
+    vi.mocked(prisma.emissionEntry.findMany).mockResolvedValueOnce([
+      { id: 1, reportingYearId: 10, scope: 'SCOPE2', category: 'STROM', quantity: 1000, isOekostrom: false, memo: null, inputMethod: 'MANUAL', billingMonth: null, isFinalAnnual: false, providerName: null, createdAt: new Date(), updatedAt: new Date() },
+    ]);
+    vi.mocked(prisma.materialEntry.findMany).mockResolvedValueOnce([]);
+
+    vi.mocked(getEmissionFactor).mockResolvedValueOnce(0.380); // STROM grid factor
+
+    const result = await getTotalCO2e(10);
+    // When no Ökostrom, market-based = location-based
+    expect(result.scope2).toBeCloseTo(0.380);
+    expect(result.scope2LocationBased).toBeCloseTo(0.380);
+  });
+
+  it('scope2LocationBased uses grid factor while scope2 uses Ökostrom factor', async () => {
+    vi.mocked(prisma.reportingYear.findUniqueOrThrow).mockResolvedValueOnce({
+      id: 11,
+      year: 2024,
+      createdAt: new Date(),
+    });
+    vi.mocked(prisma.emissionEntry.findMany).mockResolvedValueOnce([
+      { id: 1, reportingYearId: 11, scope: 'SCOPE2', category: 'STROM', quantity: 1000, isOekostrom: true, memo: null, inputMethod: 'MANUAL', billingMonth: null, isFinalAnnual: false, providerName: null, createdAt: new Date(), updatedAt: new Date() },
+    ]);
+    vi.mocked(prisma.materialEntry.findMany).mockResolvedValueOnce([]);
+
+    // First call: market-based (STROM_OEKOSTROM), second call: location-based (STROM)
+    vi.mocked(getEmissionFactor)
+      .mockResolvedValueOnce(0.030)  // STROM_OEKOSTROM (market-based)
+      .mockResolvedValueOnce(0.380); // STROM grid (location-based)
+
+    const result = await getTotalCO2e(11);
+    // Market-based: 1000 × 0.030 = 30 kg = 0.030 t
+    expect(result.scope2).toBeCloseTo(0.030);
+    // Location-based: 1000 × 0.380 = 380 kg = 0.380 t
+    expect(result.scope2LocationBased).toBeCloseTo(0.380);
+    // total uses market-based scope2
+    expect(result.total).toBeCloseTo(0.030);
+  });
+
   it('correctly reduces total when ABFALL_ALTMETALL has negative factor', async () => {
     vi.mocked(prisma.reportingYear.findUniqueOrThrow).mockResolvedValueOnce({
       id: 2,

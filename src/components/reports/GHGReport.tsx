@@ -49,6 +49,12 @@ const styles = StyleSheet.create({
   footer: { position: 'absolute', bottom: 30, left: 40, right: 40, fontSize: 8, color: '#aaa', textAlign: 'center' },
   scopeLabel: { fontSize: 10, fontFamily: 'Helvetica-Bold', color: '#fff', backgroundColor: '#2D6A4F', padding: '3 8', borderRadius: 3, marginBottom: 4 },
   highlight: { color: '#E76F51', fontFamily: 'Helvetica-Bold' },
+  // Dual Scope 2 comparison box
+  scope2Box: { flexDirection: 'row', gap: 10, marginTop: 6, marginBottom: 12 },
+  scope2Card: { flex: 1, borderWidth: 1, borderColor: '#D8F3DC', borderRadius: 4, padding: 8 },
+  scope2CardLabel: { fontSize: 8, color: '#555', marginBottom: 3 },
+  scope2CardValue: { fontSize: 13, fontFamily: 'Helvetica-Bold', color: '#2D6A4F' },
+  scope2Note: { fontSize: 7.5, color: '#777', lineHeight: 1.5, marginBottom: 8 },
 });
 
 interface GHGReportProps {
@@ -67,6 +73,10 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
   const scope1Entries = entries.filter((e) => e.scope === 'SCOPE1');
   const scope2Entries = entries.filter((e) => e.scope === 'SCOPE2');
   const scope3Entries = entries.filter((e) => e.scope === 'SCOPE3');
+
+  // Show dual Scope 2 comparison only when market-based differs from location-based
+  const hasOekostrom = scope2Entries.some((e) => e.isOekostrom && e.category === 'STROM');
+  const scope2DifferenceTonnes = totals.scope2LocationBased - totals.scope2;
 
   const renderScopeTable = (
     scopeEntries: typeof entries,
@@ -153,6 +163,32 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
         <Text style={styles.sectionTitle}>Emissionen nach Scope (GHG Protocol)</Text>
         {renderScopeTable(scope1Entries, 'Scope 1 — Direkte Emissionen', totals.scope1)}
         {renderScopeTable(scope2Entries, 'Scope 2 — Energiebedingte Emissionen', totals.scope2)}
+
+        {/* Dual Scope 2 method comparison — shown whenever Ökostrom data is present */}
+        {hasOekostrom && (
+          <View>
+            <Text style={[styles.sectionTitle, { fontSize: 10, marginTop: 6 }]}>
+              Scope 2: Vergleich locationbasiert vs. marktbasiert
+            </Text>
+            <View style={styles.scope2Box}>
+              <View style={styles.scope2Card}>
+                <Text style={styles.scope2CardLabel}>Locationbasiert (Netzstrom-Durchschnitt)</Text>
+                <Text style={styles.scope2CardValue}>{totals.scope2LocationBased.toFixed(3)} t CO₂e</Text>
+              </View>
+              <View style={styles.scope2Card}>
+                <Text style={styles.scope2CardLabel}>Marktbasiert (lieferantenspezifisch)</Text>
+                <Text style={styles.scope2CardValue}>{totals.scope2.toFixed(3)} t CO₂e</Text>
+              </View>
+            </View>
+            <Text style={styles.scope2Note}>
+              {`Der locationbasierte Ansatz verwendet den nationalen Netzstrom-Durchschnittsfaktor (UBA 2024). `}
+              {`Der marktbasierte Ansatz berücksichtigt den lieferantenspezifischen Faktor für Ökostrom (UBA 2024), `}
+              {`sofern ein Zertifikat oder Vertrag vorliegt. Die Differenz beträgt ${scope2DifferenceTonnes.toFixed(3)} t CO₂e. `}
+              {`Beide Werte werden gemäß GHG Protocol Corporate Standard § 6.3 ausgewiesen.`}
+            </Text>
+          </View>
+        )}
+
         {renderScopeTable(scope3Entries, 'Scope 3 — Vorgelagerte Emissionen', totals.scope3)}
 
         {/* Footer */}

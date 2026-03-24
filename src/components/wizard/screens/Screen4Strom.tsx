@@ -283,7 +283,7 @@ export default function Screen4Strom({ year }: Screen4Props) {
           </div>
         )}
 
-        {/* Ökostrom checkbox */}
+        {/* Ökostrom checkbox — market-based method evidence */}
         <div>
           <Checkbox
             id="isOekostrom"
@@ -292,7 +292,7 @@ export default function Screen4Strom({ year }: Screen4Props) {
             onChange={(e) => setValue('isOekostrom', e.target.checked)}
           />
           <p className="text-xs text-gray-400 mt-1 ml-7">
-            Ökostrom-Zertifikat vorhanden? Reduziert den Emissionsfaktor erheblich.
+            Ökostrom-Zertifikat vorhanden? Aktiviert den <strong>marktbasierten Ansatz</strong> (0,030 kg CO₂e/kWh) zusätzlich zum locationbasierten Netzstrom-Durchschnitt (0,380 kg CO₂e/kWh). Der Bericht weist dann beide Werte aus (GHG Protocol § 6.3).
           </p>
         </div>
 

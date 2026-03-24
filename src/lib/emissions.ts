@@ -15,6 +15,12 @@
  *   overrides all monthly entries for the same category)
  * - Otherwise, sum all entries for the category (annual + monthly, across all
  *   providers — e.g. provider changed mid-month)
+ *
+ * Scope 2 dual-method reporting (GHG Protocol §6.3):
+ * - Location-based: always uses the national grid average factor (STROM key)
+ * - Market-based: uses the supplier-specific factor when Ökostrom evidence
+ *   exists (STROM_OEKOSTROM key), otherwise falls back to the grid factor
+ * Both values are returned in CO2eTotals for side-by-side reporting.
  */
 
 import { prisma } from './prisma';
@@ -79,7 +85,8 @@ export async function getTotalCO2e(yearId: number): Promise<CO2eTotals> {
 
   const byCategory: Record<string, number> = {};
   let scope1Kg = 0;
-  let scope2Kg = 0;
+  let scope2Kg = 0;       // market-based Scope 2 total
+  let scope2LocationKg = 0; // location-based Scope 2 total (always grid factor)
   let scope3Kg = 0;
 
   // Determine which categories have a final-annual entry — those entries
@@ -94,13 +101,28 @@ export async function getTotalCO2e(yearId: number): Promise<CO2eTotals> {
     // Skip monthly/non-final rows when a definitive annual total exists
     if (finalAnnualCategories.has(entry.category) && !entry.isFinalAnnual) continue;
 
+    // Market-based calculation: uses supplier-specific factor when available
     const kg = await calculateCO2e(entry.category, entry.quantity, year, {
       isOekostrom: entry.isOekostrom,
     });
     byCategory[entry.category] = (byCategory[entry.category] ?? 0) + kg;
 
     if (entry.scope === 'SCOPE1') scope1Kg += kg;
-    else if (entry.scope === 'SCOPE2') scope2Kg += kg;
+    else if (entry.scope === 'SCOPE2') {
+      scope2Kg += kg;
+
+      // Location-based calculation: always uses the grid average factor for STROM
+      // (no supplier discount applied). For non-STROM Scope 2 entries the factor
+      // is the same either way, so we can skip the extra lookup.
+      if (entry.category === 'STROM' && entry.isOekostrom) {
+        const locationKg = await calculateCO2e(entry.category, entry.quantity, year, {
+          isOekostrom: false,
+        });
+        scope2LocationKg += locationKg;
+      } else {
+        scope2LocationKg += kg;
+      }
+    }
     else scope3Kg += kg;
   }
 
@@ -121,8 +143,13 @@ export async function getTotalCO2e(yearId: number): Promise<CO2eTotals> {
 
   return {
     scope1: kgToTonnes(scope1Kg),
+    // scope2 is the market-based total (GHG Protocol § 6.3: market-based is the
+    // primary reporting method when supplier-specific evidence is available).
+    // scope2LocationBased is always the grid-average total for comparison.
     scope2: kgToTonnes(scope2Kg),
+    scope2LocationBased: kgToTonnes(scope2LocationKg),
     scope3: kgToTonnes(scope3Kg),
+    // total uses market-based scope2 as primary value per GHG Protocol
     total: kgToTonnes(scope1Kg + scope2Kg + scope3Kg),
     byCategory: byCategoryTonnes,
   };
