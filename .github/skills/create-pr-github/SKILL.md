@@ -9,6 +9,10 @@ compatibility: Preferred: scripts/pr-github.sh wrapper. Fallback: git + GitHub C
 ## Purpose
 Create a GitHub pull request in a consistent, policy-compliant way, and include the repo's preferred merge method guidance (rebase and merge).
 
+PRs are created as **drafts** to avoid triggering PR Validation before work is complete.
+Once all commits are pushed, call `scripts/pr-github.sh mark-ready` to convert the draft
+to ready-for-review — this is the single trigger for PR Validation.
+
 **Priority order:**
 1. **FIRST**: Use `scripts/pr-github.sh` wrapper script (designed for permanent approval)
 2. **SECOND**: Use GitHub MCP tools (if available and wrapper doesn't fit)
@@ -22,6 +26,7 @@ Create a GitHub pull request in a consistent, policy-compliant way, and include 
 - Before creating the PR, post the **exact Title and Description** in chat
 - Use the standard PR body template (Problem / Change / Verification / Screenshots)
 - Use **Rebase and merge** for merging PRs to maintain a linear history (see `CONTRIBUTING.md`)
+- Call `scripts/pr-github.sh mark-ready` after creating the PR to trigger PR Validation
 
 ### Must Not
 - Create PRs from `main`
@@ -63,15 +68,15 @@ scripts/git-status.sh --short
 git push -u origin HEAD
 ```
 
-### 3. Create the PR
+### 3. Create the PR (as Draft)
 
 #### Preferred: Wrapper Script
-Create a PR:
+Create a draft PR:
 ```bash
 echo "## Summary\n\nPR description" | scripts/pr-github.sh create --title "<type(scope): summary>" --body-from-stdin
 ```
 
-Create and merge (only when explicitly requested):
+Create and merge (only when explicitly requested — skips draft; use for release/internal PRs):
 ```bash
 echo "## Summary\n\nPR description" | scripts/pr-github.sh create-and-merge --title "<type(scope): summary>" --body-from-stdin
 ```
@@ -82,18 +87,36 @@ echo "## Summary\n\nPR description" | PAGER=cat gh pr create \
   --base main \
   --head "$(git branch --show-current)" \
   --title "<type(scope): summary>" \
-  --body-file -
+  --body-file - \
+  --draft
 ```
 
-### 4. Merge (Only When Explicitly Requested)
+### 4. Mark PR as Ready (Triggers PR Validation)
+
+After creating the draft PR, convert it to ready-for-review. This is what triggers the
+PR Validation pipeline — **do not skip this step**.
+
+#### Preferred: Wrapper Script
+```bash
+scripts/pr-github.sh mark-ready
+```
+
+#### Fallback: `gh` CLI
+```bash
+PAGER=cat gh pr ready <pr-number>
+```
+
+### 5. Merge (Only When Explicitly Requested)
 This repository requires **rebase and merge**.
+
+Wait for PR Validation to pass (green ✅) before merging.
 
 #### Preferred: Wrapper Script
 ```bash
 scripts/pr-github.sh merge <pr-number>
 ```
 
-Or combined create-and-merge:
+Or combined create-and-merge (non-draft, for release/internal PRs only):
 ```bash
 echo "## Summary\n\nPR description" | scripts/pr-github.sh create-and-merge --title "<type(scope): summary>" --body-from-stdin
 ```
@@ -103,7 +126,7 @@ echo "## Summary\n\nPR description" | scripts/pr-github.sh create-and-merge --ti
 PAGER=cat gh pr merge <pr-number> --rebase --delete-branch
 ```
 
-### 5. If Rebase-Merge Is Blocked (Conflicts)
+### 6. If Rebase-Merge Is Blocked (Conflicts)
 ```bash
 git pull --rebase origin main
 # resolve conflicts

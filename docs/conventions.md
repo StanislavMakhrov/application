@@ -63,11 +63,13 @@ If these appear as **transitive dependencies** (pulled in by another package), u
 
 | Workflow | File | Trigger | Purpose |
 |----------|------|---------|---------|
-| PR Validation | `pr-validation.yml` | Pull requests to `main` | Lint, type check, test, `next build`, markdown lint |
+| PR Validation | `pr-validation.yml` | Non-draft PRs to `main` (ready for review, synchronize, reopened) | Lint, type check, test, `next build`, markdown lint |
 | CI | `ci.yml` | Push to `main` | Run `commit-and-tag-version` to bump version and create tag |
 | Release | `release.yml` | Version tags (`v*`) | Create GitHub Release, build and push Docker image to GHCR |
 
 **Test Optimization:** Tests only run in PR Validation workflow to eliminate redundancy. CI workflow focuses solely on versioning after merge.
+
+**Draft PR Workflow:** Coding agents create PRs as **drafts** so that PR Validation does not run on intermediate commits. PR Validation is triggered exactly once per work session by calling `scripts/pr-github.sh mark-ready` (which converts the draft to ready-for-review) only after all work is complete.
 
 **Commit Guardrails:** Pull requests that only change workflow/internal tooling (e.g., `.github/`, `scripts/`, `docs/`) must not use version-bumping Conventional Commit types such as `feat:` or `fix:`. Use `chore:`, `docs:`, `ci:` instead.
 
