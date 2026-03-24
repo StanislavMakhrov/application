@@ -81,7 +81,7 @@ export async function getOrCreateYear(year: number): Promise<{ id: number; year:
 
 /**
  * Creates a new ReportingYear for the given calendar year.
- * Used by the dashboard "Add year" button.
+ * Used by the dashboard "Add year" button and the Settings page.
  * Returns the year value on success so the caller can redirect to it.
  */
 export async function createYear(year: number): Promise<ActionResult & { year?: number }> {
@@ -92,10 +92,32 @@ export async function createYear(year: number): Promise<ActionResult & { year?: 
       create: { year },
     });
     revalidatePath('/');
+    revalidatePath('/settings');
     return { success: true, year };
   } catch (error) {
     console.error('createYear error:', error);
     return { success: false, error: 'Berichtsjahr konnte nicht erstellt werden.' };
+  }
+}
+
+/**
+ * Deletes a ReportingYear and all associated data (entries, material entries,
+ * staging entries, reports) via the cascade defined in the schema.
+ * Returns the deleted year's value so the caller can redirect away from it.
+ */
+export async function deleteYear(year: number): Promise<ActionResult> {
+  try {
+    const record = await prisma.reportingYear.findUnique({ where: { year } });
+    if (!record) {
+      return { success: false, error: 'Berichtsjahr nicht gefunden.' };
+    }
+    await prisma.reportingYear.delete({ where: { year } });
+    revalidatePath('/');
+    revalidatePath('/settings');
+    return { success: true };
+  } catch (error) {
+    console.error('deleteYear error:', error);
+    return { success: false, error: 'Berichtsjahr konnte nicht gelöscht werden.' };
   }
 }
 
