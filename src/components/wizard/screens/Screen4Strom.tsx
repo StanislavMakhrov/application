@@ -323,15 +323,15 @@ export default function Screen4Strom({ year }: Screen4Props) {
               type="number"
               step="0.001"
               min={0}
-              placeholder={isOekostrom ? '0,030 (Ökostrom-Standard)' : '0,380 (Netzmix)'}
+              placeholder="z. B. 0,050 (aus Herkunftsnachweis)"
               {...register('supplierSpecificFactor')}
             />
             {errors.supplierSpecificFactor && (
               <p className="text-xs text-red-600">{errors.supplierSpecificFactor.message}</p>
             )}
-            {supplierSpecificFactor != null && supplierSpecificFactor > 0 && (
+            {supplierSpecificFactor !== undefined && supplierSpecificFactor !== null && !isNaN(supplierSpecificFactor) && (
               <p className="text-xs text-green-700">
-                ✓ Marktbasierter Wert aktiv: {supplierSpecificFactor.toFixed(3)} kg CO₂e/kWh
+                ✓ Marktbasierter Wert aktiv: {Number(supplierSpecificFactor).toFixed(3)} kg CO₂e/kWh
               </p>
             )}
           </div>

@@ -42,8 +42,9 @@ export async function calculateCO2e(
   year: number,
   options?: { isOekostrom?: boolean; supplierSpecificFactor?: number | null }
 ): Promise<number> {
-  // STROM with a supplier-specific factor: use it directly (market-based method)
-  if (category === 'STROM' && options?.supplierSpecificFactor != null) {
+  // STROM with a supplier-specific factor: use it directly (market-based method).
+  // Covers zero-emission suppliers (factor=0) as well as non-zero renewable factors.
+  if (category === 'STROM' && options?.supplierSpecificFactor !== null && options?.supplierSpecificFactor !== undefined) {
     return quantity * options.supplierSpecificFactor;
   }
 
@@ -103,6 +104,9 @@ export async function getTotalCO2e(yearId: number): Promise<CO2eTotals> {
   let scope2LocationKg = 0;
   let scope2MarketKg = 0;
   let hasMarketBasedScope2 = false;
+  // Cache the default STROM grid factor to avoid repeated DB lookups when
+  // processing multiple monthly STROM entries with market-based data.
+  let stromLocationFactor: number | null | undefined = undefined;
 
   // Determine which categories have a final-annual entry — those entries
   // supersede all monthly/provider-specific rows for that category.
@@ -128,13 +132,14 @@ export async function getTotalCO2e(yearId: number): Promise<CO2eTotals> {
       scope2Kg += kg;
 
       if (entry.category === 'STROM' &&
-          (entry.isOekostrom || entry.supplierSpecificFactor != null)) {
-        // Market-based data is available: compute location-based with default grid factor
+          (entry.isOekostrom || entry.supplierSpecificFactor !== null && entry.supplierSpecificFactor !== undefined)) {
+        // Market-based data is available: compute location-based with default grid factor.
+        // Cache the STROM grid factor to avoid repeated DB lookups for monthly entries.
         hasMarketBasedScope2 = true;
-        const locationKg = await calculateCO2e(entry.category, entry.quantity, year, {
-          isOekostrom: false,
-          supplierSpecificFactor: null,
-        });
+        if (stromLocationFactor === undefined) {
+          stromLocationFactor = await getEmissionFactor('STROM', year);
+        }
+        const locationKg = stromLocationFactor !== null ? entry.quantity * stromLocationFactor : 0;
         scope2LocationKg += locationKg;
         scope2MarketKg += kg; // already computed with market-based factor
       } else {
