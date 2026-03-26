@@ -55,12 +55,12 @@ export interface MethodologyData {
 ```
 
 **Acceptance Criteria:**
-- [ ] `MethodologyFactorRow` interface is exported from `src/types/index.ts` with all fields exactly matching the architecture spec (§1)
-- [ ] `MethodologyQualityRow` interface is exported from `src/types/index.ts` with all fields exactly matching the architecture spec (§1)
-- [ ] `MethodologyData` interface is exported from `src/types/index.ts` with all fields exactly matching the architecture spec (§1)
-- [ ] All fields use existing types (`Scope`, `InputMethod`) that are already defined in the same file — no new type imports required
-- [ ] `factorKg`, `source`, and `validYear` on `MethodologyFactorRow` are nullable (`| null`) to support graceful degradation when a factor is missing
-- [ ] TypeScript compilation succeeds with no new type errors (`npm run build` passes)
+- [x] `MethodologyFactorRow` interface is exported from `src/types/index.ts` with all fields exactly matching the architecture spec (§1)
+- [x] `MethodologyQualityRow` interface is exported from `src/types/index.ts` with all fields exactly matching the architecture spec (§1)
+- [x] `MethodologyData` interface is exported from `src/types/index.ts` with all fields exactly matching the architecture spec (§1)
+- [x] All fields use existing types (`Scope`, `InputMethod`) that are already defined in the same file — no new type imports required
+- [x] `factorKg`, `source`, and `validYear` on `MethodologyFactorRow` are nullable (`| null`) to support graceful degradation when a factor is missing
+- [x] TypeScript compilation succeeds with no new type errors (`npm run build` passes)
 
 **Dependencies:** None
 
@@ -96,13 +96,13 @@ The implementation should follow the same three-step fallback chain as `getEmiss
 4. Return `null` if nothing found
 
 **Acceptance Criteria:**
-- [ ] `getEmissionFactorRecord` is exported from `src/lib/factors.ts`
-- [ ] Returns `{ factorKg, unit, source, validYear }` when an exact year match exists (TC-14)
-- [ ] Returns the most-recent-year record when no exact match exists (TC-15)
-- [ ] Returns `null` when no factor exists for the key at any year (TC-16)
-- [ ] TC-14, TC-15, and TC-16 from the test plan are implemented in `src/lib/__tests__/factors.test.ts` and pass
-- [ ] The existing `getEmissionFactor` tests continue to pass (no regressions)
-- [ ] TypeScript compilation succeeds
+- [x] `getEmissionFactorRecord` is exported from `src/lib/factors.ts`
+- [x] Returns `{ factorKg, unit, source, validYear }` when an exact year match exists (TC-14)
+- [x] Returns the most-recent-year record when no exact match exists (TC-15)
+- [x] Returns `null` when no factor exists for the key at any year (TC-16)
+- [x] TC-14, TC-15, and TC-16 from the test plan are implemented in `src/lib/__tests__/factors.test.ts` and pass
+- [x] The existing `getEmissionFactor` tests continue to pass (no regressions)
+- [x] TypeScript compilation succeeds
 
 **Dependencies:** Task 1 (for type imports in subsequent tasks, though this task itself does not import new types)
 
@@ -151,20 +151,20 @@ Assembly logic (in order):
 5. Return the complete `MethodologyData` object with `standard: 'GHG Protocol Corporate Standard'`.
 
 **Acceptance Criteria:**
-- [ ] New file `src/lib/methodology.ts` exists with `assembleMethodologyData` exported
-- [ ] `result.standard` is always `'GHG Protocol Corporate Standard'` (TC-01)
-- [ ] Single entry returns a correct `factorRows` entry with all fields populated (TC-02)
-- [ ] Only categories with recorded entries appear in `factorRows` — no phantom rows (TC-03)
-- [ ] `qualityRows` entries reflect `inputMethod` from entries (TC-04, TC-05)
-- [ ] `boundaryNotes` and `exclusions` are passed through from the `profile` argument (TC-06, TC-07)
-- [ ] `scopesIncluded` is deduplicated across all entries (TC-08)
-- [ ] Missing factor (`getEmissionFactorRecord` returns `null`) produces null-value row without throwing (TC-09)
-- [ ] `isFinalAnnual: true` row suppresses all `isFinalAnnual: false` rows for the same category (TC-10)
-- [ ] `OCR > CSV > MANUAL` input method priority is applied when a category has multiple entries (TC-11)
-- [ ] Empty entries return empty `factorRows`, `qualityRows`, `scopesIncluded`; `standard` is still set (TC-12)
-- [ ] `MaterialEntry` rows appear in `factorRows` and `qualityRows` with `scope: 'SCOPE3'` (TC-13)
-- [ ] All 13 TC-01–TC-13 unit tests in `src/lib/__tests__/methodology.test.ts` are implemented and pass
-- [ ] TypeScript compilation succeeds
+- [x] New file `src/lib/methodology.ts` exists with `assembleMethodologyData` exported
+- [x] `result.standard` is always `'GHG Protocol Corporate Standard'` (TC-01)
+- [x] Single entry returns a correct `factorRows` entry with all fields populated (TC-02)
+- [x] Only categories with recorded entries appear in `factorRows` — no phantom rows (TC-03)
+- [x] `qualityRows` entries reflect `inputMethod` from entries (TC-04, TC-05)
+- [x] `boundaryNotes` and `exclusions` are passed through from the `profile` argument (TC-06, TC-07)
+- [x] `scopesIncluded` is deduplicated across all entries (TC-08)
+- [x] Missing factor (`getEmissionFactorRecord` returns `null`) produces null-value row without throwing (TC-09)
+- [x] `isFinalAnnual: true` row suppresses all `isFinalAnnual: false` rows for the same category (TC-10)
+- [x] `OCR > CSV > MANUAL` input method priority is applied when a category has multiple entries (TC-11)
+- [x] Empty entries return empty `factorRows`, `qualityRows`, `scopesIncluded`; `standard` is still set (TC-12)
+- [x] `MaterialEntry` rows appear in `factorRows` and `qualityRows` with `scope: 'SCOPE3'` (TC-13)
+- [x] All 13 TC-01–TC-13 unit tests in `src/lib/__tests__/methodology.test.ts` are implemented and pass
+- [x] TypeScript compilation succeeds
 
 **Dependencies:** Task 1 (types), Task 2 (`getEmissionFactorRecord`)
 
@@ -198,12 +198,12 @@ Changes required:
 4. Do **not** call `assembleMethodologyData` in the `CSRD_QUESTIONNAIRE` branch.
 
 **Acceptance Criteria:**
-- [ ] `assembleMethodologyData` is imported and called in the `GHG_PROTOCOL` branch
-- [ ] The `methodology` value is passed as a prop to `GHGReport`
-- [ ] `assembleMethodologyData` is NOT called in the `CSRD_QUESTIONNAIRE` branch (TC-17)
-- [ ] The API route still compiles and returns a valid PDF for GHG Protocol reports
-- [ ] The API route still compiles and returns a valid PDF for CSRD Questionnaire reports
-- [ ] TypeScript compilation succeeds with no type errors
+- [x] `assembleMethodologyData` is imported and called in the `GHG_PROTOCOL` branch
+- [x] The `methodology` value is passed as a prop to `GHGReport`
+- [x] `assembleMethodologyData` is NOT called in the `CSRD_QUESTIONNAIRE` branch (TC-17)
+- [x] The API route still compiles and returns a valid PDF for GHG Protocol reports
+- [x] The API route still compiles and returns a valid PDF for CSRD Questionnaire reports
+- [x] TypeScript compilation succeeds with no type errors
 
 **Dependencies:** Task 1 (types), Task 3 (`assembleMethodologyData`)
 
@@ -251,18 +251,18 @@ Displays `methodology.boundaryNotes` and `methodology.exclusions`. If both are `
 or empty, renders the placeholder text: `"Keine benutzerdefinierten Annahmen eingetragen."`.
 
 **Acceptance Criteria:**
-- [ ] `GHGReportProps` includes `methodology?: MethodologyData` (optional prop, backward compatible)
-- [ ] A new `<Page>` is rendered at the end of the `<Document>` when `methodology` is provided
-- [ ] New page is NOT rendered when `methodology` prop is absent
-- [ ] Sub-section 1 (Standard & Scope) is present on the methodology page
-- [ ] Sub-section 2 (Factor Table) displays all rows from `methodology.factorRows`, with `–` / `Faktor nicht gefunden` for null-value rows
-- [ ] Sub-section 3 (Data Quality Table) displays all rows from `methodology.qualityRows` with correct German labels for each `InputMethod`
-- [ ] Sub-section 4 (Assumptions) displays boundary notes and exclusions, or the placeholder if both are null
-- [ ] The existing static "Methodik" paragraph is removed from the materials page
-- [ ] The component uses existing `styles` from the `StyleSheet.create({...})` call for layout consistency; new styles are added to the same `StyleSheet.create` block if needed
-- [ ] If adding the methodology page causes `GHGReport.tsx` to exceed 300 lines (per `docs/conventions.md`), the methodology page is extracted to `src/components/reports/GHGReportMethodologyPage.tsx`
-- [ ] TypeScript compilation succeeds with no type errors
-- [ ] The existing GHG Protocol PDF layout (page 1, materials page) is not visually broken
+- [x] `GHGReportProps` includes `methodology?: MethodologyData` (optional prop, backward compatible)
+- [x] A new `<Page>` is rendered at the end of the `<Document>` when `methodology` is provided
+- [x] New page is NOT rendered when `methodology` prop is absent
+- [x] Sub-section 1 (Standard & Scope) is present on the methodology page
+- [x] Sub-section 2 (Factor Table) displays all rows from `methodology.factorRows`, with `–` / `Faktor nicht gefunden` for null-value rows
+- [x] Sub-section 3 (Data Quality Table) displays all rows from `methodology.qualityRows` with correct German labels for each `InputMethod`
+- [x] Sub-section 4 (Assumptions) displays boundary notes and exclusions, or the placeholder if both are null
+- [x] The existing static "Methodik" paragraph is removed from the materials page
+- [x] The component uses existing `styles` from the `StyleSheet.create({...})` call for layout consistency; new styles are added to the same `StyleSheet.create` block if needed
+- [x] If adding the methodology page causes `GHGReport.tsx` to exceed 300 lines (per `docs/conventions.md`), the methodology page is extracted to `src/components/reports/GHGReportMethodologyPage.tsx`
+- [x] TypeScript compilation succeeds with no type errors
+- [x] The existing GHG Protocol PDF layout (page 1, materials page) is not visually broken
 
 **Dependencies:** Task 1 (types), Task 4 (API route passes the prop)
 

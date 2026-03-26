@@ -38,3 +38,20 @@
 - **Artifacts Produced:**
   - `docs/features/002-methodology-summary/tasks.md` — 5 ordered tasks with acceptance criteria, dependencies, and open questions
 - **Problems Encountered:** No `MATERIAL_UNITS` map found in `src/types/index.ts` (only `CATEGORY_UNITS` for emission categories exists). Flagged as an open question for the Developer to handle inline within `assembleMethodologyData()`. No existing unit test file for the API route was found; TC-17 deferred to manual code inspection or UAT as recommended in the test plan.
+
+### Developer
+- **Date:** 2025-07-14
+- **Summary:** Implemented all 5 tasks for the Methodology Summary feature. Added TypeScript interfaces, a new factor record lookup function, the `assembleMethodologyData()` core function, wired the API route, and updated the GHGReport component with a dedicated methodology page. Extracted the methodology page into a separate component to stay under the 300-line limit. Added `MATERIAL_UNITS` constant to `src/types/index.ts` (open question resolved). All 41 tests pass; lint and TypeScript compilation are clean.
+- **Artifacts Produced:**
+  - `src/types/index.ts` — Added `MATERIAL_UNITS`, `MethodologyFactorRow`, `MethodologyQualityRow`, `MethodologyData`
+  - `src/lib/factors.ts` — Added `getEmissionFactorRecord()` with 3-step fallback chain
+  - `src/lib/methodology.ts` — New file with `assembleMethodologyData()`
+  - `src/app/api/report/route.ts` — Calls `assembleMethodologyData` in GHG_PROTOCOL branch only
+  - `src/components/reports/GHGReport.tsx` — Accepts optional `methodology` prop, renders methodology page, removes static "Methodik" paragraph
+  - `src/components/reports/GHGReportMethodologyPage.tsx` — New component for methodology page (4 sections)
+  - `src/lib/__tests__/methodology.test.ts` — 16 unit tests (TC-01 through TC-13 + sub-cases)
+  - `src/lib/__tests__/factors.test.ts` — Added TC-14, TC-15, TC-16
+- **Problems Encountered:**
+  - `as any[]` type assertions needed in `methodology.ts` because the Prisma client is generated as `any` in this environment — consistent with the same pattern in `emissions.ts`. Code reviewer flagged this as a concern but it's an established project convention.
+  - Map iteration (`for...of map.entries()`) required wrapping with `Array.from()` due to TypeScript target configuration.
+  - `npm run build` fails at the "collect page data" phase due to Prisma client not being initialized in the build environment (pre-existing issue, unrelated to this feature — confirmed by running the same build on the baseline).
