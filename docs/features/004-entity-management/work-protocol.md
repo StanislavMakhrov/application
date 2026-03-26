@@ -22,6 +22,8 @@ new values and to keep benchmark comparisons accurate.
 |---|---|---|
 | Issue Analyst | ✅ Done | Created analysis, identified root cause |
 | Architect | ✅ Done | Created architecture.md with 6 decisions |
+| Quality Engineer | ✅ Done | Created test-plan.md with 28 test cases |
+| Task Planner | ✅ Done | Created tasks.md with 12 ordered tasks |
 | Developer | ⬜ Pending | Implement CRUD UI + API routes |
 | Code Reviewer | ⬜ Pending | Review implementation |
 | QA / UAT Tester | ⬜ Pending | End-to-end test of management flows |
@@ -122,3 +124,33 @@ architecture decisions.
 
 **Handoff:** Ready for Developer agent to implement API routes, schema migration,
 and editable table components. Task Planner may break implementation into tasks first.
+
+---
+
+### Task Planner — 2025-07-14
+
+**Summary:** Created a detailed implementation task plan for Feature 004 (Entity
+Management) based on the architecture and test plan documents. Broke the feature
+into 12 ordered tasks covering the full implementation scope from schema migration
+through to UI components and year-filter query updates.
+
+**Key decisions made:**
+
+- Ordered tasks by dependency graph: schema migration → seed update → types →
+  API routes → UI components → Settings wiring → dashboard/report year-filters.
+- Tasks 9 and 10 (the two editable table components) are flagged as parallelizable
+  once their respective API tasks (4–5 for factors, 6–7 for benchmarks) are done.
+- Tasks 11 and 12 (year-accurate benchmark lookups in dashboard and report) are
+  independent after Task 1 and can be worked concurrently with API tasks.
+- Carried forward three open questions from the test plan into the tasks document
+  for the Developer to be aware of during implementation.
+
+**Artifacts produced:**
+- `docs/features/004-entity-management/tasks.md` — 12 tasks with acceptance
+  criteria, dependencies, and recommended implementation order
+
+**Problems encountered:** None. Architecture and test plan were thorough and
+unambiguous.
+
+**Handoff:** Ready for Developer agent to implement all 12 tasks in the recommended
+order.
