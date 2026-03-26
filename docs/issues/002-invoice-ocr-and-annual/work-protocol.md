@@ -7,7 +7,19 @@
 
 ## Agent Work Log
 
-<!-- Each agent appends their entry below when they complete their work. -->
+### Developer
+- **Date:** 2026-03-26
+- **Summary:** Implemented all three fixes described in `analysis.md`. Restored UploadOCR to wizard screens, fixed the showAddButton regression in FieldDocumentZone, and corrected calculateTotal to not require recognizedValue != null for annual docs.
+- **Artifacts Produced:**
+  - `src/components/wizard/FieldDocumentZone.tsx` — fixed `showAddButton = docs.length > 0`
+  - `src/components/wizard/screens/Screen2Heizung.tsx` — re-added UploadOCR for ERDGAS/HEIZOEL/FLUESSIGGAS; fixed calculateTotal
+  - `src/components/wizard/screens/Screen3Fuhrpark.tsx` — re-added UploadOCR for DIESEL_FUHRPARK/BENZIN_FUHRPARK; fixed calculateTotal
+  - `src/components/wizard/screens/Screen4Strom.tsx` — re-added UploadOCR for STROM/FERNWAERME; fixed calculateTotal
+  - `src/components/wizard/screens/Screen5Dienstreisen.tsx` — added UploadOCR for GESCHAEFTSREISEN_FLUG/GESCHAEFTSREISEN_BAHN; added calculateTotal
+  - `src/lib/__tests__/calculateTotal.test.ts` — 9 unit tests for calculateTotal
+- **Validation:** All 22 tests pass; ESLint clean; TypeScript type-check clean; build passes
+- **Problems Encountered:** None. Prisma client generation required running from project root (pre-existing env constraint, not a regression).
+
 
 ### Issue Analyst
 - **Date:** 2026-03-26
