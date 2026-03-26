@@ -194,6 +194,12 @@ model FieldDocument {
   originalFilename String
   mimeType         String
   uploadedAt       DateTime @default(now())
+  // OCR-extracted value stored at upload time (null if uploaded without OCR)
+  recognizedValue     Float?
+  // Which month (1–12) this invoice covers; null = unspecified
+  billingMonth        Int?
+  // True if this invoice covers the entire year (overrides monthly accumulation)
+  isJahresabrechnung  Boolean  @default(false)
 }
 
 enum AuditAction {

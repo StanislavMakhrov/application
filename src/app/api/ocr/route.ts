@@ -86,9 +86,20 @@ export async function POST(req: NextRequest) {
             filePath: relPath,
             originalFilename: file.name,
             mimeType: file.type || 'application/octet-stream',
+            // Persist the OCR-extracted value so FieldDocumentZone can display
+            // "Erkannter Wert: X unit" and drive sum calculation in the parent screen.
+            recognizedValue: result.value,
           },
         });
         fieldDocumentId = fieldDoc.id;
+        // Include the full document object so UploadOCR can pass recognizedValue
+        // to the parent via onDocumentStored, enabling immediate total recalculation.
+        return NextResponse.json({
+          ...result,
+          documentId: uploadedDoc.id,
+          fieldDocumentId,
+          fieldDocument: fieldDoc,
+        });
       } catch (fieldDocErr) {
         // FieldDocument creation is best-effort; OCR result is still returned
         console.error('OCR: FieldDocument creation failed:', fieldDocErr);

@@ -20,6 +20,8 @@ interface StoredDocument {
   id: number;
   originalFilename: string;
   filePath: string;
+  /** OCR-extracted value persisted to FieldDocument.recognizedValue */
+  recognizedValue?: number;
 }
 
 interface UploadOCRProps {
@@ -78,7 +80,8 @@ export function UploadOCR({
           onDocumentStored({
             id: data.fieldDocumentId as number,
             originalFilename: file.name,
-            filePath: data.filePath as string ?? '',
+            filePath: (data.fieldDocument as { filePath?: string })?.filePath ?? '',
+            recognizedValue: typeof data.value === 'number' ? data.value : undefined,
           });
         }
       } else {

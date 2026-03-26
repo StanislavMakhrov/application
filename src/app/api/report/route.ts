@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
         profile,
         year: reportingYear.year,
         totals,
-        entries: reportingYear.entries.map((e) => ({
+        entries: reportingYear.entries.map((e: { category: string; quantity: number; isOekostrom: boolean; scope: string }) => ({
           category: e.category,
           quantity: e.quantity,
           isOekostrom: e.isOekostrom,

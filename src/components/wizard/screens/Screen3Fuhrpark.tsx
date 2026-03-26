@@ -22,7 +22,7 @@ import { Label } from '@/components/ui/label';
 import { WizardNav } from '@/components/wizard/WizardNav';
 import { UploadOCR } from '@/components/wizard/UploadOCR';
 import { CsvImport } from '@/components/wizard/CsvImport';
-import { FieldDocumentZone } from '@/components/wizard/FieldDocumentZone';
+import { FieldDocumentZone, type FieldDocument } from '@/components/wizard/FieldDocumentZone';
 import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
 import { PlausibilityWarning, getPlausibilityWarning } from '@/components/wizard/PlausibilityWarning';
 import { HelpTooltip } from '@/components/ui/HelpTooltip';
@@ -40,6 +40,20 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
+
+/**
+ * Calculates the running total from a list of FieldDocuments.
+ * If any document is marked as Jahresabrechnung, the last one's value
+ * overrides the sum entirely (annual invoice replaces all monthly totals).
+ * Regular invoices are summed together.
+ */
+function calculateTotal(docs: FieldDocument[]): number {
+  const annualDocs = docs.filter((d) => d.isJahresabrechnung && d.recognizedValue != null);
+  if (annualDocs.length > 0) {
+    return annualDocs[annualDocs.length - 1].recognizedValue!;
+  }
+  return docs.reduce((sum, d) => sum + (d.recognizedValue ?? 0), 0);
+}
 
 interface Screen3Props {
   year: number;
@@ -164,8 +178,7 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
                   category={f.category}
                   fieldKey={f.fieldKey}
                   year={year}
-                  onResult={(v, _conf, docId) => {
-                    setValue(f.id, v);
+                  onResult={(_v, _conf, docId) => {
                     setLastDocumentId(docId);
                   }}
                   onDocumentStored={() =>
@@ -194,6 +207,7 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
               year={year}
               suppressInitialUpload={!!f.category}
               refreshKey={refreshKeys[f.fieldKey] ?? 0}
+              onDocumentsChange={f.category ? (docs) => setValue(f.id, calculateTotal(docs)) : undefined}
             />
           </div>
         ))}

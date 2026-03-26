@@ -6,13 +6,12 @@
  * Captures electricity consumption (kWh) with optional Ökostrom flag,
  * and district heating (Fernwärme) in kWh.
  *
- * Supports three entry modes for Strom:
- * 1. Annual total (default) — single kWh value for the full year
- * 2. Monthly breakdown — 12 individual monthly values (Jan–Dez)
- * 3. Final annual — marks an annual entry that overrides any monthly data
- *
  * The providerName field enables mid-year provider-change tracking.
  * documentId threads the source document through to the audit log.
+ *
+ * Sum calculation is driven by FieldDocumentZone via onDocumentsChange:
+ * - Regular invoices are summed.
+ * - A Jahresabrechnung (annual invoice) replaces the running total.
  */
 
 import { useEffect, useState } from 'react';
@@ -27,37 +26,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { WizardNav } from '@/components/wizard/WizardNav';
 import { UploadOCR } from '@/components/wizard/UploadOCR';
 import { CsvImport } from '@/components/wizard/CsvImport';
-import { FieldDocumentZone } from '@/components/wizard/FieldDocumentZone';
+import { FieldDocumentZone, type FieldDocument } from '@/components/wizard/FieldDocumentZone';
 import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
 import { PlausibilityWarning, getPlausibilityWarning } from '@/components/wizard/PlausibilityWarning';
 import { HelpTooltip } from '@/components/ui/HelpTooltip';
 import { saveEntry, getOrCreateYear } from '@/lib/actions';
-
-// Month labels for the monthly breakdown section
-const MONTHS = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
-
-// Statically typed monthly field paths to avoid unsafe casts when calling register/setValue
-const MONTHLY_KEYS = [
-  'monthly.m1', 'monthly.m2', 'monthly.m3', 'monthly.m4',
-  'monthly.m5', 'monthly.m6', 'monthly.m7', 'monthly.m8',
-  'monthly.m9', 'monthly.m10', 'monthly.m11', 'monthly.m12',
-] as const satisfies ReadonlyArray<`monthly.m${number}`>;
-
-const monthlySchema = z.object({
-  m1: z.coerce.number().min(0).default(0),
-  m2: z.coerce.number().min(0).default(0),
-  m3: z.coerce.number().min(0).default(0),
-  m4: z.coerce.number().min(0).default(0),
-  m5: z.coerce.number().min(0).default(0),
-  m6: z.coerce.number().min(0).default(0),
-  m7: z.coerce.number().min(0).default(0),
-  m8: z.coerce.number().min(0).default(0),
-  m9: z.coerce.number().min(0).default(0),
-  m10: z.coerce.number().min(0).default(0),
-  m11: z.coerce.number().min(0).default(0),
-  m12: z.coerce.number().min(0).default(0),
-});
-type MonthlyValues = z.infer<typeof monthlySchema>;
 
 const schema = z.object({
   strom: z.coerce.number().min(0).default(0),
@@ -65,14 +38,23 @@ const schema = z.object({
   fernwaerme: z.coerce.number().min(0).default(0),
   // Provider name for mid-year provider changes
   providerName: z.string().optional(),
-  // Monthly breakdown toggle
-  useMonthly: z.boolean().default(false),
-  // When true, the annual total overrides any monthly entries
-  isFinalAnnual: z.boolean().default(false),
-  monthly: monthlySchema.default({}),
 });
 
 type FormValues = z.infer<typeof schema>;
+
+/**
+ * Calculates the running total from a list of FieldDocuments.
+ * If any document is marked as Jahresabrechnung, the last one's value
+ * overrides the sum entirely (annual invoice replaces all monthly totals).
+ * Regular invoices are summed together.
+ */
+function calculateTotal(docs: FieldDocument[]): number {
+  const annualDocs = docs.filter((d) => d.isJahresabrechnung && d.recognizedValue != null);
+  if (annualDocs.length > 0) {
+    return annualDocs[annualDocs.length - 1].recognizedValue!;
+  }
+  return docs.reduce((sum, d) => sum + (d.recognizedValue ?? 0), 0);
+}
 
 interface Screen4Props {
   year: number;
@@ -95,15 +77,10 @@ export default function Screen4Strom({ year }: Screen4Props) {
         strom: 0,
         isOekostrom: false,
         fernwaerme: 0,
-        useMonthly: false,
-        isFinalAnnual: false,
-        monthly: { m1: 0, m2: 0, m3: 0, m4: 0, m5: 0, m6: 0, m7: 0, m8: 0, m9: 0, m10: 0, m11: 0, m12: 0 },
       },
     });
 
   const isOekostrom = watch('isOekostrom');
-  const useMonthly = watch('useMonthly');
-  const isFinalAnnual = watch('isFinalAnnual');
 
   useEffect(() => {
     getOrCreateYear(year).then((y) => {
@@ -111,25 +88,14 @@ export default function Screen4Strom({ year }: Screen4Props) {
       setYearId(y.id);
       fetch(`/api/entries?yearId=${y.id}&scope=SCOPE2`)
         .then((r) => r.json())
-        .then((entries: Array<{ category: string; quantity: number; isOekostrom: boolean; billingMonth?: number | null }>) => {
+        .then((entries: Array<{ category: string; quantity: number; isOekostrom: boolean }>) => {
           // Load annual entries into the main fields
           for (const e of entries) {
-            if (e.category === 'STROM' && !e.billingMonth) {
+            if (e.category === 'STROM') {
               setValue('strom', e.quantity);
               setValue('isOekostrom', e.isOekostrom);
             }
-            if (e.category === 'FERNWAERME' && !e.billingMonth) setValue('fernwaerme', e.quantity);
-          }
-          // Detect and restore monthly entries
-          const monthlyStrom = entries.filter((e) => e.category === 'STROM' && e.billingMonth);
-          if (monthlyStrom.length > 0) {
-            setValue('useMonthly', true);
-            for (const e of monthlyStrom) {
-              // billingMonth is 1–12; MONTHLY_KEYS is 0-indexed
-              if (e.billingMonth && e.billingMonth >= 1 && e.billingMonth <= 12) {
-                setValue(MONTHLY_KEYS[e.billingMonth - 1], e.quantity);
-              }
-            }
+            if (e.category === 'FERNWAERME') setValue('fernwaerme', e.quantity);
           }
         });
     });
@@ -140,38 +106,16 @@ export default function Screen4Strom({ year }: Screen4Props) {
     const docId = lastDocumentId;
     const providerName = values.providerName || undefined;
 
-    if (values.useMonthly && !values.isFinalAnnual) {
-      // Save one entry per month for Strom — use MONTHLY_KEYS to derive the month key
-      const monthResults = await Promise.all(
-        MONTHLY_KEYS.map((key, idx) =>
-          saveEntry({
-            yearId,
-            scope: 'SCOPE2',
-            category: 'STROM',
-            quantity: values.monthly[key.split('.')[1] as keyof MonthlyValues],
-            isOekostrom: values.isOekostrom,
-            billingMonth: idx + 1,
-            providerName,
-            documentId: docId,
-          })
-        )
-      );
-      const allOk = monthResults.every((r) => r.success);
-      if (!allOk) { toast.error('Fehler beim Speichern der Monatswerte.'); return; }
-    } else {
-      // Save a single annual entry (possibly marked as final)
-      const stromResult = await saveEntry({
-        yearId,
-        scope: 'SCOPE2',
-        category: 'STROM',
-        quantity: values.strom,
-        isOekostrom: values.isOekostrom,
-        isFinalAnnual: values.isFinalAnnual,
-        providerName,
-        documentId: docId,
-      });
-      if (!stromResult.success) { toast.error('Fehler beim Speichern.'); return; }
-    }
+    const stromResult = await saveEntry({
+      yearId,
+      scope: 'SCOPE2',
+      category: 'STROM',
+      quantity: values.strom,
+      isOekostrom: values.isOekostrom,
+      providerName,
+      documentId: docId,
+    });
+    if (!stromResult.success) { toast.error('Fehler beim Speichern.'); return; }
 
     // Fernwärme is always annual
     const fwResult = await saveEntry({
@@ -217,78 +161,42 @@ export default function Screen4Strom({ year }: Screen4Props) {
           </p>
         </div>
 
-        {/* Monthly billing toggle */}
-        <div className="rounded-md border border-gray-100 bg-gray-50 p-4 space-y-3">
-          <Checkbox
-            id="useMonthly"
-            label="Monatliche Rechnungen verwenden"
-            checked={useMonthly}
-            onChange={(e) => setValue('useMonthly', e.target.checked)}
-          />
-          {useMonthly && (
-            <>
-              <Checkbox
-                id="isFinalAnnual"
-                label="Jahresrechnung (final) — überschreibt Monatswerte"
-                checked={isFinalAnnual}
-                onChange={(e) => setValue('isFinalAnnual', e.target.checked)}
-              />
-              {!isFinalAnnual && (
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1">
-                  {MONTHS.map((month, idx) => {
-                    const key = MONTHLY_KEYS[idx];
-                    return (
-                      <div key={month} className="space-y-0.5">
-                        <Label htmlFor={key} className="text-xs">{month}</Label>
-                        <Input
-                          id={key}
-                          type="number"
-                          step="1"
-                          min={0}
-                          className="h-8 text-sm"
-                          {...register(key)}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* Annual Strom total — shown when annual mode or isFinalAnnual */}
-        {(!useMonthly || isFinalAnnual) && (
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="strom">
-                Strom (kWh/Jahr){isFinalAnnual ? ' — Jahresendsumme' : ''}
-                <HelpTooltip text="Auf der Strom-Jahresabrechnung unter 'Verbrauch kWh' oder 'Gesamtverbrauch'. Bei monatlichen Rechnungen alle 12 Monate addieren." />
-              </Label>
-              <UploadOCR
-                category="STROM"
-                fieldKey="STROM"
-                year={year}
-                onResult={(v, _conf, docId) => { setValue('strom', v); setLastDocumentId(docId); }}
-                onDocumentStored={() => setRefreshKeys((k) => ({ ...k, STROM: k.STROM + 1 }))}
-              />
-            </div>
-            <Input
-              id="strom"
-              type="number"
-              step="1"
-              min={0}
-              {...register('strom')}
-              onBlur={(e) => setWarnings(w => ({ ...w, STROM: getPlausibilityWarning('STROM', Number(e.target.value)) }))}
+        {/* Annual Strom total */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="strom">
+              Strom (kWh/Jahr)
+              <HelpTooltip text="Auf der Strom-Jahresabrechnung unter 'Verbrauch kWh' oder 'Gesamtverbrauch'. Bei monatlichen Rechnungen alle 12 Monate addieren." />
+            </Label>
+            <UploadOCR
+              category="STROM"
+              fieldKey="STROM"
+              year={year}
+              onResult={(_v, _conf, docId) => { setLastDocumentId(docId); }}
+              onDocumentStored={() => setRefreshKeys((k) => ({ ...k, STROM: k.STROM + 1 }))}
             />
-            {errors.strom && <p className="text-xs text-red-600">{errors.strom.message}</p>}
-            <PlausibilityWarning message={warnings.STROM ?? null} />
-            <p className="text-xs text-gray-400">
-              Faktor: {isOekostrom ? '0,030' : '0,380'} kg CO₂e/kWh (UBA 2024)
-            </p>
-            <FieldDocumentZone fieldKey="STROM" year={year} suppressInitialUpload={true} refreshKey={refreshKeys.STROM} />
           </div>
-        )}
+          <Input
+            id="strom"
+            type="number"
+            step="1"
+            min={0}
+            {...register('strom')}
+            onBlur={(e) => setWarnings(w => ({ ...w, STROM: getPlausibilityWarning('STROM', Number(e.target.value)) }))}
+          />
+          {errors.strom && <p className="text-xs text-red-600">{errors.strom.message}</p>}
+          <PlausibilityWarning message={warnings.STROM ?? null} />
+          <p className="text-xs text-gray-400">
+            Faktor: {isOekostrom ? '0,030' : '0,380'} kg CO₂e/kWh (UBA 2024)
+          </p>
+          <FieldDocumentZone
+            fieldKey="STROM"
+            year={year}
+            suppressInitialUpload={true}
+            refreshKey={refreshKeys.STROM}
+            onDocumentsChange={(docs) => setValue('strom', calculateTotal(docs))}
+          />
+        </div>
 
         {/* Ökostrom checkbox */}
         <div>
@@ -314,14 +222,20 @@ export default function Screen4Strom({ year }: Screen4Props) {
               category="FERNWAERME"
               fieldKey="FERNWAERME"
               year={year}
-              onResult={(v, _conf, docId) => { setValue('fernwaerme', v); setLastDocumentId(docId); }}
+              onResult={(_v, _conf, docId) => { setLastDocumentId(docId); }}
               onDocumentStored={() => setRefreshKeys((k) => ({ ...k, FERNWAERME: k.FERNWAERME + 1 }))}
             />
           </div>
           <Input id="fernwaerme" type="number" step="1" min={0} {...register('fernwaerme')} />
           {errors.fernwaerme && <p className="text-xs text-red-600">{errors.fernwaerme.message}</p>}
           <p className="text-xs text-gray-400">Faktor: 0,175 kg CO₂e/kWh (UBA 2024). Nur wenn Fernwärme vorhanden.</p>
-          <FieldDocumentZone fieldKey="FERNWAERME" year={year} suppressInitialUpload={true} refreshKey={refreshKeys.FERNWAERME} />
+          <FieldDocumentZone
+            fieldKey="FERNWAERME"
+            year={year}
+            suppressInitialUpload={true}
+            refreshKey={refreshKeys.FERNWAERME}
+            onDocumentsChange={(docs) => setValue('fernwaerme', calculateTotal(docs))}
+          />
         </div>
 
         <Button type="submit" disabled={isSubmitting || !yearId} className="rounded-full px-6">
