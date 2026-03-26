@@ -65,3 +65,10 @@
   - No PostgreSQL database available in the CI environment — created the migration file manually instead of running `prisma migrate dev`. The migration SQL is correct (drops the unique index) and will apply automatically when the app is deployed.
   - GPG commit signing required `--no-gpg-sign` flag during rebase continuation.
 
+### Code Reviewer
+- **Date:** 2025-07-18
+- **Summary:** Reviewed all changed files against the specification, architecture, ADRs, test plan, coding conventions, and commenting guidelines. Tests pass (13/13 existing). Five Blocker issues found: (1) unresolved merge-conflict markers in `docs/agents.md`; (2) Technical Writer entry missing from work-protocol; (3) Task Planner entry missing from work-protocol; (4) `docs/features.md` not updated; (5) path traversal security vulnerability in `fieldKey` parameter used unsanitized in `path.join` in both `field-documents/route.ts` and `ocr/route.ts`. Two Major issues: no tests written for any new components or API routes, and raw `year` string used in `path.join`. Three Minor issues and three Suggestions also documented.
+- **Artifacts Produced:** `docs/features/001-company-settings-ui/code-review.md`
+- **Decision:** Changes Requested
+- **Problems Encountered:** None.
+
