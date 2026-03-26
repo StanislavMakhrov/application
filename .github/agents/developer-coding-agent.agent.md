@@ -90,6 +90,8 @@ Before handing off, **append your log entry** to the `work-protocol.md` file in 
 Before starting, familiarize yourself with:
 - The Feature Specification in `docs/features/NNN-<feature-slug>/specification.md`
 - The Architecture document in `docs/features/NNN-<feature-slug>/architecture.md`
+- The UI/UX Design Specification in `docs/features/NNN-<feature-slug>/ui-design.md` (if exists, for user-facing features)
+  - **HTML Mockups** in `docs/features/NNN-<feature-slug>/mockups/*.html` — open in a browser for visual reference and copy Tailwind classes from the markup
 - The Tasks document in `docs/features/NNN-<feature-slug>/tasks.md`
 - The Test Plan in `docs/features/NNN-<feature-slug>/test-plan.md`
 - [docs/architecture.md](../../docs/architecture.md) - Project specification and architectural design

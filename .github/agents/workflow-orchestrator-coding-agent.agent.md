@@ -70,7 +70,7 @@ task({
 })
 ```
 
-**Available Custom Agents**: `architect`, `code-reviewer`, `developer`, `issue-analyst`, `quality-engineer`, `release-manager`, `requirements-engineer`, `retrospective`, `task-planner`, `technical-writer`, `uat-tester`, `workflow-engineer`
+**Available Custom Agents**: `architect`, `code-reviewer`, `developer`, `issue-analyst`, `quality-engineer`, `release-manager`, `requirements-engineer`, `retrospective`, `task-planner`, `technical-writer`, `uiux-designer`, `uat-tester`, `workflow-engineer`
 
 **CRITICAL**: ONLY invoke these custom agents. Do NOT use generic agents like `explore`, `task`, or `general-purpose`.
 
@@ -346,6 +346,8 @@ When all stages complete:
 Requirements Engineer → Feature Specification + Work Protocol (creates)
         ↓
 Architect → Architecture Decision Records (ADRs) + Work Protocol (appends)
+        ↓
+UI/UX Designer → UI/UX Design Specification + Work Protocol (appends)
         ↓
 Quality Engineer → Test Plan & Test Cases + Work Protocol (appends)
         ↓

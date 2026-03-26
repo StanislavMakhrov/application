@@ -190,7 +190,13 @@ flowchart TB
 	%% Row 4: Planning Artifacts
 	ADR["📐 Architecture Decision Records"]
 
-	%% Row 5: Quality & Tasks
+	%% Row 5: UI/UX Designer
+	UIUX["<b>UI/UX Designer</b>"]
+
+	%% Row 6: Design Artifact
+	UID["🎨 UI/UX Design Specification"]
+
+	%% Row 7: Quality & Tasks
 	QE["<b>Quality Engineer</b>"]
 	
 	%% Row 6: Test Plan
@@ -256,7 +262,8 @@ flowchart TB
 	IA_AGENT --> IA --> DEV
 	WE --> WD
 
-	AR --> ADR --> QE
+	AR --> ADR --> UIUX
+	UIUX --> UID --> QE
 	QE --> TP --> TP_AGENT
 	TP_AGENT --> US --> DEV
 
@@ -288,9 +295,9 @@ flowchart TB
 	%% Styling
 	class HUMAN,UAT_REVIEW,MERGE human;
 	class WO orchestrator;
-	class IA_AGENT,RE,AR,TP_AGENT,QE,DEV,TW,CR,UAT_AGENT,RM,RETRO_AGENT agent;
+	class IA_AGENT,RE,AR,UIUX,TP_AGENT,QE,DEV,TW,CR,UAT_AGENT,RM,RETRO_AGENT agent;
 	class WE metaagent;
-	class IA,FS,US,ADR,TP,CODE,DOCS,CRR,REL,PR,WD,UAT,RETRO,CI artifact;
+	class IA,FS,US,ADR,UID,TP,CODE,DOCS,CRR,REL,PR,WD,UAT,RETRO,CI artifact;
 ```
 
 _Agents produce and consume artifacts. Arrows show artifact creation and consumption. Communication for feedback/questions between agents (regarding consumed artifacts) is always possible, but intentionally omitted from the diagram for clarity._
@@ -300,14 +307,15 @@ _Agents produce and consume artifacts. Arrows show artifact creation and consump
 1. **Issue Analyst** investigates bugs, incidents, and technical problems.
 2. **Requirements Engineer** gathers and clarifies requirements for new features.
 3. **Architect** designs the solution and documents decisions.
-4. **Quality Engineer** defines the test plan and cases (consumes architecture). For user-facing features, defines acceptance scenarios for UAT.
-5. **Task Planner** creates and prioritizes actionable work items (consumes test plan).
-6. **Developer** implements features/fixes and tests.
-7. **Technical Writer** updates all relevant documentation (markdown files in the repository).
-8. **Code Reviewer** reviews and approves the work. Hands off to UAT Tester for user-facing features, or directly to Release Manager for internal changes.
-9. **UAT Tester** writes automated **E2E tests** for user-facing scenarios/user stories (committed to `e2e-tests/<feature-slug>/e2e.spec.ts` at repo root) that cover all scenarios from the test plan. E2E tests run in CI via the `e2e-tests` job — the Orchestrator monitors CI via `watch-pr-validation` and routes any E2E failures back to Developer automatically. Also posts a PR comment with optional manual verification instructions (checklist + `docker run` command + screenshots + demo login credentials) for the Maintainer as an additional check. **Waits for Maintainer to reply `PASS` or `FAIL: <page>, <expected>, <actual>` in the PR comment** before writing the UAT report. Any failure (broken use case, wrong data, UI defect, etc.) is handed back to Developer; on PASS, hands off to Release Manager.
+4. **UI/UX Designer** creates state-of-the-art UI/UX design specifications (consumes architecture). Defines layouts, interaction patterns, responsive behavior, accessibility requirements, and visual guidelines.
+5. **Quality Engineer** defines the test plan and cases (consumes architecture and UI/UX design). For user-facing features, defines acceptance scenarios for UAT.
+6. **Task Planner** creates and prioritizes actionable work items (consumes test plan).
+7. **Developer** implements features/fixes and tests.
+8. **Technical Writer** updates all relevant documentation (markdown files in the repository).
+9. **Code Reviewer** reviews and approves the work. Hands off to UAT Tester for user-facing features, or directly to Release Manager for internal changes.
+10. **UAT Tester** writes automated **E2E tests** for user-facing scenarios/user stories (committed to `e2e-tests/<feature-slug>/e2e.spec.ts` at repo root) that cover all scenarios from the test plan. E2E tests run in CI via the `e2e-tests` job — the Orchestrator monitors CI via `watch-pr-validation` and routes any E2E failures back to Developer automatically. Also posts a PR comment with optional manual verification instructions (checklist + `docker run` command + screenshots + demo login credentials) for the Maintainer as an additional check. **Waits for Maintainer to reply `PASS` or `FAIL: <page>, <expected>, <actual>` in the PR comment** before writing the UAT report. Any failure (broken use case, wrong data, UI defect, etc.) is handed back to Developer; on PASS, hands off to Release Manager.
    - 👤 **Maintainer action:** Reply `PASS` or `FAIL: ...` in the PR comment.
-10. **Release Manager** generates release notes, then calls `scripts/pr-github.sh mark-ready` to convert the `copilot/*` draft PR → ready-for-review. This triggers the **PR Validation** CI pipeline automatically: first a Docker image is built and pushed to GHCR (`ghcr.io/…:pr-N-sha`), then E2E tests run against that image. The Orchestrator monitors CI via `watch-pr-validation` and routes any CI failures back to Developer. Once CI is green, Release Manager notifies the Maintainer the PR is ready.
+11. **Release Manager** generates release notes, then calls `scripts/pr-github.sh mark-ready` to convert the `copilot/*` draft PR → ready-for-review. This triggers the **PR Validation** CI pipeline automatically: first a Docker image is built and pushed to GHCR (`ghcr.io/…:pr-N-sha`), then E2E tests run against that image. The Orchestrator monitors CI via `watch-pr-validation` and routes any CI failures back to Developer. Once CI is green, Release Manager notifies the Maintainer the PR is ready.
     - 👤 **Maintainer action:** Approve and merge the PR in the GitHub UI.
 
 **Meta-Agent:**
@@ -359,32 +367,38 @@ _Agents produce and consume artifacts. Arrows show artifact creation and consump
 - **Key Behavior:** When multiple viable options exist, presents pros/cons with a recommendation and uses the `askQuestions` tool to let the maintainer choose the final approach interactively.
 - **Definition of Done:** Architecture is documented and approved.
 
-### 4. Quality Engineer
+### 4. UI/UX Designer
+- **Goal:** Create state-of-the-art UI/UX design specifications for user-facing features.
+- **Deliverables:** UI/UX Design Specification (`ui-design.md`) with layouts, wireframes, interaction states, responsive behavior, accessibility requirements, and visual guidelines.
+- **Key Behavior:** Follows the latest modern design standards, audits existing app patterns for consistency, and produces developer-ready design specs using the project's Tailwind/shadcn/ui design system. Never writes implementation code.
+- **Definition of Done:** Design specification is complete with all interaction states, responsive breakpoints, and accessibility requirements documented.
+
+### 5. Quality Engineer
 - **Goal:** Define how the feature will be tested and validated.
 - **Deliverables:** Test plan, test cases, quality criteria. For user-facing features, user acceptance scenarios for manual review via PRs.
 - **Definition of Done:** Test plan covers all acceptance criteria. User-facing features have clear acceptance scenarios defined.
 
-### 5. Task Planner
+### 6. Task Planner
 - **Goal:** Translate requirements and architecture into actionable work items.
 - **Deliverables:** User stories/tasks with acceptance criteria and priorities.
 - **Definition of Done:** Work items are clear, actionable, and prioritized.
 
-### 6. Developer
+### 7. Developer
 - **Goal:** Implement features and tests as specified.
 - **Deliverables:** Code, tests, passing CI. If no `Dockerfile` exists in `src/`, the Developer creates one as part of the first implementation task.
 - **Definition of Done:** Code and tests meet requirements and pass all checks. Docker image builds and runs correctly (`docker build -t app:local ./src`).
 
-### 7. Technical Writer
+### 8. Technical Writer
 - **Goal:** Update and maintain all relevant documentation.
 - **Deliverables:** Updated user and developer docs.
 - **Definition of Done:** Documentation is accurate and complete.
 
-### 8. Code Reviewer
+### 9. Code Reviewer
 - **Goal:** Ensure code quality and process adherence.
 - **Deliverables:** Code review feedback or approval.
 - **Definition of Done:** Code is reviewed and approved or sent back for rework.
 
-### 9. UAT Tester
+### 10. UAT Tester
 - **Goal:** Validate user-facing features by writing automated TypeScript Playwright e2e tests covering all user-facing scenarios, and providing optional manual UAT instructions for the Maintainer.
 - **Deliverables:**
   1. Playwright e2e tests at `e2e-tests/<feature-slug>/e2e.spec.ts`, committed so the CI `e2e-tests` job runs them automatically.
@@ -396,7 +410,7 @@ _Agents produce and consume artifacts. Arrows show artifact creation and consump
 - **Definition of Done:** All user-facing scenarios from the test plan are covered by Playwright tests, the CI `e2e-tests` job passes, and the Maintainer has replied with explicit PASS on the manual check.
 - **Implementation:** Playwright (TypeScript); tests drive a headless Chromium browser against the running application outside the Docker container.
 
-### 10. Release Manager
+### 11. Release Manager
 - **Goal:** Plan, coordinate, and execute releases.
 - **Deliverables:** Pull request (ready for review), release notes, versioning, deployment plan, and post-release checklist.
 - **Key Behavior:** Write release notes as honest, technical notes for users (not marketing), include ✨/🐛/📚 icons, include a 🔗 Commits section with user-facing commits, and only include ▶️ Getting started / 📸 Screenshots when applicable (screenshots required for user-visible output changes).
@@ -407,13 +421,13 @@ _Agents produce and consume artifacts. Arrows show artifact creation and consump
 - **Maintainer touchpoint:** Approve and merge the PR in the GitHub UI once CI is green. This is the single required human action before the post-merge release pipeline runs.
 - **Definition of Done:** PR is merged by the Maintainer, release pipeline completes, GitHub Release published, Docker image in GHCR, CHANGELOG updated.
 
-### 11. Retrospective
+### 12. Retrospective
 - **Goal:** Identify improvement opportunities for the development workflow.
 - **Deliverables:** Retrospective report with summary, successes, failures, and improvement opportunities.
 - **Key Behavior:** Be evidence-based and critical; prefer chat logs/artifacts/CI status checks for objective event history, cluster findings by theme, and apply a scoring rubric with explicit deductions.
 - **Definition of Done:** Report is generated with action items and a completeness checklist (DoD).
 
-### 12. Workflow Engineer (Meta-Agent)
+### 13. Workflow Engineer (Meta-Agent)
 - **Goal:** Analyze, improve, and maintain the agent-based workflow.
 - **Execution Modes:**
   - **Cloud (GitHub):** Automated execution of well-defined workflow improvements via issue assignment
@@ -447,6 +461,7 @@ When multiple branches are created in parallel, they may independently pick the 
 | **Issue Analysis** | Documents bug reports, diagnostic information, root cause analysis, and suggested fix approach. Serves as the foundation for implementing fixes. | Markdown document with sections: Problem Description, Steps to Reproduce, Root Cause Analysis, Suggested Fix Approach, Related Tests. | `docs/issues/NNN-<issue-slug>/analysis.md` |
 | **Feature Specification** | Documents user needs, goals, and scope from an end-user perspective. Serves as the foundation for architecture and planning. | Markdown document with sections: Overview, User Goals, Scope, Out of Scope, Success Criteria. | `docs/features/NNN-<feature-slug>/specification.md` |
 | **Architecture Decision Records (ADRs)** | Captures significant design decisions, alternatives considered, and rationale. Provides context for future maintainers. | Markdown following the ADR format: Context, Decision, Consequences. | `docs/adr-<number>-<short-title>.md` (high level / general decisions) and `docs/features/NNN-<feature-slug>/architecture.md` (feature-specific decisions) |
+| **UI/UX Design Specification** | Defines visual layouts, interaction patterns, responsive behavior, accessibility requirements, and visual guidelines for user-facing features. Includes **static HTML mockup files** that the Developer opens in a browser as a pixel-accurate reference and copies Tailwind classes from. Consumed by Quality Engineer, Task Planner, and Developer. | Markdown spec + standalone HTML mockup files (Tailwind CDN, self-contained, all interaction states). | `docs/features/NNN-<feature-slug>/ui-design.md` and `docs/features/NNN-<feature-slug>/mockups/*.html` |
 | **User Stories / Tasks** | Actionable work items with clear acceptance criteria. Used to track implementation progress (features) or workflow improvement work (workflow). | Markdown. For workflow improvements, use a table with a Status column (icon + text) and a short rationale per item. | `docs/features/NNN-<feature-slug>/tasks.md` and `docs/workflow/NNN-<topic-slug>/tasks.md` |
 | **Test Plan & Test Cases** | Defines how the feature will be verified. Maps test cases to acceptance criteria. For user-facing features, includes user acceptance scenarios for manual review. | Markdown document with: Test Objectives, Test Cases (ID, Description, Steps, Expected Result), Coverage Matrix, User Acceptance Scenarios (for user-facing features). | `docs/features/NNN-<feature-slug>/test-plan.md` |
 | **UAT Test Plan** | For user-facing features, defines what will be tested during UAT and provides validation instructions for the maintainer. | Markdown document specifying: Goal, Test Steps, Expected Results, Validation Instructions. | `docs/features/NNN-<feature-slug>/uat-test-plan.md` |
@@ -488,6 +503,7 @@ The **first agent** in the workflow (Requirements Engineer for features, Issue A
 | Requirements Engineer | ✅ Required | — | — |
 | Issue Analyst | — | ✅ Required | — |
 | Architect | ✅ Required | — | — |
+| UI/UX Designer | ⚠️ If user-facing | — | — |
 | Quality Engineer | ✅ Required | — | — |
 | Task Planner | ✅ Required | — | — |
 | Developer | ✅ Required | ✅ Required | — |
