@@ -268,8 +268,10 @@ src/
 │       ├── audit/route.ts      # GET  /api/audit — query audit log
 │       ├── documents/
 │       │   └── [id]/route.ts   # GET  /api/documents/[id] — download uploaded file
-│       └── field-documents/
-│           └── route.ts        # GET/POST /api/field-documents — per-field attachments
+│       ├── field-documents/
+│       │   └── route.ts        # GET/POST /api/field-documents — per-field attachments
+│       └── factors/
+│           └── route.ts        # GET  /api/factors?year=YYYY — all emission factors for a year
 ├── components/
 │   ├── dashboard/              # Dashboard widgets
 │   │   ├── KpiCard.tsx         # Total CO₂e, per-employee, YoY trend
@@ -299,13 +301,17 @@ src/
 │   │   ├── GHGReport.tsx       # Full GHG Protocol PDF (incl. Berichtsgrenzen section)
 │   │   └── CSRDQuestionnaire.tsx # CSRD supplier questionnaire PDF
 │   ├── settings/
-│   │   └── YearManagement.tsx  # Year add + delete UI
+│   │   ├── YearManagement.tsx  # Year add + delete UI
+│   │   ├── EmissionFactorsTable.tsx # Read-only emission factor reference table
+│   │   └── IndustryBenchmarkTable.tsx # Read-only industry benchmark reference table
 │   └── ui/                     # shadcn/ui re-exports
+├── hooks/
+│   └── useFactors.ts           # Client hook: fetches /api/factors, memoised by year
 ├── lib/
 │   ├── prisma.ts               # Prisma client singleton
 │   ├── actions.ts              # Server Actions (saveEntry, saveCompanyProfile, …)
 │   ├── emissions.ts            # CO₂e calculation engine
-│   ├── factors.ts              # Emission factor lookup (by key + valid_year)
+│   ├── factors.ts              # Emission factor lookup (by key + valid_year); also getAllEmissionFactorRecords(year)
 │   ├── ocr/
 │   │   └── index.ts            # OCR interface (stub → future Claude/Tesseract call)
 │   ├── csv/

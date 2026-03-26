@@ -72,3 +72,11 @@
   - `docs/features/003-factor-selection-ux/code-review.md`
   - `docs/features.md` — added feature 003 entry (fixed directly)
 - **Problems Encountered:** `docs/features.md` was not updated by any prior agent; fixed directly as per reviewer mandate.
+
+### Technical Writer
+- **Date:** 2025-07-14
+- **Summary:** Updated `docs/architecture.md` to document the new `GET /api/factors?year=YYYY` endpoint (added to API routes tree), the `useFactors` hook (`src/hooks/useFactors.ts`), and the two new Settings server components (`EmissionFactorsTable`, `IndustryBenchmarkTable`). Also added the `hooks/` directory to the file-tree section of the architecture document. No new documentation files were required; `docs/features.md` was already updated by the Code Reviewer.
+- **Artifacts Produced:**
+  - `docs/architecture.md` — added `/api/factors` route, `hooks/useFactors.ts`, `EmissionFactorsTable`, `IndustryBenchmarkTable`
+  - `docs/features/003-factor-selection-ux/work-protocol.md` — this entry
+- **Problems Encountered:** None.
