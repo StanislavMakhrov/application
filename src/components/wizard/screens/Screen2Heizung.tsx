@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label';
 import { WizardNav } from '@/components/wizard/WizardNav';
 import { CsvImport } from '@/components/wizard/CsvImport';
 import { FieldDocumentZone, type FieldDocument } from '@/components/wizard/FieldDocumentZone';
+import { UploadOCR } from '@/components/wizard/UploadOCR';
 import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
 import { PlausibilityWarning, getPlausibilityWarning } from '@/components/wizard/PlausibilityWarning';
 import { HelpTooltip } from '@/components/ui/HelpTooltip';
@@ -45,14 +46,20 @@ type FormValues = z.infer<typeof schema>;
 
 /**
  * Calculates the running total from a list of FieldDocuments.
- * If any document is marked as Jahresabrechnung, the last one's value
- * overrides the sum entirely (annual invoice replaces all monthly totals).
- * Regular invoices are summed together.
+ *
+ * If any document is marked as Jahresabrechnung AND has an OCR-extracted value,
+ * that value overrides the sum entirely (annual invoice replaces all monthly totals).
+ * If the annual document has no OCR value (uploaded via the plain file button), fall
+ * through to the regular sum so manually-typed values are not erased.
+ * Regular invoices without an annual flag are summed together.
  */
 function calculateTotal(docs: FieldDocument[]): number {
-  const annualDocs = docs.filter((d) => d.isJahresabrechnung && d.recognizedValue != null);
+  const annualDocs = docs.filter((d) => d.isJahresabrechnung);
   if (annualDocs.length > 0) {
-    return annualDocs[annualDocs.length - 1].recognizedValue!;
+    const lastAnnual = annualDocs[annualDocs.length - 1];
+    if (lastAnnual.recognizedValue != null) {
+      return lastAnnual.recognizedValue;
+    }
   }
   return docs.reduce((sum, d) => sum + (d.recognizedValue ?? 0), 0);
 }
@@ -65,6 +72,10 @@ export default function Screen2Heizung({ year }: Screen2Props) {
   const [yearId, setYearId] = useState<number | null>(null);
   const [lastDocumentId, setLastDocumentId] = useState<number | undefined>();
   const [warnings, setWarnings] = useState<Record<string, string | null>>({});
+  // Refresh keys trigger FieldDocumentZone to re-fetch after UploadOCR creates a doc
+  const [erdgasRefreshKey, setErdgasRefreshKey] = useState(0);
+  const [heizoelRefreshKey, setHeizoelRefreshKey] = useState(0);
+  const [fluessiggasRefreshKey, setFluessiggasRefreshKey] = useState(0);
 
   const {
     register,
@@ -185,9 +196,18 @@ export default function Screen2Heizung({ year }: Screen2Props) {
           {errors.erdgas && <p className="text-xs text-red-600">{errors.erdgas.message}</p>}
           <PlausibilityWarning message={warnings.ERDGAS ?? null} />
           <p className="text-xs text-gray-400">Quelle: Gas-Jahresabrechnung. Faktor: 2,000 kg CO₂e/m³ (UBA 2024)</p>
+          <UploadOCR
+            category="ERDGAS"
+            fieldKey="ERDGAS"
+            year={year}
+            onResult={(value, _confidence) => setValue('erdgas', value)}
+            onDocumentStored={() => setErdgasRefreshKey((k) => k + 1)}
+          />
           <FieldDocumentZone
             fieldKey="ERDGAS"
             year={year}
+            suppressInitialUpload
+            refreshKey={erdgasRefreshKey}
             onDocumentsChange={(docs) => setValue('erdgas', calculateTotal(docs))}
           />
         </div>
@@ -201,9 +221,18 @@ export default function Screen2Heizung({ year }: Screen2Props) {
           <Input id="heizoel" type="number" step="0.1" min={0} {...register('heizoel')} />
           {errors.heizoel && <p className="text-xs text-red-600">{errors.heizoel.message}</p>}
           <p className="text-xs text-gray-400">Quelle: Lieferscheine. Faktor: 2,650 kg CO₂e/L (UBA 2024)</p>
+          <UploadOCR
+            category="HEIZOEL"
+            fieldKey="HEIZOEL"
+            year={year}
+            onResult={(value, _confidence) => setValue('heizoel', value)}
+            onDocumentStored={() => setHeizoelRefreshKey((k) => k + 1)}
+          />
           <FieldDocumentZone
             fieldKey="HEIZOEL"
             year={year}
+            suppressInitialUpload
+            refreshKey={heizoelRefreshKey}
             onDocumentsChange={(docs) => setValue('heizoel', calculateTotal(docs))}
           />
         </div>
@@ -217,9 +246,18 @@ export default function Screen2Heizung({ year }: Screen2Props) {
           <Input id="fluessiggas" type="number" step="0.1" min={0} {...register('fluessiggas')} />
           {errors.fluessiggas && <p className="text-xs text-red-600">{errors.fluessiggas.message}</p>}
           <p className="text-xs text-gray-400">Faktor: 1,650 kg CO₂e/kg (UBA 2024)</p>
+          <UploadOCR
+            category="FLUESSIGGAS"
+            fieldKey="FLUESSIGGAS"
+            year={year}
+            onResult={(value, _confidence) => setValue('fluessiggas', value)}
+            onDocumentStored={() => setFluessiggasRefreshKey((k) => k + 1)}
+          />
           <FieldDocumentZone
             fieldKey="FLUESSIGGAS"
             year={year}
+            suppressInitialUpload
+            refreshKey={fluessiggasRefreshKey}
             onDocumentsChange={(docs) => setValue('fluessiggas', calculateTotal(docs))}
           />
         </div>

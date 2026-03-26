@@ -15,7 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { WizardNav } from '@/components/wizard/WizardNav';
 import { CsvImport } from '@/components/wizard/CsvImport';
-import { FieldDocumentZone } from '@/components/wizard/FieldDocumentZone';
+import { FieldDocumentZone, type FieldDocument } from '@/components/wizard/FieldDocumentZone';
+import { UploadOCR } from '@/components/wizard/UploadOCR';
 import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
 import { PlausibilityWarning, getPlausibilityWarning } from '@/components/wizard/PlausibilityWarning';
 import { HelpTooltip } from '@/components/ui/HelpTooltip';
@@ -29,6 +30,26 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+/**
+ * Calculates the running total from a list of FieldDocuments.
+ *
+ * If any document is marked as Jahresabrechnung AND has an OCR-extracted value,
+ * that value overrides the sum entirely (annual invoice replaces all monthly totals).
+ * If the annual document has no OCR value (uploaded via the plain file button), fall
+ * through to the regular sum so manually-typed values are not erased.
+ * Regular invoices without an annual flag are summed together.
+ */
+function calculateTotal(docs: FieldDocument[]): number {
+  const annualDocs = docs.filter((d) => d.isJahresabrechnung);
+  if (annualDocs.length > 0) {
+    const lastAnnual = annualDocs[annualDocs.length - 1];
+    if (lastAnnual.recognizedValue != null) {
+      return lastAnnual.recognizedValue;
+    }
+  }
+  return docs.reduce((sum, d) => sum + (d.recognizedValue ?? 0), 0);
+}
+
 interface Screen5Props {
   year: number;
 }
@@ -36,6 +57,9 @@ interface Screen5Props {
 export default function Screen5Dienstreisen({ year }: Screen5Props) {
   const [yearId, setYearId] = useState<number | null>(null);
   const [warnings, setWarnings] = useState<Record<string, string | null>>({});
+  // Refresh keys trigger FieldDocumentZone to re-fetch after UploadOCR creates a doc
+  const [flugRefreshKey, setFlugRefreshKey] = useState(0);
+  const [bahnRefreshKey, setBahnRefreshKey] = useState(0);
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } =
     useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { flug: 0, bahn: 0, pendlerKm: 0 } });
 
@@ -102,7 +126,20 @@ export default function Screen5Dienstreisen({ year }: Screen5Props) {
           {errors.flug && <p className="text-xs text-red-600">{errors.flug.message}</p>}
           <PlausibilityWarning message={warnings.GESCHAEFTSREISEN_FLUG ?? null} />
           <p className="text-xs text-gray-400">Summe aller Flüge in km. Faktor: 0,255 kg CO₂e/km (UBA 2024)</p>
-          <FieldDocumentZone fieldKey="GESCHAEFTSREISEN_FLUG" year={year} />
+          <UploadOCR
+            category="GESCHAEFTSREISEN_FLUG"
+            fieldKey="GESCHAEFTSREISEN_FLUG"
+            year={year}
+            onResult={(value, _confidence) => setValue('flug', value)}
+            onDocumentStored={() => setFlugRefreshKey((k) => k + 1)}
+          />
+          <FieldDocumentZone
+            fieldKey="GESCHAEFTSREISEN_FLUG"
+            year={year}
+            suppressInitialUpload
+            refreshKey={flugRefreshKey}
+            onDocumentsChange={(docs) => setValue('flug', calculateTotal(docs))}
+          />
         </div>
 
         <div className="space-y-1.5">
@@ -110,7 +147,20 @@ export default function Screen5Dienstreisen({ year }: Screen5Props) {
           <Input id="bahn" type="number" step="1" min={0} {...register('bahn')} />
           {errors.bahn && <p className="text-xs text-red-600">{errors.bahn.message}</p>}
           <p className="text-xs text-gray-400">Faktor: 0,032 kg CO₂e/km (UBA 2024)</p>
-          <FieldDocumentZone fieldKey="GESCHAEFTSREISEN_BAHN" year={year} />
+          <UploadOCR
+            category="GESCHAEFTSREISEN_BAHN"
+            fieldKey="GESCHAEFTSREISEN_BAHN"
+            year={year}
+            onResult={(value, _confidence) => setValue('bahn', value)}
+            onDocumentStored={() => setBahnRefreshKey((k) => k + 1)}
+          />
+          <FieldDocumentZone
+            fieldKey="GESCHAEFTSREISEN_BAHN"
+            year={year}
+            suppressInitialUpload
+            refreshKey={bahnRefreshKey}
+            onDocumentsChange={(docs) => setValue('bahn', calculateTotal(docs))}
+          />
         </div>
 
         <div className="space-y-1.5">

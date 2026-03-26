@@ -26,6 +26,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { WizardNav } from '@/components/wizard/WizardNav';
 import { CsvImport } from '@/components/wizard/CsvImport';
 import { FieldDocumentZone, type FieldDocument } from '@/components/wizard/FieldDocumentZone';
+import { UploadOCR } from '@/components/wizard/UploadOCR';
 import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
 import { PlausibilityWarning, getPlausibilityWarning } from '@/components/wizard/PlausibilityWarning';
 import { HelpTooltip } from '@/components/ui/HelpTooltip';
@@ -43,14 +44,20 @@ type FormValues = z.infer<typeof schema>;
 
 /**
  * Calculates the running total from a list of FieldDocuments.
- * If any document is marked as Jahresabrechnung, the last one's value
- * overrides the sum entirely (annual invoice replaces all monthly totals).
- * Regular invoices are summed together.
+ *
+ * If any document is marked as Jahresabrechnung AND has an OCR-extracted value,
+ * that value overrides the sum entirely (annual invoice replaces all monthly totals).
+ * If the annual document has no OCR value (uploaded via the plain file button), fall
+ * through to the regular sum so manually-typed values are not erased.
+ * Regular invoices without an annual flag are summed together.
  */
 function calculateTotal(docs: FieldDocument[]): number {
-  const annualDocs = docs.filter((d) => d.isJahresabrechnung && d.recognizedValue != null);
+  const annualDocs = docs.filter((d) => d.isJahresabrechnung);
   if (annualDocs.length > 0) {
-    return annualDocs[annualDocs.length - 1].recognizedValue!;
+    const lastAnnual = annualDocs[annualDocs.length - 1];
+    if (lastAnnual.recognizedValue != null) {
+      return lastAnnual.recognizedValue;
+    }
   }
   return docs.reduce((sum, d) => sum + (d.recognizedValue ?? 0), 0);
 }
@@ -63,6 +70,9 @@ export default function Screen4Strom({ year }: Screen4Props) {
   const [yearId, setYearId] = useState<number | null>(null);
   const [lastDocumentId, setLastDocumentId] = useState<number | undefined>();
   const [warnings, setWarnings] = useState<Record<string, string | null>>({});
+  // Refresh keys trigger FieldDocumentZone to re-fetch after UploadOCR creates a doc
+  const [stromRefreshKey, setStromRefreshKey] = useState(0);
+  const [fernwaermeRefreshKey, setFernwaermeRefreshKey] = useState(0);
 
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } =
     useForm<FormValues>({
@@ -174,9 +184,18 @@ export default function Screen4Strom({ year }: Screen4Props) {
           <p className="text-xs text-gray-400">
             Faktor: {isOekostrom ? '0,030' : '0,380'} kg CO₂e/kWh (UBA 2024)
           </p>
+          <UploadOCR
+            category="STROM"
+            fieldKey="STROM"
+            year={year}
+            onResult={(value, _confidence) => setValue('strom', value)}
+            onDocumentStored={() => setStromRefreshKey((k) => k + 1)}
+          />
           <FieldDocumentZone
             fieldKey="STROM"
             year={year}
+            suppressInitialUpload
+            refreshKey={stromRefreshKey}
             onDocumentsChange={(docs) => setValue('strom', calculateTotal(docs))}
           />
         </div>
@@ -203,9 +222,18 @@ export default function Screen4Strom({ year }: Screen4Props) {
           <Input id="fernwaerme" type="number" step="1" min={0} {...register('fernwaerme')} />
           {errors.fernwaerme && <p className="text-xs text-red-600">{errors.fernwaerme.message}</p>}
           <p className="text-xs text-gray-400">Faktor: 0,175 kg CO₂e/kWh (UBA 2024). Nur wenn Fernwärme vorhanden.</p>
+          <UploadOCR
+            category="FERNWAERME"
+            fieldKey="FERNWAERME"
+            year={year}
+            onResult={(value, _confidence) => setValue('fernwaerme', value)}
+            onDocumentStored={() => setFernwaermeRefreshKey((k) => k + 1)}
+          />
           <FieldDocumentZone
             fieldKey="FERNWAERME"
             year={year}
+            suppressInitialUpload
+            refreshKey={fernwaermeRefreshKey}
             onDocumentsChange={(docs) => setValue('fernwaerme', calculateTotal(docs))}
           />
         </div>

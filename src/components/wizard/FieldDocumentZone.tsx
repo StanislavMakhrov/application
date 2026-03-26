@@ -223,7 +223,10 @@ export function FieldDocumentZone({
   };
 
   const unit = FIELD_UNIT_MAP[fieldKey] ?? 'Einheit';
-  const showAddButton = suppressInitialUpload || docs.length > 0;
+  // Show the "+ Beleg hinzufügen" button only once at least one document exists.
+  // The empty-state area renders a separate upload button when !suppressInitialUpload,
+  // so showing this button in the empty state would create a duplicate upload trigger.
+  const showAddButton = docs.length > 0;
 
   return (
     <div className="space-y-1.5">
@@ -329,8 +332,8 @@ export function FieldDocumentZone({
         </div>
       )}
 
-      {/* "+ Beleg hinzufügen" button — visible once at least one doc exists, or always
-          when suppressInitialUpload is true (UploadOCR drives the primary upload). */}
+      {/* "+ Beleg hinzufügen" button — visible once at least one doc exists.
+          Uses the shared hidden file input so uploads go through the same handler. */}
       {showAddButton && (
         <button
           type="button"

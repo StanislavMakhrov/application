@@ -22,6 +22,7 @@ import { Label } from '@/components/ui/label';
 import { WizardNav } from '@/components/wizard/WizardNav';
 import { CsvImport } from '@/components/wizard/CsvImport';
 import { FieldDocumentZone, type FieldDocument } from '@/components/wizard/FieldDocumentZone';
+import { UploadOCR } from '@/components/wizard/UploadOCR';
 import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
 import { PlausibilityWarning, getPlausibilityWarning } from '@/components/wizard/PlausibilityWarning';
 import { HelpTooltip } from '@/components/ui/HelpTooltip';
@@ -42,14 +43,20 @@ type FormValues = z.infer<typeof schema>;
 
 /**
  * Calculates the running total from a list of FieldDocuments.
- * If any document is marked as Jahresabrechnung, the last one's value
- * overrides the sum entirely (annual invoice replaces all monthly totals).
- * Regular invoices are summed together.
+ *
+ * If any document is marked as Jahresabrechnung AND has an OCR-extracted value,
+ * that value overrides the sum entirely (annual invoice replaces all monthly totals).
+ * If the annual document has no OCR value (uploaded via the plain file button), fall
+ * through to the regular sum so manually-typed values are not erased.
+ * Regular invoices without an annual flag are summed together.
  */
 function calculateTotal(docs: FieldDocument[]): number {
-  const annualDocs = docs.filter((d) => d.isJahresabrechnung && d.recognizedValue != null);
+  const annualDocs = docs.filter((d) => d.isJahresabrechnung);
   if (annualDocs.length > 0) {
-    return annualDocs[annualDocs.length - 1].recognizedValue!;
+    const lastAnnual = annualDocs[annualDocs.length - 1];
+    if (lastAnnual.recognizedValue != null) {
+      return lastAnnual.recognizedValue;
+    }
   }
   return docs.reduce((sum, d) => sum + (d.recognizedValue ?? 0), 0);
 }
@@ -62,6 +69,9 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
   const [yearId, setYearId] = useState<number | null>(null);
   const [lastDocumentId, setLastDocumentId] = useState<number | undefined>();
   const [warnings, setWarnings] = useState<Record<string, string | null>>({});
+  // Refresh keys trigger FieldDocumentZone to re-fetch after UploadOCR creates a doc
+  const [dieselRefreshKey, setDieselRefreshKey] = useState(0);
+  const [benzinRefreshKey, setBenzinRefreshKey] = useState(0);
 
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } =
     useForm<FormValues>({
@@ -181,9 +191,30 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
             {errors[f.id] && <p className="text-xs text-red-600">{errors[f.id]?.message}</p>}
             {f.id === 'diesel' && <PlausibilityWarning message={warnings.DIESEL_FUHRPARK ?? null} />}
             <p className="text-xs text-gray-400">{f.hint} (UBA 2024)</p>
+            {/* UploadOCR is only shown for fuel-consumption fields that have an OCR category */}
+            {f.fieldKey === 'DIESEL_FUHRPARK' && (
+              <UploadOCR
+                category="DIESEL_FUHRPARK"
+                fieldKey="DIESEL_FUHRPARK"
+                year={year}
+                onResult={(value, _confidence) => setValue('diesel', value)}
+                onDocumentStored={() => setDieselRefreshKey((k) => k + 1)}
+              />
+            )}
+            {f.fieldKey === 'BENZIN_FUHRPARK' && (
+              <UploadOCR
+                category="BENZIN_FUHRPARK"
+                fieldKey="BENZIN_FUHRPARK"
+                year={year}
+                onResult={(value, _confidence) => setValue('benzin', value)}
+                onDocumentStored={() => setBenzinRefreshKey((k) => k + 1)}
+              />
+            )}
             <FieldDocumentZone
               fieldKey={f.fieldKey}
               year={year}
+              suppressInitialUpload={f.fieldKey === 'DIESEL_FUHRPARK' || f.fieldKey === 'BENZIN_FUHRPARK'}
+              refreshKey={f.fieldKey === 'DIESEL_FUHRPARK' ? dieselRefreshKey : f.fieldKey === 'BENZIN_FUHRPARK' ? benzinRefreshKey : 0}
               onDocumentsChange={f.category ? (docs) => setValue(f.id, calculateTotal(docs)) : undefined}
             />
           </div>
