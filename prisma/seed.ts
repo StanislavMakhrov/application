@@ -62,18 +62,18 @@ async function main() {
 
   // Industry benchmarks (t CO₂e per employee per year)
   const benchmarks = [
-    { branche: Branche.ELEKTROHANDWERK, co2ePerEmployeePerYear: 3.2 },
-    { branche: Branche.SHK, co2ePerEmployeePerYear: 14.2 },
-    { branche: Branche.BAUGEWERBE, co2ePerEmployeePerYear: 18.7 },
-    { branche: Branche.TISCHLER, co2ePerEmployeePerYear: 10.3 },
-    { branche: Branche.KFZ_WERKSTATT, co2ePerEmployeePerYear: 16.1 },
-    { branche: Branche.MALER, co2ePerEmployeePerYear: 9.8 },
-    { branche: Branche.SONSTIGES, co2ePerEmployeePerYear: 11.5 },
+    { branche: Branche.ELEKTROHANDWERK, co2ePerEmployeePerYear: 3.2, validYear: 2024 },
+    { branche: Branche.SHK, co2ePerEmployeePerYear: 14.2, validYear: 2024 },
+    { branche: Branche.BAUGEWERBE, co2ePerEmployeePerYear: 18.7, validYear: 2024 },
+    { branche: Branche.TISCHLER, co2ePerEmployeePerYear: 10.3, validYear: 2024 },
+    { branche: Branche.KFZ_WERKSTATT, co2ePerEmployeePerYear: 16.1, validYear: 2024 },
+    { branche: Branche.MALER, co2ePerEmployeePerYear: 9.8, validYear: 2024 },
+    { branche: Branche.SONSTIGES, co2ePerEmployeePerYear: 11.5, validYear: 2024 },
   ];
 
   for (const benchmark of benchmarks) {
     await prisma.industryBenchmark.upsert({
-      where: { branche: benchmark.branche },
+      where: { branche_validYear: { branche: benchmark.branche, validYear: benchmark.validYear } },
       update: benchmark,
       create: benchmark,
     });

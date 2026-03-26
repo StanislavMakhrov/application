@@ -231,6 +231,24 @@ export interface FactorRecord {
   validYear: number;
 }
 
+/** Editable emission factor row used by Settings CRUD UI and /api/factors endpoints */
+export interface EmissionFactorRow {
+  id: string;
+  key: string;
+  factorKg: number;
+  unit: string;
+  source: string;
+  validYear: number;
+}
+
+/** Editable industry benchmark row used by Settings CRUD UI and /api/benchmarks endpoints */
+export interface IndustryBenchmarkRow {
+  id: string;
+  branche: string;
+  valueKg: number;
+  validYear: number;
+}
+
 // === Methodology ===
 
 /** One row in the methodology emission factor table */

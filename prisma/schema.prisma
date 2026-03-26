@@ -177,8 +177,11 @@ enum ReportType {
 
 model IndustryBenchmark {
   id                    Int     @id @default(autoincrement())
-  branche               Branche @unique
+  branche               Branche
   co2ePerEmployeePerYear Float
+  validYear             Int     @default(2024)
+
+  @@unique([branche, validYear])
 }
 
 // ─── Audit Trail & Document Storage ──────────────────────────────────────────
