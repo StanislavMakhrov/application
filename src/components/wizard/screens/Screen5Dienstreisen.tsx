@@ -22,6 +22,8 @@ import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
 import { PlausibilityWarning, getPlausibilityWarning } from '@/components/wizard/PlausibilityWarning';
 import { HelpTooltip } from '@/components/ui/HelpTooltip';
 import { saveEntry, getOrCreateYear } from '@/lib/actions';
+import { useFactors } from '@/hooks/useFactors';
+import { FactorHint } from '@/components/wizard/FactorHint';
 
 const schema = z.object({
   flug: z.coerce.number().min(0).default(0),
@@ -41,6 +43,8 @@ export default function Screen5Dienstreisen({ year }: Screen5Props) {
   // Refresh keys trigger FieldDocumentZone to re-fetch after UploadOCR creates a doc
   const [flugRefreshKey, setFlugRefreshKey] = useState(0);
   const [bahnRefreshKey, setBahnRefreshKey] = useState(0);
+  // Live emission factors fetched from DB for this reporting year
+  const { factors } = useFactors(year);
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } =
     useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { flug: 0, bahn: 0, pendlerKm: 0 } });
 
@@ -106,7 +110,7 @@ export default function Screen5Dienstreisen({ year }: Screen5Props) {
           />
           {errors.flug && <p className="text-xs text-red-600">{errors.flug.message}</p>}
           <PlausibilityWarning message={warnings.GESCHAEFTSREISEN_FLUG ?? null} />
-          <p className="text-xs text-gray-400">Summe aller Flüge in km. Faktor: 0,255 kg CO₂e/km (UBA 2024)</p>
+          <FactorHint factorKey="GESCHAEFTSREISEN_FLUG" factors={factors} prefix="Summe aller Flüge in km. " />
           <FieldDocumentZone
             fieldKey="GESCHAEFTSREISEN_FLUG"
             year={year}
@@ -127,7 +131,7 @@ export default function Screen5Dienstreisen({ year }: Screen5Props) {
           <Label htmlFor="bahn">Geschäftsreisen Bahn (km/Jahr, gesamt)</Label>
           <Input id="bahn" type="number" step="1" min={0} {...register('bahn')} />
           {errors.bahn && <p className="text-xs text-red-600">{errors.bahn.message}</p>}
-          <p className="text-xs text-gray-400">Faktor: 0,032 kg CO₂e/km (UBA 2024)</p>
+          <FactorHint factorKey="GESCHAEFTSREISEN_BAHN" factors={factors} />
           <FieldDocumentZone
             fieldKey="GESCHAEFTSREISEN_BAHN"
             year={year}
@@ -151,9 +155,7 @@ export default function Screen5Dienstreisen({ year }: Screen5Props) {
           </Label>
           <Input id="pendlerKm" type="number" step="1" min={0} {...register('pendlerKm')} />
           {errors.pendlerKm && <p className="text-xs text-red-600">{errors.pendlerKm.message}</p>}
-          <p className="text-xs text-gray-400">
-            Berechnung: Anzahl MA × ∅ Pendelweg (km) × 2 × Arbeitstage. Faktor: 0,142 kg CO₂e/km
-          </p>
+          <FactorHint factorKey="PENDLERVERKEHR" factors={factors} prefix="Berechnung: Anzahl MA × ∅ Pendelweg (km) × 2 × Arbeitstage. " />
           <FieldDocumentZone fieldKey="PENDLERVERKEHR" year={year} />
         </div>
 

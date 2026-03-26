@@ -28,6 +28,8 @@ import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
 import { PlausibilityWarning, getPlausibilityWarning } from '@/components/wizard/PlausibilityWarning';
 import { HelpTooltip } from '@/components/ui/HelpTooltip';
 import { saveEntry, getOrCreateYear } from '@/lib/actions';
+import { useFactors } from '@/hooks/useFactors';
+import { FactorHint } from '@/components/wizard/FactorHint';
 
 const schema = z.object({
   diesel: z.coerce.number().min(0).default(0),
@@ -53,6 +55,8 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
   // Refresh keys trigger FieldDocumentZone to re-fetch after UploadOCR creates a doc
   const [dieselRefreshKey, setDieselRefreshKey] = useState(0);
   const [benzinRefreshKey, setBenzinRefreshKey] = useState(0);
+  // Live emission factors fetched from DB for this reporting year
+  const { factors } = useFactors(year);
 
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } =
     useForm<FormValues>({
@@ -113,12 +117,12 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
   };
 
   const fields = [
-    { id: 'diesel', label: 'Diesel gesamt (L/Jahr)', category: 'DIESEL_FUHRPARK', fieldKey: 'DIESEL_FUHRPARK', hint: 'Faktor: 2,650 kg CO₂e/L' },
-    { id: 'benzin', label: 'Benzin gesamt (L/Jahr)', category: 'BENZIN_FUHRPARK', fieldKey: 'BENZIN_FUHRPARK', hint: 'Faktor: 2,330 kg CO₂e/L' },
-    { id: 'pkwBenzinKm', label: 'PKW Benzin (km/Jahr)', category: null, fieldKey: 'PKW_BENZIN_KM', hint: 'Faktor: 0,142 kg CO₂e/km' },
-    { id: 'pkwDieselKm', label: 'PKW Diesel (km/Jahr)', category: null, fieldKey: 'PKW_DIESEL_KM', hint: 'Faktor: 0,171 kg CO₂e/km' },
-    { id: 'transporterKm', label: 'Transporter (km/Jahr)', category: null, fieldKey: 'TRANSPORTER_KM', hint: 'Faktor: 0,210 kg CO₂e/km' },
-    { id: 'lkwKm', label: 'LKW (km/Jahr)', category: null, fieldKey: 'LKW_KM', hint: 'Faktor: 0,320 kg CO₂e/km' },
+    { id: 'diesel', label: 'Diesel gesamt (L/Jahr)', category: 'DIESEL_FUHRPARK', fieldKey: 'DIESEL_FUHRPARK' },
+    { id: 'benzin', label: 'Benzin gesamt (L/Jahr)', category: 'BENZIN_FUHRPARK', fieldKey: 'BENZIN_FUHRPARK' },
+    { id: 'pkwBenzinKm', label: 'PKW Benzin (km/Jahr)', category: null, fieldKey: 'PKW_BENZIN_KM' },
+    { id: 'pkwDieselKm', label: 'PKW Diesel (km/Jahr)', category: null, fieldKey: 'PKW_DIESEL_KM' },
+    { id: 'transporterKm', label: 'Transporter (km/Jahr)', category: null, fieldKey: 'TRANSPORTER_KM' },
+    { id: 'lkwKm', label: 'LKW (km/Jahr)', category: null, fieldKey: 'LKW_KM' },
   ] as const;
 
   return (
@@ -171,7 +175,7 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
             />
             {errors[f.id] && <p className="text-xs text-red-600">{errors[f.id]?.message}</p>}
             {f.id === 'diesel' && <PlausibilityWarning message={warnings.DIESEL_FUHRPARK ?? null} />}
-            <p className="text-xs text-gray-400">{f.hint} (UBA 2024)</p>
+            <FactorHint factorKey={f.fieldKey} factors={factors} />
             <FieldDocumentZone
               fieldKey={f.fieldKey}
               year={year}

@@ -18,6 +18,8 @@ import { MATERIAL_LABELS } from '@/types';
 import type { MaterialCategory } from '@/types';
 import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
 import { HelpTooltip } from '@/components/ui/HelpTooltip';
+import { useFactors } from '@/hooks/useFactors';
+import { FactorHint } from '@/components/wizard/FactorHint';
 
 interface MaterialRow {
   material: MaterialCategory;
@@ -30,17 +32,6 @@ const MATERIAL_OPTIONS = Object.entries(MATERIAL_LABELS).map(([value, label]) =>
   label,
 }));
 
-const MATERIAL_FACTORS: Record<MaterialCategory, string> = {
-  KUPFER: '3,800',
-  STAHL: '1,770',
-  ALUMINIUM: '8,240',
-  HOLZ: '0,470',
-  KUNSTSTOFF_PVC: '2,410',
-  BETON: '0,130',
-  FARBEN_LACKE: '2,800',
-  SONSTIGE: '1,000',
-};
-
 interface Screen6Props {
   year: number;
 }
@@ -51,6 +42,8 @@ export default function Screen6Materialien({ year }: Screen6Props) {
     { material: 'KUPFER', quantityKg: 0, supplierName: '' },
   ]);
   const [isSaving, setIsSaving] = useState(false);
+  // Live emission factors fetched from DB for this reporting year
+  const { factors } = useFactors(year);
 
   useEffect(() => {
     getOrCreateYear(year).then((y) => {
@@ -154,7 +147,7 @@ export default function Screen6Materialien({ year }: Screen6Props) {
                   />
                 </td>
                 <td className="py-2 pr-3 text-gray-500">
-                  {MATERIAL_FACTORS[row.material]} (UBA 2024)
+                  <FactorHint factorKey={row.material} factors={factors} />
                 </td>
                 <td className="py-2">
                   <button

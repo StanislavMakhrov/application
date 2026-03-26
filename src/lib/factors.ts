@@ -8,6 +8,7 @@
  */
 
 import { prisma } from './prisma';
+import type { FactorRecord } from '@/types';
 
 /**
  * Returns the emission factor (kg CO₂e per unit) for a given key and year.
@@ -100,6 +101,34 @@ export async function getAllFactorsForYear(year: number): Promise<Record<string,
     const factor = await getEmissionFactor(key, year);
     if (factor !== null) {
       result[key] = factor;
+    }
+  }
+  return result;
+}
+
+/**
+ * Returns full emission factor records for all known keys for a given year.
+ * Uses the same three-step year-fallback chain as getEmissionFactorRecord().
+ *
+ * Used by the GET /api/factors route and the Settings page (server-side).
+ * Unlike getAllFactorsForYear(), this returns full metadata (unit, source, validYear)
+ * rather than just the numeric factorKg value.
+ *
+ * @param year - Reporting year (e.g. 2024)
+ * @returns Map of factor key → full FactorRecord for all keys that exist in the DB
+ */
+export async function getAllEmissionFactorRecords(year: number): Promise<Record<string, FactorRecord>> {
+  // Fetch all distinct keys available across all years
+  const allKeys = await prisma.emissionFactor.findMany({
+    select: { key: true },
+    distinct: ['key'],
+  });
+
+  const result: Record<string, FactorRecord> = {};
+  for (const { key } of allKeys) {
+    const record = await getEmissionFactorRecord(key, year);
+    if (record !== null) {
+      result[key] = record;
     }
   }
   return result;

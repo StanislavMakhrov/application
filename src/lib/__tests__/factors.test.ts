@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getEmissionFactor, getEmissionFactorRecord } from '../factors';
+import { getEmissionFactor, getEmissionFactorRecord, getAllEmissionFactorRecords } from '../factors';
 
 // Mock the Prisma client singleton
 vi.mock('../prisma', () => ({
@@ -160,5 +160,99 @@ describe('getEmissionFactorRecord', () => {
 
     const result = await getEmissionFactorRecord('NONEXISTENT', 2024);
     expect(result).toBeNull();
+  });
+});
+
+describe('getAllEmissionFactorRecords', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // TC-01: Returns a map of full records for all known keys
+  it('TC-01: returns full FactorRecord map for all distinct keys', async () => {
+    // findMany returns distinct keys
+    vi.mocked(prisma.emissionFactor.findMany).mockResolvedValueOnce([
+      { key: 'ERDGAS' } as never,
+      { key: 'STROM' } as never,
+    ]);
+    // getEmissionFactorRecord called for ERDGAS (exact match)
+    vi.mocked(prisma.emissionFactor.findUnique)
+      .mockResolvedValueOnce({
+        id: 1, key: 'ERDGAS', validYear: 2024, factorKg: 2.02,
+        unit: 'm³', source: 'UBA 2024', scope: 'SCOPE1', createdAt: new Date(),
+      })
+      // getEmissionFactorRecord called for STROM (exact match)
+      .mockResolvedValueOnce({
+        id: 2, key: 'STROM', validYear: 2024, factorKg: 0.434,
+        unit: 'kWh', source: 'UBA 2024', scope: 'SCOPE2', createdAt: new Date(),
+      });
+
+    const result = await getAllEmissionFactorRecords(2024);
+
+    expect(result).toEqual({
+      ERDGAS: { factorKg: 2.02, unit: 'm³', source: 'UBA 2024', validYear: 2024 },
+      STROM: { factorKg: 0.434, unit: 'kWh', source: 'UBA 2024', validYear: 2024 },
+    });
+    expect(prisma.emissionFactor.findMany).toHaveBeenCalledWith({
+      select: { key: true },
+      distinct: ['key'],
+    });
+  });
+
+  // TC-02: Keys with no factor at any year are excluded from the result
+  it('TC-02: excludes keys that have no factor record at any year', async () => {
+    vi.mocked(prisma.emissionFactor.findMany).mockResolvedValueOnce([
+      { key: 'ERDGAS' } as never,
+      { key: 'UNKNOWN' } as never,
+    ]);
+    // ERDGAS: exact match
+    vi.mocked(prisma.emissionFactor.findUnique)
+      .mockResolvedValueOnce({
+        id: 1, key: 'ERDGAS', validYear: 2024, factorKg: 2.02,
+        unit: 'm³', source: 'UBA 2024', scope: 'SCOPE1', createdAt: new Date(),
+      })
+      // UNKNOWN: no exact match
+      .mockResolvedValueOnce(null);
+    // UNKNOWN: no fallback
+    vi.mocked(prisma.emissionFactor.findFirst)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null);
+
+    const result = await getAllEmissionFactorRecords(2024);
+
+    expect(Object.keys(result)).toEqual(['ERDGAS']);
+    expect(result['UNKNOWN']).toBeUndefined();
+  });
+
+  // TC-03: Uses year-fallback when exact year is not available
+  it('TC-03: uses year-fallback for keys not seeded for the requested year', async () => {
+    vi.mocked(prisma.emissionFactor.findMany).mockResolvedValueOnce([
+      { key: 'STROM' } as never,
+    ]);
+    // No exact match for year 2026
+    vi.mocked(prisma.emissionFactor.findUnique).mockResolvedValueOnce(null);
+    // Falls back to 2024 record
+    vi.mocked(prisma.emissionFactor.findFirst).mockResolvedValueOnce({
+      id: 2, key: 'STROM', validYear: 2024, factorKg: 0.434,
+      unit: 'kWh', source: 'UBA 2024', scope: 'SCOPE2', createdAt: new Date(),
+    });
+
+    const result = await getAllEmissionFactorRecords(2026);
+
+    expect(result.STROM).toEqual({
+      factorKg: 0.434,
+      unit: 'kWh',
+      source: 'UBA 2024',
+      validYear: 2024,
+    });
+  });
+
+  // TC-04: Returns empty map when no keys exist in the DB
+  it('TC-04: returns empty map when no emission factor keys exist in the DB', async () => {
+    vi.mocked(prisma.emissionFactor.findMany).mockResolvedValueOnce([]);
+
+    const result = await getAllEmissionFactorRecords(2024);
+
+    expect(result).toEqual({});
   });
 });

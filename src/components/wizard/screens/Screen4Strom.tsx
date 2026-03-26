@@ -32,6 +32,8 @@ import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
 import { PlausibilityWarning, getPlausibilityWarning } from '@/components/wizard/PlausibilityWarning';
 import { HelpTooltip } from '@/components/ui/HelpTooltip';
 import { saveEntry, getOrCreateYear } from '@/lib/actions';
+import { useFactors } from '@/hooks/useFactors';
+import { FactorHint } from '@/components/wizard/FactorHint';
 
 const schema = z.object({
   strom: z.coerce.number().min(0).default(0),
@@ -66,6 +68,8 @@ export default function Screen4Strom({ year }: Screen4Props) {
     });
 
   const isOekostrom = watch('isOekostrom');
+  // Live emission factors fetched from DB for this reporting year
+  const { factors } = useFactors(year);
 
   useEffect(() => {
     getOrCreateYear(year).then((y) => {
@@ -162,9 +166,10 @@ export default function Screen4Strom({ year }: Screen4Props) {
           />
           {errors.strom && <p className="text-xs text-red-600">{errors.strom.message}</p>}
           <PlausibilityWarning message={warnings.STROM ?? null} />
-          <p className="text-xs text-gray-400">
-            Faktor: {isOekostrom ? '0,030' : '0,380'} kg CO₂e/kWh (UBA 2024)
-          </p>
+          {isOekostrom
+            ? <FactorHint factorKey="STROM_OEKOSTROM" factors={factors} />
+            : <FactorHint factorKey="STROM" factors={factors} />
+          }
           <FieldDocumentZone
             fieldKey="STROM"
             year={year}
@@ -202,7 +207,7 @@ export default function Screen4Strom({ year }: Screen4Props) {
           </Label>
           <Input id="fernwaerme" type="number" step="1" min={0} {...register('fernwaerme')} />
           {errors.fernwaerme && <p className="text-xs text-red-600">{errors.fernwaerme.message}</p>}
-          <p className="text-xs text-gray-400">Faktor: 0,175 kg CO₂e/kWh (UBA 2024). Nur wenn Fernwärme vorhanden.</p>
+          <FactorHint factorKey="FERNWAERME" factors={factors} prefix="Nur wenn Fernwärme vorhanden. " />
           <FieldDocumentZone
             fieldKey="FERNWAERME"
             year={year}

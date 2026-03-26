@@ -5,8 +5,12 @@
 import Link from 'next/link';
 import { Leaf, ArrowLeft } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
+import { getAllEmissionFactorRecords } from '@/lib/factors';
 import { YearManagement } from '@/components/settings/YearManagement';
 import { FirmenprofilSettings } from '@/components/settings/FirmenprofilSettings';
+import { EmissionFactorsTable } from '@/components/settings/EmissionFactorsTable';
+import { IndustryBenchmarkTable } from '@/components/settings/IndustryBenchmarkTable';
+import type { Branche } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,6 +18,15 @@ export default async function SettingsPage() {
   const allYears = await prisma.reportingYear.findMany({ orderBy: { year: 'asc' } });
   const years = allYears.map((y: { year: number }) => y.year);
   const nextYear = years.length > 0 ? years[years.length - 1] + 1 : new Date().getFullYear();
+
+  // Derive the most recent reporting year for factor display; fall back to current calendar year
+  const currentYear = years.length > 0 ? years[years.length - 1] : new Date().getFullYear();
+
+  // Fetch factor records and benchmarks server-side (direct lib call — no HTTP needed)
+  const factorRecords = await getAllEmissionFactorRecords(currentYear);
+  const benchmarks = await prisma.industryBenchmark.findMany({
+    orderBy: { branche: 'asc' },
+  }) as Array<{ branche: Branche; co2ePerEmployeePerYear: number }>;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -61,6 +74,27 @@ export default async function SettingsPage() {
             alle zugehörigen Emissionsdaten.
           </p>
           <YearManagement years={years} nextYear={nextYear} />
+        </section>
+
+        {/* Emission factors reference table — read-only, shows all DB factor values */}
+        <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <h2 className="text-base font-semibold text-gray-800 mb-1">Emissionsfaktoren</h2>
+          <p className="text-sm text-gray-500 mb-5">
+            Aktive UBA-Emissionsfaktoren für das Berichtsjahr {currentYear}. Diese Werte werden
+            für alle CO₂e-Berechnungen verwendet.
+          </p>
+          <EmissionFactorsTable factors={factorRecords} year={currentYear} />
+        </section>
+
+        {/* Industry benchmarks reference table — read-only */}
+        <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <h2 className="text-base font-semibold text-gray-800 mb-1">
+            Branchenvergleich (Benchmarks)
+          </h2>
+          <p className="text-sm text-gray-500 mb-5">
+            Durchschnittliche CO₂e-Emissionen pro Mitarbeiter und Jahr nach Branche (Referenzwerte).
+          </p>
+          <IndustryBenchmarkTable benchmarks={benchmarks} />
         </section>
       </div>
     </div>

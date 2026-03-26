@@ -217,6 +217,20 @@ export const CATEGORY_SCOPE: Record<EmissionCategory, Scope> = {
   SONSTIGE_KAELTEMITTEL: 'SCOPE1',
 };
 
+// === Emission Factor Records ===
+
+/**
+ * Full emission factor record returned by getAllEmissionFactorRecords().
+ * Used by the /api/factors endpoint, the useFactors hook, and the FactorHint component.
+ * Distinct from MethodologyFactorRow — this type is used for live UI display, not reports.
+ */
+export interface FactorRecord {
+  factorKg: number;
+  unit: string;
+  source: string;
+  validYear: number;
+}
+
 // === Methodology ===
 
 /** One row in the methodology emission factor table */

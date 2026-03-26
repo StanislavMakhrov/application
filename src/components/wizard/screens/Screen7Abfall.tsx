@@ -18,6 +18,8 @@ import { CsvImport } from '@/components/wizard/CsvImport';
 import { FieldDocumentZone } from '@/components/wizard/FieldDocumentZone';
 import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
 import { saveEntry, getOrCreateYear } from '@/lib/actions';
+import { useFactors } from '@/hooks/useFactors';
+import { FactorHint } from '@/components/wizard/FactorHint';
 
 const schema = z.object({
   restmuell: z.coerce.number().min(0).default(0),
@@ -34,6 +36,8 @@ interface Screen7Props {
 
 export default function Screen7Abfall({ year }: Screen7Props) {
   const [yearId, setYearId] = useState<number | null>(null);
+  // Live emission factors fetched from DB for this reporting year
+  const { factors } = useFactors(year);
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } =
     useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { restmuell: 0, bauschutt: 0, altmetall: 0, sonstiges: 0 } });
 
@@ -91,7 +95,7 @@ export default function Screen7Abfall({ year }: Screen7Props) {
           <Label htmlFor="restmuell">Restmüll (kg/Jahr)</Label>
           <Input id="restmuell" type="number" step="0.1" min={0} {...register('restmuell')} />
           {errors.restmuell && <p className="text-xs text-red-600">{errors.restmuell.message}</p>}
-          <p className="text-xs text-gray-400">Faktor: 0,450 kg CO₂e/kg (UBA 2024)</p>
+          <FactorHint factorKey="ABFALL_RESTMUELL" factors={factors} />
           <FieldDocumentZone fieldKey="ABFALL_RESTMUELL" year={year} />
         </div>
 
@@ -99,7 +103,7 @@ export default function Screen7Abfall({ year }: Screen7Props) {
           <Label htmlFor="bauschutt">Bauschutt (kg/Jahr)</Label>
           <Input id="bauschutt" type="number" step="0.1" min={0} {...register('bauschutt')} />
           {errors.bauschutt && <p className="text-xs text-red-600">{errors.bauschutt.message}</p>}
-          <p className="text-xs text-gray-400">Faktor: 0,008 kg CO₂e/kg (UBA 2024)</p>
+          <FactorHint factorKey="ABFALL_BAUSCHUTT" factors={factors} />
           <FieldDocumentZone fieldKey="ABFALL_BAUSCHUTT" year={year} />
         </div>
 
@@ -107,9 +111,8 @@ export default function Screen7Abfall({ year }: Screen7Props) {
           <Label htmlFor="altmetall">Altmetall / Metallschrott (kg/Jahr)</Label>
           <Input id="altmetall" type="number" step="0.1" min={0} {...register('altmetall')} />
           {errors.altmetall && <p className="text-xs text-red-600">{errors.altmetall.message}</p>}
-          <p className="text-xs text-gray-400 font-medium text-brand-green">
-            ♻ Gutschrift: −1,500 kg CO₂e/kg — Recycling reduziert Ihre Bilanz! (UBA 2024)
-          </p>
+          {/* Negative factor — FactorHint renders ♻ Gutschrift variant automatically */}
+          <FactorHint factorKey="ABFALL_ALTMETALL" factors={factors} />
           <FieldDocumentZone fieldKey="ABFALL_ALTMETALL" year={year} />
         </div>
 
@@ -117,7 +120,7 @@ export default function Screen7Abfall({ year }: Screen7Props) {
           <Label htmlFor="sonstiges">Sonstiger Abfall (kg/Jahr)</Label>
           <Input id="sonstiges" type="number" step="0.1" min={0} {...register('sonstiges')} />
           {errors.sonstiges && <p className="text-xs text-red-600">{errors.sonstiges.message}</p>}
-          <p className="text-xs text-gray-400">Faktor: 0,350 kg CO₂e/kg (UBA 2024)</p>
+          <FactorHint factorKey="ABFALL_SONSTIGES" factors={factors} />
           <FieldDocumentZone fieldKey="ABFALL_SONSTIGES" year={year} />
         </div>
 

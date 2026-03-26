@@ -29,6 +29,8 @@ import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
 import { PlausibilityWarning, getPlausibilityWarning } from '@/components/wizard/PlausibilityWarning';
 import { HelpTooltip } from '@/components/ui/HelpTooltip';
 import { saveEntry, getOrCreateYear } from '@/lib/actions';
+import { useFactors } from '@/hooks/useFactors';
+import { FactorHint } from '@/components/wizard/FactorHint';
 
 const schema = z.object({
   erdgas: z.coerce.number().min(0, 'Wert ≥ 0').default(0),
@@ -57,6 +59,8 @@ export default function Screen2Heizung({ year }: Screen2Props) {
   const [erdgasRefreshKey, setErdgasRefreshKey] = useState(0);
   const [heizoelRefreshKey, setHeizoelRefreshKey] = useState(0);
   const [fluessiggasRefreshKey, setFluessiggasRefreshKey] = useState(0);
+  // Live emission factors fetched from DB for this reporting year
+  const { factors } = useFactors(year);
 
   const {
     register,
@@ -176,7 +180,7 @@ export default function Screen2Heizung({ year }: Screen2Props) {
           />
           {errors.erdgas && <p className="text-xs text-red-600">{errors.erdgas.message}</p>}
           <PlausibilityWarning message={warnings.ERDGAS ?? null} />
-          <p className="text-xs text-gray-400">Quelle: Gas-Jahresabrechnung. Faktor: 2,000 kg CO₂e/m³ (UBA 2024)</p>
+          <FactorHint factorKey="ERDGAS" factors={factors} prefix="Quelle: Gas-Jahresabrechnung. " />
           <FieldDocumentZone
             fieldKey="ERDGAS"
             year={year}
@@ -201,7 +205,7 @@ export default function Screen2Heizung({ year }: Screen2Props) {
           </Label>
           <Input id="heizoel" type="number" step="0.1" min={0} {...register('heizoel')} />
           {errors.heizoel && <p className="text-xs text-red-600">{errors.heizoel.message}</p>}
-          <p className="text-xs text-gray-400">Quelle: Lieferscheine. Faktor: 2,650 kg CO₂e/L (UBA 2024)</p>
+          <FactorHint factorKey="HEIZOEL" factors={factors} prefix="Quelle: Lieferscheine. " />
           <FieldDocumentZone
             fieldKey="HEIZOEL"
             year={year}
@@ -226,7 +230,7 @@ export default function Screen2Heizung({ year }: Screen2Props) {
           </Label>
           <Input id="fluessiggas" type="number" step="0.1" min={0} {...register('fluessiggas')} />
           {errors.fluessiggas && <p className="text-xs text-red-600">{errors.fluessiggas.message}</p>}
-          <p className="text-xs text-gray-400">Faktor: 1,650 kg CO₂e/kg (UBA 2024)</p>
+          <FactorHint factorKey="FLUESSIGGAS" factors={factors} />
           <FieldDocumentZone
             fieldKey="FLUESSIGGAS"
             year={year}
@@ -259,7 +263,7 @@ export default function Screen2Heizung({ year }: Screen2Props) {
           <div className="space-y-1.5">
             <Label htmlFor="r410a">R410A (kg/Jahr)</Label>
             <Input id="r410a" type="number" step="0.01" min={0} {...register('r410a')} />
-            <p className="text-xs text-gray-400">GWP 2.088 — Faktor: 2.088 kg CO₂e/kg (UBA 2024)</p>
+            <FactorHint factorKey="R410A_KAELTEMITTEL" factors={factors} prefix="GWP 2.088 — " />
             <FieldDocumentZone fieldKey="R410A_KAELTEMITTEL" year={year} />
           </div>
 
@@ -267,7 +271,7 @@ export default function Screen2Heizung({ year }: Screen2Props) {
           <div className="space-y-1.5">
             <Label htmlFor="r32">R32 (kg/Jahr)</Label>
             <Input id="r32" type="number" step="0.01" min={0} {...register('r32')} />
-            <p className="text-xs text-gray-400">GWP 675 — Faktor: 675 kg CO₂e/kg (UBA 2024)</p>
+            <FactorHint factorKey="R32_KAELTEMITTEL" factors={factors} prefix="GWP 675 — " />
             <FieldDocumentZone fieldKey="R32_KAELTEMITTEL" year={year} />
           </div>
 
@@ -275,7 +279,7 @@ export default function Screen2Heizung({ year }: Screen2Props) {
           <div className="space-y-1.5">
             <Label htmlFor="r134a">R134a (kg/Jahr)</Label>
             <Input id="r134a" type="number" step="0.01" min={0} {...register('r134a')} />
-            <p className="text-xs text-gray-400">GWP 1.430 — Faktor: 1.430 kg CO₂e/kg (UBA 2024)</p>
+            <FactorHint factorKey="R134A_KAELTEMITTEL" factors={factors} prefix="GWP 1.430 — " />
             <FieldDocumentZone fieldKey="R134A_KAELTEMITTEL" year={year} />
           </div>
 
@@ -283,7 +287,7 @@ export default function Screen2Heizung({ year }: Screen2Props) {
           <div className="space-y-1.5">
             <Label htmlFor="sonstigeKaeltemittel">Sonstige Kältemittel (kg/Jahr)</Label>
             <Input id="sonstigeKaeltemittel" type="number" step="0.01" min={0} {...register('sonstigeKaeltemittel')} />
-            <p className="text-xs text-gray-400">Standardfaktor: 1.000 kg CO₂e/kg (UBA 2024)</p>
+            <FactorHint factorKey="SONSTIGE_KAELTEMITTEL" factors={factors} prefix="Standardfaktor: " />
             <FieldDocumentZone fieldKey="SONSTIGE_KAELTEMITTEL" year={year} />
           </div>
         </div>
