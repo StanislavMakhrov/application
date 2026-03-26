@@ -20,7 +20,7 @@ Reference documents: `specification.md`, `architecture.md`, `adr/adr-001` throug
 | Saving Firmenprofil in Settings updates Dashboard company name | TC-03 | E2E |
 | Screen 1 no longer allows editing company profile data | TC-04, TC-05 | Unit (component) |
 | Screen 1 shows read-only values with a link to Settings | TC-05 | Unit (component) |
-| No field shows two separate "Rechnung hochladen" upload triggers simultaneously | TC-06, TC-07 | Unit (component) |
+| No field shows two separate "Rechnung hinzufügen" upload triggers simultaneously | TC-06, TC-07 | Unit (component) |
 | Single upload pre-fills numeric value via OCR **and** stores the document | TC-08, TC-09 | Integration (API) |
 | A user can attach more than one invoice to a single category | TC-10, TC-11 | Integration (API), Unit (component) |
 | Each attached document is listed individually with view and remove options | TC-12 | Unit (component) |
@@ -85,11 +85,11 @@ Reference documents: `specification.md`, `architecture.md`, `adr/adr-001` throug
 **Test Steps**:
 1. Navigate to `/wizard/4` (Strom screen, which has an OCR-enabled STROM field).
 2. Count the upload buttons for the STROM field.
-3. Click the single "Rechnung hochladen" button and select a PDF.
+3. Click the single "Rechnung hinzufügen" button and select a PDF.
 4. Observe the OCR result and the document attachment zone below the input.
 
 **Expected Output**:
-- Exactly **one** "Rechnung hochladen" button is visible for the STROM field.
+- Exactly **one** "Rechnung hinzufügen" button is visible for the STROM field.
 - After upload the numeric input is pre-filled with the OCR-extracted value.
 - The `FieldDocumentZone` below the input shows the uploaded filename with "Ansehen" and "Entfernen" actions.
 - No second upload button is present anywhere for that field.
@@ -107,7 +107,7 @@ Reference documents: `specification.md`, `architecture.md`, `adr/adr-001` throug
 
 **Test Steps**:
 1. Navigate to `/wizard/4`.
-2. Upload a first invoice via the "Rechnung hochladen" button.
+2. Upload a first invoice via the "Rechnung hinzufügen" button.
 3. In the document zone, click "Weitere Rechnung hinzufügen".
 4. Upload a second invoice.
 5. Repeat for a third invoice.
@@ -278,17 +278,17 @@ Screen1Firmenprofil_withEmptyProfile_showsPromptToVisitSettings
 **Type:** Unit (React component — `src/components/wizard/FieldDocumentZone.tsx`)
 
 **Description:**
-Verify that when `suppressInitialUpload={true}` the primary "Rechnung hochladen" button in the empty-state dashed zone is NOT rendered, preventing a duplicate upload trigger alongside `UploadOCR`.
+Verify that when `suppressInitialUpload={true}` the primary "Rechnung hinzufügen" button in the empty-state dashed zone is NOT rendered, preventing a duplicate upload trigger alongside `UploadOCR`.
 
 **Preconditions:**
 - Fetch mock returns `[]` (no existing documents).
 
 **Test Steps:**
 1. Render `<FieldDocumentZone fieldKey="STROM" year={2024} suppressInitialUpload={true} />`.
-2. Query for button with name "Rechnung hochladen".
+2. Query for button with name "Rechnung hinzufügen".
 
 **Expected Result:**
-- No button with text "Rechnung hochladen" is present in the empty state.
+- No button with text "Rechnung hinzufügen" is present in the empty state.
 - The "Kein Dokument hochgeladen" placeholder text IS present (empty state dashed zone is still shown).
 
 **Test File:** `src/components/wizard/FieldDocumentZone.test.tsx`
@@ -313,10 +313,10 @@ Verify that the default `FieldDocumentZone` (no `suppressInitialUpload` prop, or
 
 **Test Steps:**
 1. Render `<FieldDocumentZone fieldKey="KAELTEMITTEL" year={2024} />` without `suppressInitialUpload`.
-2. Assert the "Rechnung hochladen" button is present.
+2. Assert the "Rechnung hinzufügen" button is present.
 
 **Expected Result:**
-- "Rechnung hochladen" button is visible.
+- "Rechnung hinzufügen" button is visible.
 
 **Test File:** `src/components/wizard/FieldDocumentZone.test.tsx`
 

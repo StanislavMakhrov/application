@@ -7,7 +7,7 @@ tasks. The feature delivers three coordinated improvements:
 
 1. **Company profile centralisation** — move Firmenprofil editing from wizard Screen 1 to
    the "Einstellungen" page; Screen 1 becomes a read-only summary.
-2. **Single upload action per field** — remove the duplicate "Rechnung hochladen" button
+2. **Single upload action per field** — remove the duplicate "Rechnung hinzufügen" button
    that appears when both `UploadOCR` and `FieldDocumentZone` are rendered for the same field.
 3. **Multiple invoices per category** — replace the strict one-document-per-(fieldKey, year)
    limit with an append-based document list.
@@ -295,7 +295,7 @@ When `fieldKey` and `year` are provided, they are appended to the `FormData` sen
 Overhaul `FieldDocumentZone` to:
 1. Store a list (`docs: FieldDocument[]`) instead of a single document
 2. Add `suppressInitialUpload?: boolean` prop (default `false`) — when `true`, hides the
-   "Rechnung hochladen" button in the empty state
+   "Rechnung hinzufügen" button in the empty state
 3. Add `refreshKey?: number` prop — when this value changes, the component re-fetches the
    document list
 4. Render a list of document rows, each with filename, upload date, "Ansehen" link, and
@@ -320,7 +320,7 @@ Overhaul `FieldDocumentZone` to:
   document from the displayed list on success
 - [ ] Deleting one document does not affect others in the list
 - [ ] Empty state (no documents) shows "📄 Kein Dokument hochgeladen" placeholder
-- [ ] In empty state, "Rechnung hochladen" button is visible when `suppressInitialUpload={false}`
+- [ ] In empty state, "Rechnung hinzufügen" button is visible when `suppressInitialUpload={false}`
   (default) and **hidden** when `suppressInitialUpload={true}`
 - [ ] "Weitere Rechnung hinzufügen" button is visible when `suppressInitialUpload={true}` OR
   when `docs.length > 0` (regardless of `suppressInitialUpload`)
@@ -357,7 +357,7 @@ state variables. Kältemittel fields (no `UploadOCR`) remain unchanged.
   below displays the uploaded document without requiring a second upload
 - [ ] Kältemittel `FieldDocumentZone` components are **not** passed `suppressInitialUpload`
   (they keep the default `false` behaviour and their own upload button)
-- [ ] No second standalone "Rechnung hochladen" button appears for ERDGAS, HEIZOEL, or
+- [ ] No second standalone "Rechnung hinzufügen" button appears for ERDGAS, HEIZOEL, or
   FLUESSIGGAS fields
 
 **Dependencies:** Tasks 9, 10
@@ -383,7 +383,7 @@ have `UploadOCR` and wire them accordingly.
   and `refreshKey`
 - [ ] After a single upload the document appears in `FieldDocumentZone` without a second upload
 - [ ] Fields with only `FieldDocumentZone` (no OCR) are not changed
-- [ ] No field in Screen 3 shows two simultaneous "Rechnung hochladen" upload triggers
+- [ ] No field in Screen 3 shows two simultaneous "Rechnung hinzufügen" upload triggers
 
 **Dependencies:** Tasks 9, 10
 
@@ -407,7 +407,7 @@ Apply the upload-unification pattern to the STROM and FERNWAERME fields in Scree
 - [ ] Same pattern applied for FERNWAERME with its own `refreshKey` state var
 - [ ] After a single upload on the STROM or FERNWAERME field, the document appears in the
   `FieldDocumentZone` below without requiring a second upload
-- [ ] No second standalone "Rechnung hochladen" button appears for either field
+- [ ] No second standalone "Rechnung hinzufügen" button appears for either field
 
 **Dependencies:** Tasks 9, 10
 
@@ -480,9 +480,9 @@ Map to test cases TC-06 through TC-11, TC-14, TC-19, TC-20 from the test plan.
 - [ ] Test `FieldDocumentZone_emptyState_showsPlaceholder`: `fetch` returns `[]`; asserts
   "Kein Dokument hochgeladen" text is visible
 - [ ] Test `FieldDocumentZone_emptyState_suppressInitialUpload_hidesUploadButton`: with
-  `suppressInitialUpload={true}` and empty list, asserts "Rechnung hochladen" button is absent
+  `suppressInitialUpload={true}` and empty list, asserts "Rechnung hinzufügen" button is absent
 - [ ] Test `FieldDocumentZone_emptyState_withoutSuppression_showsUploadButton`: with
-  `suppressInitialUpload={false}` (default) and empty list, asserts "Rechnung hochladen"
+  `suppressInitialUpload={false}` (default) and empty list, asserts "Rechnung hinzufügen"
   button is present
 - [ ] Test `FieldDocumentZone_withDocuments_rendersEachDocument`: `fetch` returns two docs;
   asserts both filenames appear with "Ansehen" and "Entfernen" for each

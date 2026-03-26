@@ -93,7 +93,7 @@ The table below is the canonical reference for what data enters the system, how 
 1. User opens browser → lands on Dashboard; sees all categories marked "Nicht erfasst".
 2. Clicks "+ Neues Jahr" → selects 2024 as Berichtsjahr.
 3. Navigates to Screen 1 (Firmenprofil) → confirms or updates company data → clicks "Weiter".
-4. Screen 2 (Heizung & Gebäude) → picks up gas bill, clicks "Rechnung hochladen", uploads PDF → OCR pre-fills 4.200 m³ → user confirms → clicks "Weiter".
+4. Screen 2 (Heizung & Gebäude) → picks up gas bill, clicks "Rechnung hinzufügen", uploads PDF → OCR pre-fills 4.200 m³ → user confirms → clicks "Weiter".
 5. Screen 3 (Fuhrpark) → uploads DATEV CSV → maps "Diesel Gesamt" column → 3 rows are populated → user edits one row → "Weiter".
 6. Screen 4 (Strom & Fernwärme) → types 28.400 kWh manually → ticks "Ökostrom: Nein" → "Weiter".
 7. Screen 5 (Dienstreisen & Pendler) → enters 2 employees × 25 km × 220 days = 11.000 km Pendler → "Weiter".

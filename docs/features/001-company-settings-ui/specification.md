@@ -80,7 +80,7 @@ This feature addresses three related improvements to the GrünBilanz data-entry 
 - Two separate upload triggers exist; uploading via UploadOCR does **not** automatically populate the FieldDocumentZone, so the user must upload twice to get both OCR pre-fill and stored evidence.
 
 **New behaviour:**
-- One upload action: a single "📄 Rechnung hochladen" button (in the position currently occupied by UploadOCR).
+- One upload action: a single "📄 Rechnung hinzufügen" button (in the position currently occupied by UploadOCR).
 - Uploading a file:
   1. Sends to OCR API → pre-fills numeric value (existing UploadOCR behaviour).
   2. Also stores the file as the field's document attachment (existing FieldDocumentZone behaviour).
@@ -99,7 +99,7 @@ This feature addresses three related improvements to the GrünBilanz data-entry 
 - A "➕ Weitere Rechnung hinzufügen" button allows adding more documents.
 - Existing upload-replaces behaviour is replaced by upload-appends behaviour.
 - Individual documents can be deleted without affecting others.
-- An empty state still shows the dashed "Kein Dokument hochgeladen" placeholder with a single "Rechnung hochladen" prompt.
+- An empty state still shows the dashed "Kein Dokument hochgeladen" placeholder with a single "Rechnung hinzufügen" prompt.
 
 **Error states:**
 - If an upload fails, an inline error message is shown without removing previously attached documents.
@@ -112,7 +112,7 @@ This feature addresses three related improvements to the GrünBilanz data-entry 
 - [ ] The "Einstellungen" page contains a "Firmenprofil" section with all company-wide fields (Firmenname, Branche, Mitarbeiter, Standort, Berichtsgrenzen, Ausschlüsse).
 - [ ] Saving the Firmenprofil in "Einstellungen" updates the company name displayed on the Dashboard and in PDF reports.
 - [ ] Screen 1 of the wizard no longer allows editing company profile data (either shows read-only view with a Settings link, or is removed from the wizard).
-- [ ] No field in "Daten erfassen" shows two separate "Rechnung hochladen" upload triggers simultaneously.
+- [ ] No field in "Daten erfassen" shows two separate "Rechnung hinzufügen" upload triggers simultaneously.
 - [ ] Uploading a file via the single invoice upload button on an OCR-enabled field both pre-fills the numeric value (via OCR) and stores the document as field evidence.
 - [ ] A user can attach more than one invoice document to a single emission category (e.g., 13 invoices for Strom).
 - [ ] Each attached document is listed individually with view and remove options.

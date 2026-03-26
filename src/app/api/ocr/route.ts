@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     // If fieldKey + year are provided, also write the file to the filesystem and
     // create a FieldDocument record so the OCR upload doubles as invoice storage.
-    // This eliminates the need for a separate "Rechnung hochladen" button in
+    // This eliminates the need for a separate "Rechnung hinzufügen" button in
     // FieldDocumentZone when UploadOCR is already present for the same field.
     let fieldDocumentId: number | undefined;
     if (fieldKey && yearStr) {

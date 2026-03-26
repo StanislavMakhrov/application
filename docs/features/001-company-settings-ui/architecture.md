@@ -11,7 +11,7 @@ which makes three coordinated improvements to the GrünBilanz data-entry experie
 
 1. **Company profile centralisation** — moves Firmenprofil editing from wizard Screen 1
    to the "Einstellungen" page; Screen 1 becomes a read-only summary.
-2. **Single upload action per field** — removes the duplicate "Rechnung hochladen"
+2. **Single upload action per field** — removes the duplicate "Rechnung hinzufügen"
    button that appears when both `UploadOCR` and `FieldDocumentZone` are rendered for
    the same field.
 3. **Multiple invoices per category** — replaces the strict one-document-per-(fieldKey, year)
@@ -96,7 +96,7 @@ it already writes to `CompanyProfile` with `id = 1` (global record).
 - Update `useEffect` to re-fetch when `refreshKey` changes.
 - API call changes from returning a single object to returning an array
   (`GET /api/field-documents` response changes to `FieldDocument[]`).
-- "Rechnung hochladen" button in empty state is hidden when `suppressInitialUpload={true}`.
+- "Rechnung hinzufügen" button in empty state is hidden when `suppressInitialUpload={true}`.
 - "Weitere Rechnung hinzufügen" button:
   - Always visible when `suppressInitialUpload={true}`.
   - Visible when `suppressInitialUpload={false}` and `docs.length > 0`.

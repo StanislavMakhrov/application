@@ -25,3 +25,17 @@
 - **Artifacts Produced:**
   - `docs/issues/003-invoice-upload-button-bugs/analysis.md` — Full issue analysis with root cause, affected files, and suggested fix approach
 - **Problems Encountered:** None
+
+### Technical Writer
+- **Date:** 2026-03-26
+- **Summary:** Updated all documentation to reflect the button label rename from "Rechnung hochladen" to "Rechnung hinzufügen" introduced by Fix #2. Updated user-journey descriptions, code comments, feature specifications, test plans, and acceptance criteria. Historical bug analysis documents (issue analysis files) were intentionally left unchanged as they document the original broken state.
+- **Artifacts Produced:**
+  - `docs/architecture.md` — Updated user-journey description (line 96)
+  - `src/app/api/ocr/route.ts` — Updated code comment (line 54)
+  - `docs/features/001-company-settings-ui/architecture.md` — Updated two label references
+  - `docs/features/001-company-settings-ui/adr/adr-002-upload-unification-strategy.md` — Updated three label references
+  - `docs/features/001-company-settings-ui/specification.md` — Updated three references in new-behaviour and success-criteria sections
+  - `docs/features/001-company-settings-ui/test-plan.md` — Updated nine label references in test steps and expected results
+  - `docs/features/001-company-settings-ui/uat-test-plan.md` — Updated two label references
+  - `docs/features/001-company-settings-ui/tasks.md` — Updated seven label references in task descriptions and acceptance criteria
+- **Problems Encountered:** None

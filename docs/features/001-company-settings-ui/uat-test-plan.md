@@ -40,7 +40,7 @@ Verify that the three user-facing improvements work correctly in the running app
 
 1. Navigate to `http://localhost:3000/wizard/4` (Strom & Fernwärme screen).
 2. Locate the **"Strom (kWh/Jahr)"** field.
-3. Count the upload buttons associated with that field — there must be **exactly one** "📄 Rechnung hochladen" button.
+3. Count the upload buttons associated with that field — there must be **exactly one** "📄 Rechnung hinzufügen" button.
 4. Click the button and select a sample PDF.
 5. Verify:
    - The OCR toast appears and resolves with an extracted value.
@@ -79,7 +79,7 @@ Verify that the three user-facing improvements work correctly in the running app
 - **Settings page Firmenprofil section**: Visible, editable, saves successfully with toast feedback.
 - **Dashboard update**: Company name reflects the new value immediately after navigating from Settings.
 - **Wizard Screen 1**: Shows read-only company data; no editable inputs; Settings link present.
-- **Upload button count**: Exactly one "Rechnung hochladen" trigger per OCR-enabled field.
+- **Upload button count**: Exactly one "Rechnung hinzufügen" trigger per OCR-enabled field.
 - **Combined upload action**: A single upload pre-fills OCR value **and** stores the document.
 - **Multi-document list**: Multiple invoices can be attached; each is listed with view/remove options.
 - **Individual removal**: Removing one document leaves others untouched.

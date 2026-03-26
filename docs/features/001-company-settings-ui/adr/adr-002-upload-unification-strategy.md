@@ -47,7 +47,7 @@ prop pattern).
 
 `FieldDocumentZone` gains a boolean prop `suppressInitialUpload?: boolean` (default
 `false`). When `true` (set by the parent screen when an `UploadOCR` is also present),
-the zone hides the initial "Rechnung hochladen" button in its empty state, but still
+the zone hides the initial "Rechnung hinzufügen" button in its empty state, but still
 shows existing documents and the "Weitere Rechnung hinzufügen" action.
 
 - **Pros:**
@@ -100,7 +100,7 @@ mode (OCR succeeds, document storage fails). Option C introduces a new endpoint 
 largely duplicates the OCR route.
 
 The `suppressInitialUpload` prop on `FieldDocumentZone` ensures that once the primary
-OCR button is present for a field, no second standalone "Rechnung hochladen" trigger
+OCR button is present for a field, no second standalone "Rechnung hinzufügen" trigger
 appears in the empty state — satisfying the spec's "no duplicate upload buttons" requirement.
 
 ## Consequences
@@ -141,7 +141,7 @@ For the Developer:
 - Add prop `suppressInitialUpload?: boolean` (default `false`).
 - Add prop `refreshKey?: number` — when this value changes (parent increments it after
   OCR upload completes), the zone re-fetches its document list.
-- When `suppressInitialUpload` is `true`, the empty-state "Rechnung hochladen" button is
+- When `suppressInitialUpload` is `true`, the empty-state "Rechnung hinzufügen" button is
   hidden; instead show only the "Weitere Rechnung hinzufügen" button (which is always
   visible when `suppressInitialUpload` is `true`, regardless of document count).
 
