@@ -23,3 +23,11 @@
 - **Artifacts Produced:**
   - `docs/features/002-methodology-summary/architecture.md` — full ADR with data shape, component design, sequence diagram, and file-level change guidance
 - **Problems Encountered:** None. No Prisma schema changes are needed. No new npm packages are needed. The `EmissionFactor` model already stores all required metadata (`unit`, `source`, `validYear`). The only DB-level gap is that `factors.ts` currently only exposes the numeric factor value — the architecture adds `getEmissionFactorRecord()` to return the full record object for methodology purposes.
+
+### Quality Engineer
+- **Date:** 2025-07-14
+- **Summary:** Reviewed specification and architecture documents and explored existing unit test patterns in `src/lib/__tests__/` (emissions, factors, calculateTotal). Produced a comprehensive test plan covering all acceptance criteria with 17 test cases across two files (`methodology.test.ts` and an extension of `factors.test.ts`). Also produced a UAT test plan covering manual PDF inspection steps for all user-facing acceptance criteria. Test cases follow the `methodName_scenario_expectedResult` naming convention and the Vitest/mock-Prisma pattern established by the existing test suite.
+- **Artifacts Produced:**
+  - `docs/features/002-methodology-summary/test-plan.md` — 17 unit test cases, coverage matrix, edge case table
+  - `docs/features/002-methodology-summary/uat-test-plan.md` — 7-step UAT walkthrough for manual PDF verification
+- **Problems Encountered:** None. All required data and test infrastructure already exist. The `MaterialEntry` model does not carry a `scope` field (materials are always Scope 3), which TC-13 explicitly asserts — flagged as an implementation note for the Developer.
