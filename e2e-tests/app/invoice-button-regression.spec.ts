@@ -73,15 +73,18 @@ test.describe("Bug #1 regression — no duplicate upload buttons per field (empt
     await expect(uploadButtons).toHaveCount(2);
   });
 
-  test("screen 2 shows exactly three upload buttons in empty state (one per OCR field)", async ({
+  test("screen 2 shows exactly seven upload buttons in empty state (one per upload zone)", async ({
     page,
   }) => {
-    // Screen 2 (Heizung) has three OCR-enabled fields: ERDGAS, HEIZOEL, FLUESSIGGAS.
+    // Screen 2 (Heizung) has 7 upload zones in total:
+    //   - 3 from UploadOCR components: ERDGAS, HEIZOEL, FLUESSIGGAS
+    //   - 4 from standalone FieldDocumentZone fields (without suppressInitialUpload):
+    //     R410A_KAELTEMITTEL, R32_KAELTEMITTEL, R134A_KAELTEMITTEL, SONSTIGE_KAELTEMITTEL
     // Pre-fix, after any upload, showAddButton would fire a duplicate per uploaded field.
     await page.goto("/wizard/2?year=2024");
     const uploadButtons = page.getByRole("button", { name: /Rechnung hinzufügen/i });
-    // Three OCR fields → expect exactly 3 buttons (one per field, no duplicates).
-    await expect(uploadButtons).toHaveCount(3);
+    // 7 upload zones → expect exactly 7 buttons (one per zone, no duplicates).
+    await expect(uploadButtons).toHaveCount(7);
   });
 });
 
