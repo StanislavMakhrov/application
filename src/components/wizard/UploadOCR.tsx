@@ -6,20 +6,43 @@
  *
  * On success, calls onResult with the extracted value, confidence score,
  * and the documentId of the stored source file (for audit trail linkage).
+ *
+ * Optional props fieldKey + year cause the upload to also create a FieldDocument
+ * record (invoice stored as field evidence). onDocumentStored is called with the
+ * new document so the parent can refresh its FieldDocumentZone.
  */
 
 import { useState, useRef } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 
+interface StoredDocument {
+  id: number;
+  originalFilename: string;
+  filePath: string;
+}
+
 interface UploadOCRProps {
   category: string;
   // documentId is undefined when OCR does not persist a document (should not happen in normal flow)
   onResult: (value: number, confidence: number, documentId?: number) => void;
   label?: string;
+  /** When set, the uploaded file is also stored as a FieldDocument for this field/year */
+  fieldKey?: string;
+  /** Reporting year — required when fieldKey is provided */
+  year?: number;
+  /** Called after the FieldDocument is created; use to refresh FieldDocumentZone */
+  onDocumentStored?: (doc: StoredDocument) => void;
 }
 
-export function UploadOCR({ category, onResult, label = 'Rechnung hochladen' }: UploadOCRProps) {
+export function UploadOCR({
+  category,
+  onResult,
+  label = 'Rechnung hochladen',
+  fieldKey,
+  year,
+  onDocumentStored,
+}: UploadOCRProps) {
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -34,6 +57,11 @@ export function UploadOCR({ category, onResult, label = 'Rechnung hochladen' }: 
       const formData = new FormData();
       formData.append('file', file);
       formData.append('category', category);
+      // Optionally request FieldDocument creation alongside OCR processing
+      if (fieldKey && year !== undefined) {
+        formData.append('fieldKey', fieldKey);
+        formData.append('year', String(year));
+      }
 
       const res = await fetch('/api/ocr', { method: 'POST', body: formData });
       const data = await res.json();
@@ -44,6 +72,15 @@ export function UploadOCR({ category, onResult, label = 'Rechnung hochladen' }: 
           { id: toastId }
         );
         onResult(data.value, data.confidence, data.documentId as number | undefined);
+
+        // Notify parent that a FieldDocument was also stored (triggers zone refresh)
+        if (data.fieldDocumentId && onDocumentStored) {
+          onDocumentStored({
+            id: data.fieldDocumentId as number,
+            originalFilename: file.name,
+            filePath: data.filePath as string ?? '',
+          });
+        }
       } else {
         toast.error(`OCR Fehler: ${data.error ?? 'Unbekannter Fehler'}`, { id: toastId });
       }

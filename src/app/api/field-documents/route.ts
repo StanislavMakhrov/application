@@ -3,7 +3,8 @@
  * POST /api/field-documents — multipart form upload
  *
  * Stores uploaded files in /uploads/{year}/{fieldKey}/ (inside public/ for Next.js serving).
- * Each (fieldKey, year) pair has at most one document; uploading again replaces the previous.
+ * Multiple documents are allowed per (fieldKey, year) — each upload appends a new record
+ * rather than replacing the previous one.
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
@@ -19,10 +20,13 @@ export async function GET(req: NextRequest) {
   if (!fieldKey || !year) {
     return NextResponse.json({ error: 'fieldKey und year sind erforderlich' }, { status: 400 });
   }
-  const doc = await prisma.fieldDocument.findUnique({
-    where: { fieldKey_year: { fieldKey, year: parseInt(year, 10) } },
+  // Return all documents for this field/year, ordered oldest-first so the UI
+  // displays them in chronological upload order.
+  const docs = await prisma.fieldDocument.findMany({
+    where: { fieldKey, year: parseInt(year, 10) },
+    orderBy: { uploadedAt: 'asc' },
   });
-  return NextResponse.json(doc ?? null);
+  return NextResponse.json(docs);
 }
 
 export async function POST(req: NextRequest) {
@@ -43,19 +47,20 @@ export async function POST(req: NextRequest) {
     // Sanitise filename to prevent path traversal and double-extension attacks.
     // Keep only alphanumeric, hyphens, and underscores; replace dot separators with underscores
     // then append the original extension to ensure a single safe extension.
+    // A timestamp prefix ensures uniqueness when multiple files share the same name.
     const ext = file.name.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '') ?? 'bin';
     const base = file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 80);
-    const filename = `${base}.${ext}`;
+    const filename = `${Date.now()}_${base}.${ext}`;
     const filePath = path.join(uploadPath, filename);
     const buffer = Buffer.from(await file.arrayBuffer());
     await writeFile(filePath, buffer);
 
     const relPath = `/uploads/${year}/${fieldKey}/${filename}`;
 
-    const doc = await prisma.fieldDocument.upsert({
-      where: { fieldKey_year: { fieldKey, year: yearNum } },
-      update: { filePath: relPath, originalFilename: file.name, mimeType: file.type },
-      create: { fieldKey, year: yearNum, filePath: relPath, originalFilename: file.name, mimeType: file.type },
+    // Append a new document record — no upsert, since multiple docs per field/year
+    // are now supported (unique constraint removed in migration 20260325000000).
+    const doc = await prisma.fieldDocument.create({
+      data: { fieldKey, year: yearNum, filePath: relPath, originalFilename: file.name, mimeType: file.type },
     });
 
     return NextResponse.json(doc);

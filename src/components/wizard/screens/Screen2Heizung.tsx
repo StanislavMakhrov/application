@@ -53,6 +53,10 @@ export default function Screen2Heizung({ year }: Screen2Props) {
   // documentId carried from OCR/CSV result to saveEntry for audit linkage
   const [lastDocumentId, setLastDocumentId] = useState<number | undefined>();
   const [warnings, setWarnings] = useState<Record<string, string | null>>({});
+  // Incremented when UploadOCR stores a FieldDocument; causes FieldDocumentZone to re-fetch
+  const [refreshKeys, setRefreshKeys] = useState<Record<string, number>>({
+    ERDGAS: 0, HEIZOEL: 0, FLUESSIGGAS: 0,
+  });
 
   const {
     register,
@@ -165,7 +169,10 @@ export default function Screen2Heizung({ year }: Screen2Props) {
             </Label>
             <UploadOCR
               category="ERDGAS"
+              fieldKey="ERDGAS"
+              year={year}
               onResult={(v, _conf, docId) => { setValue('erdgas', v); setLastDocumentId(docId); }}
+              onDocumentStored={() => setRefreshKeys((k) => ({ ...k, ERDGAS: k.ERDGAS + 1 }))}
             />
           </div>
           <Input
@@ -179,7 +186,7 @@ export default function Screen2Heizung({ year }: Screen2Props) {
           {errors.erdgas && <p className="text-xs text-red-600">{errors.erdgas.message}</p>}
           <PlausibilityWarning message={warnings.ERDGAS ?? null} />
           <p className="text-xs text-gray-400">Quelle: Gas-Jahresabrechnung. Faktor: 2,000 kg CO₂e/m³ (UBA 2024)</p>
-          <FieldDocumentZone fieldKey="ERDGAS" year={year} />
+          <FieldDocumentZone fieldKey="ERDGAS" year={year} suppressInitialUpload={true} refreshKey={refreshKeys.ERDGAS} />
         </div>
 
         {/* Heizöl */}
@@ -191,13 +198,16 @@ export default function Screen2Heizung({ year }: Screen2Props) {
             </Label>
             <UploadOCR
               category="HEIZOEL"
+              fieldKey="HEIZOEL"
+              year={year}
               onResult={(v, _conf, docId) => { setValue('heizoel', v); setLastDocumentId(docId); }}
+              onDocumentStored={() => setRefreshKeys((k) => ({ ...k, HEIZOEL: k.HEIZOEL + 1 }))}
             />
           </div>
           <Input id="heizoel" type="number" step="0.1" min={0} {...register('heizoel')} />
           {errors.heizoel && <p className="text-xs text-red-600">{errors.heizoel.message}</p>}
           <p className="text-xs text-gray-400">Quelle: Lieferscheine. Faktor: 2,650 kg CO₂e/L (UBA 2024)</p>
-          <FieldDocumentZone fieldKey="HEIZOEL" year={year} />
+          <FieldDocumentZone fieldKey="HEIZOEL" year={year} suppressInitialUpload={true} refreshKey={refreshKeys.HEIZOEL} />
         </div>
 
         {/* Flüssiggas */}
@@ -209,13 +219,16 @@ export default function Screen2Heizung({ year }: Screen2Props) {
             </Label>
             <UploadOCR
               category="FLUESSIGGAS"
+              fieldKey="FLUESSIGGAS"
+              year={year}
               onResult={(v, _conf, docId) => { setValue('fluessiggas', v); setLastDocumentId(docId); }}
+              onDocumentStored={() => setRefreshKeys((k) => ({ ...k, FLUESSIGGAS: k.FLUESSIGGAS + 1 }))}
             />
           </div>
           <Input id="fluessiggas" type="number" step="0.1" min={0} {...register('fluessiggas')} />
           {errors.fluessiggas && <p className="text-xs text-red-600">{errors.fluessiggas.message}</p>}
           <p className="text-xs text-gray-400">Faktor: 1,650 kg CO₂e/kg (UBA 2024)</p>
-          <FieldDocumentZone fieldKey="FLUESSIGGAS" year={year} />
+          <FieldDocumentZone fieldKey="FLUESSIGGAS" year={year} suppressInitialUpload={true} refreshKey={refreshKeys.FLUESSIGGAS} />
         </div>
 
         {/* Kältemittel — Scope 1 direct emissions from refrigerant leaks */}

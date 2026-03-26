@@ -50,6 +50,10 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
   // documentId carried from OCR/CSV result to saveEntry for audit linkage
   const [lastDocumentId, setLastDocumentId] = useState<number | undefined>();
   const [warnings, setWarnings] = useState<Record<string, string | null>>({});
+  // Incremented when UploadOCR stores a FieldDocument; causes FieldDocumentZone to re-fetch
+  const [refreshKeys, setRefreshKeys] = useState<Record<string, number>>({
+    DIESEL_FUHRPARK: 0, BENZIN_FUHRPARK: 0,
+  });
 
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } =
     useForm<FormValues>({
@@ -158,10 +162,15 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
               {f.category && (
                 <UploadOCR
                   category={f.category}
+                  fieldKey={f.fieldKey}
+                  year={year}
                   onResult={(v, _conf, docId) => {
                     setValue(f.id, v);
                     setLastDocumentId(docId);
                   }}
+                  onDocumentStored={() =>
+                    setRefreshKeys((k) => ({ ...k, [f.fieldKey]: (k[f.fieldKey] ?? 0) + 1 }))
+                  }
                 />
               )}
             </div>
@@ -180,7 +189,12 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
             {errors[f.id] && <p className="text-xs text-red-600">{errors[f.id]?.message}</p>}
             {f.id === 'diesel' && <PlausibilityWarning message={warnings.DIESEL_FUHRPARK ?? null} />}
             <p className="text-xs text-gray-400">{f.hint} (UBA 2024)</p>
-            <FieldDocumentZone fieldKey={f.fieldKey} year={year} />
+            <FieldDocumentZone
+              fieldKey={f.fieldKey}
+              year={year}
+              suppressInitialUpload={!!f.category}
+              refreshKey={refreshKeys[f.fieldKey] ?? 0}
+            />
           </div>
         ))}
 

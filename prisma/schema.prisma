@@ -184,16 +184,16 @@ model IndustryBenchmark {
 // ─── Audit Trail & Document Storage ──────────────────────────────────────────
 
 // Per-field document attachments (invoices, receipts) uploaded per fieldKey/year.
+// Multiple documents are allowed per (fieldKey, year) so users can attach all
+// monthly invoices plus an annual settlement for a single emission category.
 model FieldDocument {
   id               Int      @id @default(autoincrement())
-  fieldKey         String   // e.g. "ERDGAS_2024"
+  fieldKey         String   // e.g. "ERDGAS"
   year             Int
   filePath         String
   originalFilename String
   mimeType         String
   uploadedAt       DateTime @default(now())
-
-  @@unique([fieldKey, year])
 }
 
 enum AuditAction {

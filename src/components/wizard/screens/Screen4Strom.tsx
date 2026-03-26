@@ -83,6 +83,10 @@ export default function Screen4Strom({ year }: Screen4Props) {
   // documentId is carried from OCR/CSV result to saveEntry for audit linkage
   const [lastDocumentId, setLastDocumentId] = useState<number | undefined>();
   const [warnings, setWarnings] = useState<Record<string, string | null>>({});
+  // Incremented when UploadOCR stores a FieldDocument; causes FieldDocumentZone to re-fetch
+  const [refreshKeys, setRefreshKeys] = useState<Record<string, number>>({
+    STROM: 0, FERNWAERME: 0,
+  });
 
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } =
     useForm<FormValues>({
@@ -263,7 +267,10 @@ export default function Screen4Strom({ year }: Screen4Props) {
               </Label>
               <UploadOCR
                 category="STROM"
+                fieldKey="STROM"
+                year={year}
                 onResult={(v, _conf, docId) => { setValue('strom', v); setLastDocumentId(docId); }}
+                onDocumentStored={() => setRefreshKeys((k) => ({ ...k, STROM: k.STROM + 1 }))}
               />
             </div>
             <Input
@@ -279,7 +286,7 @@ export default function Screen4Strom({ year }: Screen4Props) {
             <p className="text-xs text-gray-400">
               Faktor: {isOekostrom ? '0,030' : '0,380'} kg CO₂e/kWh (UBA 2024)
             </p>
-            <FieldDocumentZone fieldKey="STROM" year={year} />
+            <FieldDocumentZone fieldKey="STROM" year={year} suppressInitialUpload={true} refreshKey={refreshKeys.STROM} />
           </div>
         )}
 
@@ -305,13 +312,16 @@ export default function Screen4Strom({ year }: Screen4Props) {
             </Label>
             <UploadOCR
               category="FERNWAERME"
+              fieldKey="FERNWAERME"
+              year={year}
               onResult={(v, _conf, docId) => { setValue('fernwaerme', v); setLastDocumentId(docId); }}
+              onDocumentStored={() => setRefreshKeys((k) => ({ ...k, FERNWAERME: k.FERNWAERME + 1 }))}
             />
           </div>
           <Input id="fernwaerme" type="number" step="1" min={0} {...register('fernwaerme')} />
           {errors.fernwaerme && <p className="text-xs text-red-600">{errors.fernwaerme.message}</p>}
           <p className="text-xs text-gray-400">Faktor: 0,175 kg CO₂e/kWh (UBA 2024). Nur wenn Fernwärme vorhanden.</p>
-          <FieldDocumentZone fieldKey="FERNWAERME" year={year} />
+          <FieldDocumentZone fieldKey="FERNWAERME" year={year} suppressInitialUpload={true} refreshKey={refreshKeys.FERNWAERME} />
         </div>
 
         <Button type="submit" disabled={isSubmitting || !yearId} className="rounded-full px-6">
