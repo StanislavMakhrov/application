@@ -38,3 +38,29 @@
   - `docs/features/003-factor-selection-ux/test-plan.md` — 18 test cases covering `getAllEmissionFactorRecords`, `/api/factors` route, `FactorHint` component, `EmissionFactorsTable`, `IndustryBenchmarkTable`, and `useFactors` hook
   - `docs/features/003-factor-selection-ux/uat-test-plan.md` — 5 manual verification steps for the running app (wizard screens, Settings page, browser console)
 - **Problems Encountered:** None. All new components have clear contracts defined in the architecture doc; mocking strategy follows the same pattern as `factors.test.ts` and `methodology.test.ts`. No new test infrastructure is required.
+
+### Developer
+- **Date:** 2025-07-14
+- **Summary:** Implemented all 15 tasks for the Factor Selection & Display UX feature. Replaced all hardcoded emission factor hint strings in the 6 wizard screens with live DB-driven values via a shared `useFactors` hook and `FactorHint` component. Added read-only emission factor and benchmark tables to the Settings page. Implemented all 18 test cases from the test plan (65 total tests, all passing). Installed `jsdom` and `@testing-library/react` as devDependencies to support React hook tests. Configured vitest with esbuild automatic JSX transform for component rendering tests.
+- **Artifacts Produced:**
+  - `src/types/index.ts` — added `FactorRecord` interface
+  - `src/lib/factors.ts` — added `getAllEmissionFactorRecords(year)` function
+  - `src/app/api/factors/route.ts` — new GET /api/factors?year=YYYY endpoint
+  - `src/app/api/factors/__tests__/route.test.ts` — API route tests (TC-05–07)
+  - `src/hooks/useFactors.ts` — new client hook
+  - `src/hooks/__tests__/useFactors.test.ts` — hook tests (TC-16–18)
+  - `src/components/wizard/FactorHint.tsx` — presentational hint component
+  - `src/components/wizard/__tests__/FactorHint.test.tsx` — component tests (TC-08–11)
+  - `src/components/wizard/screens/Screen2–7.tsx` — replaced all hardcoded hints
+  - `src/components/settings/EmissionFactorsTable.tsx` — new server component
+  - `src/components/settings/__tests__/EmissionFactorsTable.test.tsx` — tests (TC-12–14)
+  - `src/components/settings/IndustryBenchmarkTable.tsx` — new server component
+  - `src/components/settings/__tests__/IndustryBenchmarkTable.test.tsx` — test (TC-15)
+  - `src/app/settings/page.tsx` — added two new reference table sections
+  - `src/lib/__tests__/factors.test.ts` — added TC-01–04 for `getAllEmissionFactorRecords`
+  - `src/vitest.config.ts` — added esbuild automatic JSX transform
+- **Problems Encountered:**
+  - `@testing-library/react` and `jsdom` were not pre-installed; installed as devDependencies since 11/18 test cases required React rendering infrastructure. Noted this as a new dependency addition.
+  - `@vitejs/plugin-react` not available; used `esbuild.jsx: 'automatic'` in vitest config instead.
+  - Pre-existing `calculateTotal.test.ts` TypeScript error (FieldDocument type) not introduced by this work.
+  - Pre-existing Next.js build failure on `@prisma/client` initialization (no DATABASE_URL in CI); TypeScript compilation and lint both pass.
