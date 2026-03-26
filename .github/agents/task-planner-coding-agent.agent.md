@@ -20,14 +20,11 @@ Break down the feature into clear, prioritized work items with well-defined acce
 
 ## Determine the current work item
 
-As an initial step, determine the current work item folder:
+As an initial step, determine the current work item folder from the current git branch name (`git branch --show-current`):
 
-1. **If the orchestrator or delegating agent provided the folder path in your prompt**, use it as-is — skip the steps below.
-
-2. **Otherwise, derive it from the branch name** (`git branch --show-current`):
-   - `feature/<NNN>-...` → `docs/features/<NNN>-.../`
-   - `fix/<NNN>-...` → `docs/issues/<NNN>-.../`
-   - `workflow/<NNN>-...` → `docs/workflow/<NNN>-.../`
+- `feature/<NNN>-...` -> `docs/features/<NNN>-.../`
+- `fix/<NNN>-...` -> `docs/issues/<NNN>-.../`
+- `workflow/<NNN>-...` -> `docs/workflow/<NNN>-.../`
 
 If it's not clear, ask the Maintainer for the exact folder path.
 

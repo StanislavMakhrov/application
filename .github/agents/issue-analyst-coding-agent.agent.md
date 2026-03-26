@@ -20,23 +20,13 @@ Gather diagnostic information, perform initial analysis, and document the proble
 
 ## Determine the current work item
 
-As an initial step, determine the current work item folder:
+As an initial step, determine the current work item folder from the current git branch name (`git branch --show-current`):
 
-1. **If the orchestrator provided the folder path in your instructions**, use it as-is — skip the steps below.
+- `feature/<NNN>-...` -> `docs/features/<NNN>-.../`
+- `fix/<NNN>-...` -> `docs/issues/<NNN>-.../`
+- `workflow/<NNN>-...` -> `docs/workflow/<NNN>-.../`
 
-2. **Otherwise, derive it from the branch name** (`git branch --show-current`):
-   - `feature/<NNN>-...` → `docs/features/<NNN>-.../`
-   - `fix/<NNN>-...` → `docs/issues/<NNN>-.../`
-   - `workflow/<NNN>-...` → `docs/workflow/<NNN>-.../`
-
-3. **On a `copilot/*` branch** (GitHub-auto-created from issue assignment) where no folder was provided:
-   - Run `scripts/next-issue-number.sh` to obtain the next issue number (NNN).
-   - Derive a slug from the bug description (lowercase, hyphenated, ≤ 5 words).
-   - Work item folder: `docs/issues/<NNN>-<slug>/`
-   - **Do NOT create a new git branch** — all work stays on the current `copilot/*` branch.
-   - Report the resolved folder path clearly in your response so the orchestrator can propagate it.
-
-If none of the above applies and the folder is still unclear, ask the Maintainer.
+If it's not clear, ask the Maintainer for the exact folder path.
 
 ## Work Protocol
 
@@ -110,8 +100,6 @@ Before investigating, review relevant context:
 
 **🚨 CRITICAL: You MUST use the `scripts/next-issue-number.sh` script to determine the issue number. NEVER assign issue numbers manually or by looking at existing folders. Manual assignment WILL cause number conflicts.**
 
-#### VS Code (local) workflow
-
 ```bash
 # Determine the next available issue number using the script
 NEXT_NUMBER=$(scripts/next-issue-number.sh)
@@ -135,24 +123,6 @@ Use descriptive short-description like:
 - `fix/066-null-pointer-in-api-handler`
 - `fix/067-failing-integration-tests`
 - `fix/068-markdownlint-table-formatting`
-
-#### Cloud / coding-agent workflow (`copilot/*` branch)
-
-When running as a subagent on a GitHub-auto-created `copilot/*` branch:
-
-1. **Do NOT create or switch branches** — all work must stay on the current `copilot/*` branch.
-2. Determine the issue number:
-   ```bash
-   NEXT_NUMBER=$(scripts/next-issue-number.sh)
-   echo "Next issue number: $NEXT_NUMBER"
-   ```
-3. Derive a slug from the bug description (lowercase, hyphenated, ≤ 5 words).
-4. Create the work item folder (but NOT a new git branch):
-   ```bash
-   mkdir -p docs/issues/${NEXT_NUMBER}-<slug>
-   ```
-5. Use `docs/issues/${NEXT_NUMBER}-<slug>/` as your work item folder for all artifacts.
-6. Include the resolved folder path in your response so the orchestrator can pass it to subsequent agents.
 
 **Why the script is mandatory:**
 - ✅ Determines unique issue number across **ALL change types** (feature, fix, workflow)

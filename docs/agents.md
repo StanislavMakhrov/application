@@ -27,17 +27,8 @@ For well-defined features or bugs, use the **Workflow Orchestrator** agent to au
 **How It Works (Technical)**:
 The routing is controlled by `.github/copilot-instructions.md`. That file contains an explicit rule: when the coding agent session is triggered from a GitHub issue assignment, it **must** load `.github/agents/workflow-orchestrator-coding-agent.agent.md` and act as the Workflow Orchestrator rather than implementing directly. Without this rule, the coding agent would bypass the pipeline and implement directly as a developer.
 
-**Bypassing the Orchestrator (known failure modes)**:
-Two bypass patterns were observed, both exploiting the old "Exception" clause that allowed skipping pipeline stages:
-
-1. **"Initial plan" commit misread as prior work** — GitHub automatically creates an "Initial plan" commit on `copilot/*` when a session starts. The agent misread this as evidence of a prior orchestrator session.
-
-2. **Feature docs from `main` misread as branch artifacts** — Feature docs merged to `main` from a previous pipeline run are visible in the working tree of a new session. The agent found them and bypassed the orchestrator.
-
-Both patterns are now eliminated by removing the Exception clause entirely. Issue assignment always triggers the full orchestrator pipeline — the orchestrator itself observes what artifacts already exist and delegates only to the remaining agents.
-
-**Work Item Folder on `copilot/*` branches**:
-On standard branches (`feature/NNN-*`, `fix/NNN-*`, `workflow/NNN-*`), agents derive the work item folder from the branch name. On `copilot/*` branches, there is no NNN in the branch name. The orchestrator resolves the work item folder (by delegating `scripts/next-issue-number.sh` to the entry-point agent) and passes it explicitly to every subsequent agent. All agent definitions accept an orchestrator-provided folder path as their first resolution step.
+**Bypassing the Orchestrator (known failure mode)**:
+When GitHub starts a coding agent session it automatically creates an "Initial plan" commit on the `copilot/*` branch. A previous version of the Exception clause in `copilot-instructions.md` allowed bypass when "prior commits" existed — the agent misread the automatic commit as evidence of a prior orchestrator session and implemented the feature directly. The clause was tightened to require actual orchestrator artifacts (`docs/features/<N>-*/specification.md` or `docs/adr/*.md`) before the exception can apply.
 
 **Workflow**:
 - The orchestrator **never asks clarifying questions** - it immediately delegates to the appropriate entry point agent (Requirements Engineer for features, Issue Analyst for bugs)
@@ -55,20 +46,6 @@ On standard branches (`feature/NNN-*`, `fix/NNN-*`, `workflow/NNN-*`), agents de
 - Exploratory analysis or design work (use individual agents directly)
 - Single-agent tasks (just use that agent)
 - Highly interactive work requiring maintainer decisions at each step
-
-### Session-Triggered Coding Agent (Interactive)
-
-When a Maintainer starts a coding agent session directly (not from an issue assignment) and types a prompt:
-
-- The agent works **directly on the task** described in the prompt — no orchestrator pipeline.
-- The agent uses `report_progress` to push commits, but does **NOT** create a PR. The Maintainer clicks "Create PR" in the GitHub UI when satisfied.
-- The Maintainer is actively present in the session and can guide the work, so the full orchestation pipeline (Requirements Engineer → Architect → …) is unnecessary.
-- The agent detects this context by the absence of a GitHub issue reference in the session.
-
-**Best for**:
-- Quick tasks, refactors, or exploratory changes where the Maintainer is actively guiding
-- Work that doesn't warrant the full pipeline
-- Iterating on code with real-time Maintainer feedback
 
 **PR Validation and draft PRs**:
 The `PR Validation` pipeline only runs on **ready (non-draft) PRs**. When a coding agent pushes commits to a draft PR, the `synchronize` event triggers the workflow but all jobs are intentionally skipped — this is expected and the "skipped" run in the Actions history is not a failure. The pipeline runs for real only when `scripts/pr-github.sh mark-ready` converts the draft PR to ready-for-review (firing the `ready_for_review` event). This design prevents wasted CI resources on intermediate commits during development.
@@ -88,10 +65,9 @@ All agents exist in two variants optimized for their execution environment:
 - **File naming**: Standard name (e.g., `developer.agent.md`)
 
 ### Coding Agents (GitHub Cloud)
-- **Usage**: Automatically used when GitHub assigns issues to `@copilot`, when running as PR coding agent, or when a Maintainer starts a coding agent session
+- **Usage**: Automatically used when GitHub assigns issues to `@copilot` or when running as PR coding agent
 - **Tools**: No explicit tool list (defaults to all available tools in cloud environment)
 - **Behavior**: Autonomous operation, may ask multiple questions via comments, relies on CI/CD for validation
-- **PR creation**: Issue-triggered sessions → agent creates the PR; session-triggered sessions → Maintainer creates the PR from the UI
 - **File naming**: Name with ` (coding agent)` suffix (e.g., `developer-coding-agent.agent.md`)
 
 The workflow diagram and agent descriptions below refer to the conceptual agent roles, not the specific variants. Both variants follow the same workflow patterns and handoff relationships.
@@ -167,8 +143,8 @@ Format:
 | `git-rebase-main`              | Safely rebase the current feature branch on top of the latest origin/main.                                                                                                                                                                                |
 | `merge-conflict-resolution`    | Resolve git merge/rebase conflicts safely without losing intended changes; verify by reviewing diffs and searching for conflict markers.                                                                                                                  |
 | `next-issue-number`            | Determine the next available issue number across all change types (feature, fix, workflow) by checking both local docs and remote branches, then reserve it by pushing an empty branch.                                                                   |
-| `generate-demo-artifacts`      | Generate the comprehensive demo markdown artifact from the current codebase.                                                                                                                                                                              |
-| `generate-release-screenshots` | Generate PNG screenshots for release notes using the repository's HtmlRenderer and ScreenshotGenerator tools. Use when asked to add screenshots to release notes or documentation.                                                                        |
+| `generate-demo-artifacts`      | Seed the running app with demo data for UAT or manual testing. Use before UAT to ensure the app has realistic data that covers the feature being tested.                                                                                                  |
+| `generate-release-screenshots` | Capture PNG screenshots of the running web app via Playwright + Docker. Used by UAT Tester (during e2e tests) and Release Manager (if UAT screenshots are missing). Saves to `docs/features/NNN-.../screenshots/`.                                                    |
 | `run-unit-tests`               | Run the project test suite using `npm test` (Vitest) from the `src/` directory. Use `npm run test:watch` for development.                                                                                                                                 |
 | `update-workflow-diagram`      | Convert the mermaid diagram in docs/agents.md to a blueprint-styled SVG for the website. Use when the workflow diagram is updated.                                                                                                                        |
 | `view-pr-github`               | View a GitHub PR (prefer GitHub chat tools; gh is fallback with pager disabled).                                                                                                                                                                          |
@@ -176,6 +152,9 @@ Format:
 | `agent-model-selection`        | Guidelines for selecting appropriate language models for agents based on task-specific benchmarks, availability, and cost efficiency.                                                                                                                     |
 | `validate-agent`               | Validate agent definitions for consistency, model availability, handoff integrity, and tool existence.                                                                                                                                                    |
 | `watch-pr-validation`          | After finishing work and pushing changes, automatically find and watch the PR Validation pipeline, then read errors and fix failures if the build is red. Use this after every report_progress call.                                                      |
+| `pre-push-validation`          | Run all PR Validation checks locally before pushing to ensure the PR passes CI without maintainer intervention.                                                                                                                                          |
+| `update-test-snapshots`        | Regenerate test snapshot (golden file) baselines after intentional UI or output changes. Use after modifying rendering logic, templates, or UI components.                                                                                                |
+| `watch-uat-github-pr`          | Watch a GitHub UAT PR for maintainer feedback or approval by polling comments until approved/passed.                                                                                                                                                     |
 
 ## Workflow Overview
 
@@ -250,14 +229,17 @@ flowchart TB
 	%% Row 17: Release Manager
 	RM["<b>Release Manager</b>"]
 
-	%% Row 16: Release Artifacts
+	%% Release Artifacts
 	REL["🚀 Release Notes"]
-	PR["🔀 Pull Request"]
+	PR["🔀 Pull Request<br/>(draft → ready-for-review<br/>via mark-ready)"]
+	CI["⚙️ PR Validation CI<br/>Docker build + E2E tests"]
 
-	%% Row 17: Retrospective
+	%% Maintainer touchpoints
+	UAT_REVIEW(["👤 <b>Maintainer</b><br/>PASS / FAIL comment"])
+	MERGE(["👤 <b>Maintainer</b><br/>Approve &amp; Merge PR"])
+
+	%% Retrospective
 	RETRO_AGENT["<b>Retrospective</b>"]
-
-	%% Row 18: Retro Report
 	RETRO["📝 Retrospective Report"]
 
 	%% Connections - Main Flow
@@ -289,21 +271,26 @@ flowchart TB
 	CRR -- "Approved (no UAT)" --> RM
 
 	UAT_AGENT --> UAT
-	UAT -. "Rendering Issues" .-> DEV
-	UAT -- "Approved" --> RM
+	UAT -. "E2E / UAT Failures" .-> DEV
+	UAT --> UAT_REVIEW
+	UAT_REVIEW -. "FAIL" .-> DEV
+	UAT_REVIEW -- "PASS" --> RM
 
 	RM --> REL
 	RM --> PR
-	RM --> RETRO_AGENT
+	PR --> CI
+	CI -. "CI Failures" .-> DEV
+	CI -- "CI ✅" --> MERGE
+	MERGE --> RETRO_AGENT
 
 	RETRO_AGENT --> RETRO --> WE
 
 	%% Styling
-	class HUMAN human;
+	class HUMAN,UAT_REVIEW,MERGE human;
 	class WO orchestrator;
 	class IA_AGENT,RE,AR,TP_AGENT,QE,DEV,TW,CR,UAT_AGENT,RM,RETRO_AGENT agent;
 	class WE metaagent;
-	class IA,FS,US,ADR,TP,CODE,DOCS,CRR,REL,PR,WD,UAT,RETRO artifact;
+	class IA,FS,US,ADR,TP,CODE,DOCS,CRR,REL,PR,WD,UAT,RETRO,CI artifact;
 ```
 
 _Agents produce and consume artifacts. Arrows show artifact creation and consumption. Communication for feedback/questions between agents (regarding consumed artifacts) is always possible, but intentionally omitted from the diagram for clarity._
@@ -318,8 +305,10 @@ _Agents produce and consume artifacts. Arrows show artifact creation and consump
 6. **Developer** implements features/fixes and tests.
 7. **Technical Writer** updates all relevant documentation (markdown files in the repository).
 8. **Code Reviewer** reviews and approves the work. Hands off to UAT Tester for user-facing features, or directly to Release Manager for internal changes.
-9. **UAT Tester** writes automated **E2E tests** for user-facing scenarios/user stories (committed to `e2e-tests/<feature-slug>/e2e.spec.ts` at repo root) that cover all scenarios from the test plan. E2E tests run in CI via the `e2e-tests` job. Also posts optional manual verification instructions for the Maintainer as an additional check. Waits for Maintainer PASS/FAIL on the manual check.
-10. **Release Manager** prepares, coordinates, and executes the release.
+9. **UAT Tester** writes automated **E2E tests** for user-facing scenarios/user stories (committed to `e2e-tests/<feature-slug>/e2e.spec.ts` at repo root) that cover all scenarios from the test plan. E2E tests run in CI via the `e2e-tests` job — the Orchestrator monitors CI via `watch-pr-validation` and routes any E2E failures back to Developer automatically. Also posts a PR comment with optional manual verification instructions (checklist + `docker run` command + screenshots + demo login credentials) for the Maintainer as an additional check. **Waits for Maintainer to reply `PASS` or `FAIL: <page>, <expected>, <actual>` in the PR comment** before writing the UAT report. Any failure (broken use case, wrong data, UI defect, etc.) is handed back to Developer; on PASS, hands off to Release Manager.
+   - 👤 **Maintainer action:** Reply `PASS` or `FAIL: ...` in the PR comment.
+10. **Release Manager** generates release notes, then calls `scripts/pr-github.sh mark-ready` to convert the `copilot/*` draft PR → ready-for-review. This triggers the **PR Validation** CI pipeline automatically: first a Docker image is built and pushed to GHCR (`ghcr.io/…:pr-N-sha`), then E2E tests run against that image. The Orchestrator monitors CI via `watch-pr-validation` and routes any CI failures back to Developer. Once CI is green, Release Manager notifies the Maintainer the PR is ready.
+    - 👤 **Maintainer action:** Approve and merge the PR in the GitHub UI.
 
 **Meta-Agent:**
 - **Workflow Engineer** improves and maintains the agent workflow itself (operates outside the normal feature flow).
@@ -330,6 +319,10 @@ _Agents produce and consume artifacts. Arrows show artifact creation and consump
 ## Agent Roles & Responsibilities
 
 **Note:** All agents support both local (VS Code) and cloud (GitHub) execution modes. Each agent automatically detects its environment and adapts its behavior accordingly. See [Cloud Agents vs Local Agents](#cloud-agents-vs-local-agents) for details.
+
+### Maintainer (Human — not an agent)
+- **Role:** The Maintainer is the human who coordinates the entire workflow. They start chat sessions with agents in VS Code, approve work, answer clarifying questions, and perform the two required human actions: replying `PASS`/`FAIL` on the UAT PR comment, and approving & merging the final PR in the GitHub UI.
+- **Not an agent:** The Maintainer does not have an agent definition file. They coordinate via VS Code Copilot Chat or GitHub issues.
 
 ### 0. Workflow Orchestrator (Optional Automation)
 - **Goal:** Orchestrate complete development workflows from issue to release with minimal maintainer interaction.
@@ -369,7 +362,6 @@ _Agents produce and consume artifacts. Arrows show artifact creation and consump
 ### 4. Quality Engineer
 - **Goal:** Define how the feature will be tested and validated.
 - **Deliverables:** Test plan, test cases, quality criteria. For user-facing features, user acceptance scenarios for manual review via PRs.
-- **Model:** Claude Sonnet 4.6
 - **Definition of Done:** Test plan covers all acceptance criteria. User-facing features have clear acceptance scenarios defined.
 
 ### 5. Task Planner
@@ -400,16 +392,22 @@ _Agents produce and consume artifacts. Arrows show artifact creation and consump
   3. A UAT report at `docs/features/NNN-<feature-slug>/uat-report.md` after Maintainer confirms PASS/FAIL.
 - **E2E test location:** `e2e-tests/<feature-slug>/e2e.spec.ts` (repo root, not inside `src/`). Uses shared config from `e2e-tests/playwright.config.ts`.
 - **BLOCKER:** If the feature has no user-facing UI changes (e.g. pure background job or API-only), the agent must ask the Maintainer before proceeding.
-- **Definition of Done:** All user-facing scenarios from the test plan are covered by Playwright tests, the CI `e2e-tests` job passes, and the Maintainer has replied with explicit PASS/FAIL on the manual check.
+- **Maintainer touchpoint:** After posting the PR comment, the agent waits for the Maintainer to reply with `PASS` or `FAIL: <page>, <expected>, <actual>` (screenshots welcome). Any failure (broken use case, wrong data, UI defect, etc.) is handed back to Developer. After fixing, UAT Tester re-validates. Note: automated E2E CI failures are monitored by the Orchestrator via `watch-pr-validation` — they are routed back to Developer independently of the manual check.
+- **Definition of Done:** All user-facing scenarios from the test plan are covered by Playwright tests, the CI `e2e-tests` job passes, and the Maintainer has replied with explicit PASS on the manual check.
 - **Implementation:** Playwright (TypeScript); tests drive a headless Chromium browser against the running application outside the Docker container.
 
 ### 10. Release Manager
 - **Goal:** Plan, coordinate, and execute releases.
-- **Deliverables:** Pull request, release notes, versioning, deployment plan, and post-release checklist.
+- **Deliverables:** Pull request (ready for review), release notes, versioning, deployment plan, and post-release checklist.
 - **Key Behavior:** Write release notes as honest, technical notes for users (not marketing), include ✨/🐛/📚 icons, include a 🔗 Commits section with user-facing commits, and only include ▶️ Getting started / 📸 Screenshots when applicable (screenshots required for user-visible output changes).
-- **Definition of Done:** PR is created and merged, release is published, documented, and verified.
+- **mark-ready:** Calls `scripts/pr-github.sh mark-ready` to convert the existing draft PR (auto-created by GitHub when issue was assigned to `@copilot`) from draft → ready-for-review. This fires the `ready_for_review` GitHub Actions event, which triggers the **PR Validation** pipeline:
+  1. **Docker build & push** — builds `src/Dockerfile` and pushes image to GHCR as `ghcr.io/…:pr-N-sha`
+  2. **E2E tests** — pulls the image, starts the container, runs Playwright tests from `e2e-tests/`
+  CI failures are monitored by the Orchestrator via `watch-pr-validation` and routed back to Developer.
+- **Maintainer touchpoint:** Approve and merge the PR in the GitHub UI once CI is green. This is the single required human action before the post-merge release pipeline runs.
+- **Definition of Done:** PR is merged by the Maintainer, release pipeline completes, GitHub Release published, Docker image in GHCR, CHANGELOG updated.
 
-### 10. Retrospective
+### 11. Retrospective
 - **Goal:** Identify improvement opportunities for the development workflow.
 - **Deliverables:** Retrospective report with summary, successes, failures, and improvement opportunities.
 - **Key Behavior:** Be evidence-based and critical; prefer chat logs/artifacts/CI status checks for objective event history, cluster findings by theme, and apply a scoring rubric with explicit deductions.
@@ -422,17 +420,6 @@ _Agents produce and consume artifacts. Arrows show artifact creation and consump
 - **Deliverables:** A prioritized workflow-improvement `tasks.md` (with status), updated agent definitions, workflow documentation updates, PRs with workflow changes.
 - **Definition of Done:** Workflow changes are documented, committed, and PR is created.
 - **Note:** Can operate in both local (chat) and cloud (issue) contexts. This agent operates outside the normal feature development flow.
-
-### 13. Web Designer (Specialized Agent)
-- **Goal:** Design, develop, and maintain the `<project-name>` website hosted on GitHub Pages.
-- **Execution Modes:**
-  - **Cloud (GitHub):** Automated content/style updates via issue assignment for well-defined changes
-- **Deliverables:** Website pages (HTML/CSS), design prototypes, website content derived from existing documentation.
-- **Initial Creation:** Handoff from Architect after technical approach is defined.
-- **Ongoing Changes:** Direct handoff from Maintainer for content, design, or functionality updates (local), or via GitHub issue assignment (cloud).
-- **Definition of Done:** Website changes are complete, accessible (WCAG 2.1 AA), responsive, and the agent provides verification evidence (changed files, Problems panel clean, VS Code preview render, DevTools console clean, style/NFR checklist). DevTools is mandatory in local mode; if Chrome DevTools MCP can’t connect, the agent is blocked and must not claim completion. Website verification must be real: if `scripts/git-status.sh --porcelain=v1` shows website changes, `scripts/website-verify.sh` must not be allowed to silently no-op.
-- **Cloud Limitations:** Cannot generate screenshots, preview locally, or use Chrome DevTools. Best for content/text updates and style changes that don't require visual verification.
-- **Note:** This agent operates independently for website-specific work. Website files live in `/website/` directory with isolated CI/CD pipeline triggers.
 
 ---
 
@@ -463,7 +450,7 @@ When multiple branches are created in parallel, they may independently pick the 
 | **User Stories / Tasks** | Actionable work items with clear acceptance criteria. Used to track implementation progress (features) or workflow improvement work (workflow). | Markdown. For workflow improvements, use a table with a Status column (icon + text) and a short rationale per item. | `docs/features/NNN-<feature-slug>/tasks.md` and `docs/workflow/NNN-<topic-slug>/tasks.md` |
 | **Test Plan & Test Cases** | Defines how the feature will be verified. Maps test cases to acceptance criteria. For user-facing features, includes user acceptance scenarios for manual review. | Markdown document with: Test Objectives, Test Cases (ID, Description, Steps, Expected Result), Coverage Matrix, User Acceptance Scenarios (for user-facing features). | `docs/features/NNN-<feature-slug>/test-plan.md` |
 | **UAT Test Plan** | For user-facing features, defines what will be tested during UAT and provides validation instructions for the maintainer. | Markdown document specifying: Goal, Test Steps, Expected Results, Validation Instructions. | `docs/features/NNN-<feature-slug>/uat-test-plan.md` |
-| **User Acceptance PRs** | Real-environment verification for user-facing features (especially markdown rendering). Used to catch rendering bugs and validate real-world usage. Managed by UAT Tester agent. | Temporary PRs in GitHub and Azure DevOps. **Two markdown reports** are posted as separate PR comments: (1) **🎯 Feature Test** - feature-specific artifact exercising the changes, (2) **🔄 Regression Test** - comprehensive demo ensuring no side effects. Fixes posted as new comments. Approval is either **interactive** (Maintainer replies PASS/FAIL in chat) or **automated polling** (GitHub: `uat-approved` / `uat-rejected` labels; Azure DevOps: reviewer votes). For interactive runs, `scripts/uat-run.sh --create-only` + `--cleanup-last` provides a one-command create/cleanup workflow, and prints a copy/paste-friendly “UAT PR links” block for the Maintainer to paste into chat. UAT branches are created in **dedicated UAT repositories via git submodules** (`uat-repos/github` and `uat-repos/azdo`) so the UAT repos remain completely separate from this repo’s history. | GitHub + Azure DevOps (via `scripts/uat-*.sh`) |
+| **User Acceptance Testing** | Real-environment verification for user-facing features. UAT Tester writes Playwright e2e tests (committed to `e2e-tests/`) that run automatically in CI, and posts a PR comment with optional manual verification instructions for the Maintainer. | Playwright e2e tests at `e2e-tests/<feature-slug>/e2e.spec.ts`. PR comment with manual checklist, `docker run` instructions, and demo login credentials. Maintainer replies `PASS` or `FAIL: <page>, <expected>, <actual>`. | `e2e-tests/<feature-slug>/e2e.spec.ts`, PR comments |
 | **Code & Tests** | Implementation of the feature including unit tests, integration tests, and any necessary refactoring. | Source code files following project conventions. Tests in `src/tests/` directory. | `src/` and `src/tests/` directories |
 | **Documentation** | Updated user-facing and developer documentation reflecting the new feature. | Markdown files following existing documentation structure. | `docs/`, `README.md` |
 | **Code Review Report** | Feedback on code quality, adherence to standards, and approval status. May request rework. | Markdown document with: Summary, Issues Found, Recommendations, Approval Status. | `docs/features/NNN-<feature-slug>/code-review.md` |
@@ -523,17 +510,6 @@ The first agent in the workflow creates `work-protocol.md` using this template:
 **Workflow Type:** Feature / Bug Fix / Workflow
 **Created:** YYYY-MM-DD
 
-## Required Agents
-
-<!-- List required agents for this workflow type. Update Status to ✅ Complete as each agent logs their work below. -->
-<!-- Feature agents: Requirements Engineer, Architect, Quality Engineer, Task Planner, Developer, Technical Writer, Code Reviewer, UAT Tester (if user-facing), Release Manager, Retrospective -->
-<!-- Bug Fix agents: Issue Analyst, Developer, Technical Writer, Code Reviewer, UAT Tester (if needed), Release Manager, Retrospective -->
-<!-- Workflow agents: Workflow Engineer, Release Manager -->
-
-| Agent | Status |
-|-------|--------|
-| <Agent Name> | ⬜ Pending |
-
 ## Agent Work Log
 
 <!-- Each agent appends their entry below when they complete their work. -->
@@ -558,7 +534,7 @@ For feature and bug fix workflows, the **Code Reviewer** must verify that the fo
 | Document | Check |
 |----------|-------|
 | `docs/architecture.md` | Updated if the feature introduces new components, patterns, or architectural changes |
-| `docs/features.md` | Updated with new feature descriptions (required for all features) |
+| `docs/features.md` | Updated with a summary entry for each new feature (required for all features). The Technical Writer appends a row when documenting a new feature. |
 | `docs/testing-strategy.md` | Updated if new test patterns, frameworks, or testing approaches were introduced |
 | `README.md` | Updated if the feature affects installation, usage, CLI options, or quick start |
 | `docs/agents.md` | Updated if the workflow or agent behavior changed |
@@ -586,9 +562,8 @@ Example: If the most recent feature is `025-...` and a workflow item `026-...` a
 | Feature Development | `feature/` | `feature/123-firewall-diff-display` | Requirements Engineer, Developer |
 | Bug Fixes / Incidents | `fix/` | `fix/004-release-pipeline-failure-awk` | Issue Analyst, Developer |
 | Workflow Improvements | `workflow/` | `workflow/028-improvement-opportunities` | Workflow Engineer |
-| Website Changes | `website/` | `website/homepage-redesign` | Web Designer |
 
-**GitHub Copilot PR branch exception:** When GitHub creates a coding-agent pull request, it may place the work on an auto-generated `copilot/*` branch. That branch name is an execution-context detail for the existing PR, not a replacement for the underlying `feature/`, `fix/`, `workflow/`, or `website/` work-item convention. Continue to use the matching work-item folder and workflow type, and do not treat `copilot/*` by itself as a workflow violation.
+**GitHub Copilot PR branch exception:** When GitHub creates a coding-agent pull request, it may place the work on an auto-generated `copilot/*` branch. That branch name is an execution-context detail for the existing PR, not a replacement for the underlying `feature/`, `fix/`, or `workflow/` work-item convention. Continue to use the matching work-item folder and workflow type, and do not treat `copilot/*` by itself as a workflow violation.
 
 **Note:** The Requirements Engineer creates the feature branch at the start of the feature workflow. The Issue Analyst creates the fix branch at the start of the bug fix workflow. All subsequent agents work on the same branch until Release Manager creates the pull request.
 
@@ -605,20 +580,17 @@ Each agent hands off to the next by producing a specific deliverable. The workfl
 | Issue Analyst           | Developer               | Issue Analysis with root cause and fix approach      |
 | Requirements Engineer   | Architect               | Feature Specification                                |
 | Architect               | Quality Engineer        | Architecture Decision Records (ADRs)                 |
-| Architect               | Web Designer            | Architecture/technical approach (for initial website creation only) |
 | Quality Engineer        | Task Planner            | Test Plan & Test Cases                               |
 | Task Planner            | Developer               | User Stories / Tasks with Acceptance Criteria        |
 | Developer               | Technical Writer        | Code & Tests                                         |
 | Technical Writer        | Code Reviewer           | Updated Documentation                                |
 | Code Reviewer           | UAT Tester (user-facing features) <br/> Release Manager (internal changes) <br/> Developer (rework needed) | Code Review Report |
-| UAT Tester              | Release Manager (approved) <br/> Developer (rendering issues) | User Acceptance PRs verified |
-| Release Manager         | CI/CD Pipeline, GitHub  | Pull Request, Release Notes                          |
+| UAT Tester              | Release Manager (PASS) <br/> Developer (E2E / UAT Failures) | E2E tests committed + Maintainer PASS/FAIL |
+| Release Manager         | CI/CD Pipeline, GitHub  | Pull Request (ready for review), Release Notes       |
 | Release Manager         | Retrospective           | Deployment Complete                                  |
 | Retrospective           | Workflow Engineer       | Retrospective Report with Action Items               |
-| Web Designer            | Release Manager         | Website changes complete (design, content, implementation) |
-| Maintainer              | Web Designer            | Direct request for website changes (ongoing maintenance) |
 
-**Exception:** Code Reviewer has three possible handoffs depending on approval status and feature type. UAT Tester hands to Release Manager when approved, or back to Developer if rendering issues are found. Release Manager may hand back to Developer if build/release fails.
+**Exception:** Code Reviewer has three possible handoffs depending on approval status and feature type. UAT Tester hands to Release Manager on PASS, or back to Developer on any failure (broken use case, wrong data, UI defect, or failing E2E tests). Release Manager may hand back to Developer if build/release fails.
 
 Handoffs are triggered when the deliverable is complete and meets the "Definition of Done" for that agent. Automation (e.g., GitHub Actions) can be used to detect completion and notify the next agent(s).
 
@@ -652,7 +624,6 @@ Default prompts use the short agent names (e.g., `/dev`). These are the default 
 - `/wo` Workflow Orchestrator (orchestrate complete workflow from issue to release)
 - `/re` Requirements Engineer
 - `/ia` Issue Analyst
-- `/wd` Web Designer
 - `/ar` Architect (matches Requirements Engineer -> Architect handoff)
 - `/qe` Quality Engineer (matches Architect -> Quality Engineer handoff)
 - `/tp` Task Planner (matches Quality Engineer -> Task Planner handoff)
@@ -674,7 +645,6 @@ Non-default prompts add a suffix describing what the agent should do instead of 
 - `/dev-fix-build-failed` Developer fix (CI/release build failed)
 - `/dev-fix-ia-handoff` Developer fix (Issue Analyst -> Developer transition; uses `analysis.md`)
 - `/rm-no-uat` Release Manager (prepare release with no UAT)
-- `/rm-website-pr` Release Manager (create PR for website changes)
 
 For prompts that correspond to a workflow handoff, the prompt text is kept identical to the handoff button prompt.
 

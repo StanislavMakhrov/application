@@ -14,48 +14,23 @@ This skill is automatically loaded by all coding agents. It defines the core wor
 - Reporting progress with the `report_progress` tool
 - Creating summary comments after work completion
 
-## ⛔ STOP — Check Session Type Before Proceeding
-
-**If your session context includes a GitHub issue number** (e.g. "started a task from issue #N", or the session references an issue URL), you are in an **issue-triggered session**. You **MUST**:
-
-1. Load `.github/agents/workflow-orchestrator-coding-agent.agent.md` immediately.
-2. Act as the Workflow Orchestrator — delegate ALL work to specialized agents via the `task` tool.
-3. **Stop here.** Do not read code, do not search the codebase, do not edit files, do not run tests, do not implement anything.
-
-> **No exceptions. No rationalizations.** The issue description tells you *what to build* — it is not an instruction to build it yourself. The issue being assigned to `@copilot` is the only signal that matters, and it always means: orchestrate, never implement.
->
-> Common rationalizations to ignore:
-> - "The issue says to implement X" → irrelevant, delegate it.
-> - "I have conflicting signals" → there are none; issue number = orchestrator.
-> - "The task seems simple enough to do directly" → delegate it.
-> - "Prior artifacts exist in the repo" → delegate anyway; orchestrator will resume from the right stage.
-
-The workflow below applies **only when**:
-- You were invoked via the `task` tool by the Orchestrator (you are a subagent with a specific delegated task), OR
-- There is no issue number in the session context (Maintainer opened a coding-agent chat directly).
-
----
-
 ## Workflow
 
 **You are running as a GitHub Copilot coding agent.** Follow this workflow:
 
 ### CRITICAL: Branch and PR Management
 
-**GitHub Copilot automatically creates a branch** - you do NOT create it:
-- When an issue is assigned to `@copilot` or a session starts, GitHub automatically creates a `copilot/*` branch
-- When you start working, you're already on the correct branch
+**GitHub Copilot automatically creates branches and PRs** - you do NOT create them:
+- When an issue is assigned to `@copilot`, GitHub automatically creates a `copilot/*` branch and draft PR
+- When you start working, you're already on the correct branch with an active PR
 - **NEVER run `git checkout`, `git switch`, or `git branch` commands** - you're already on the right branch
+- **NEVER attempt to create a new PR** - one already exists for your work
 - Your job is to commit work to the existing branch using `report_progress` (which handles git push automatically)
 
-**Why manual branch creation fails:**
+**Why this fails:**
 - Manual `git checkout -b` commands will fail (permission denied)
-- Branch creation is GitHub's responsibility, not yours
-
-**Pull Request Creation (depends on session type):**
-- GitHub no longer automatically creates a draft PR when a session starts
-- **Issue-triggered sessions** (issue assigned to `@copilot`): The agent is responsible for creating the PR at the end of the session using the **`create-pr-github`** skill. After all work is pushed with `report_progress` and CI is green, invoke the `create-pr-github` skill to open the PR. Never create a duplicate PR if one already exists for your branch.
-- **Session-triggered sessions** (Maintainer opened a coding-agent chat): The agent does **NOT** create a PR. Push commits via `report_progress` and ensure they are clean — the Maintainer will click "Create PR" in the GitHub UI when ready.
+- Attempting to create PRs will fail or create duplicate PRs
+- These operations are GitHub's responsibility, not yours
 
 1. **For Direct Questions (When Running as Primary Agent)**: If you are the primary agent on a PR (not delegated via `task` tool), you can create PR comments to ask the Maintainer questions. Wait for a response before proceeding.
 
@@ -120,11 +95,11 @@ The workflow below applies **only when**:
    > Then follow the `watch-pr-validation` skill to confirm CI passes before handing off.
    > **Ending a session with a draft PR is a workflow violation.**
 
-4b. **Create the Pull Request and Trigger Validation (primary agent only — issue-triggered sessions)**:
+4b. **Create the Pull Request and Trigger Validation (primary agent only)**:
 
-   > **Skip this step for session-triggered sessions.** If the Maintainer opened a coding-agent chat (no issue assignment), do **NOT** create a PR — the Maintainer will click "Create PR" in the GitHub UI. Push your commits via `report_progress` and confirm they are clean. Then proceed to step 5.
-
-   Once all work is committed and pushed via `report_progress`, use the **`create-pr-github`** skill to open the PR.
+   Once all work is committed and pushed via `report_progress`, use the **`create-pr-github`** skill to open the PR. The agent is
+   responsible for creating the PR — do not wait for the user to click "Create Pull Request"
+   in the GitHub UI.
 
    - Check first that no open PR already exists for this branch
    - Use the standard PR body template (Problem / Change / Verification)
@@ -165,7 +140,7 @@ The workflow below applies **only when**:
 ## Key Principles
 
 - **GitHub creates branches automatically** - never attempt to create or switch branches yourself
-- **PR creation depends on session type** — **Issue-triggered** (issue assigned to `@copilot`): agent creates a **draft** PR using the `create-pr-github` skill, then marks it ready. **Session-triggered** (Maintainer opened a chat): agent does **NOT** create a PR — the Maintainer clicks "Create PR" in the GitHub UI
+- **Agent creates draft PRs** - after pushing all work with `report_progress`, use the `create-pr-github` skill to create a **draft** PR; do NOT wait for the user to click "Create Pull Request" in the GitHub UI
 - **Always call `mark-ready` after creating the PR** - run `scripts/pr-github.sh mark-ready` to convert the draft to ready-for-review; this is the single trigger for PR Validation
 - **⛔ NEVER hand off with a draft PR** - before ending your session, verify the PR is not in draft state (a draft PR means CI was never triggered; "no failures" ≠ "CI passed"); call `scripts/pr-github.sh mark-ready` if needed, then watch CI until green
 - **Never create a duplicate PR** - check if one already exists for your branch before creating

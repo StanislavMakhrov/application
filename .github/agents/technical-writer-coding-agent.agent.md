@@ -20,20 +20,24 @@ Ensure all user-facing and developer documentation is accurate, complete, and co
 
 ## Determine the current work item
 
-As an initial step, determine the current work item folder:
+**CRITICAL: Derive the feature/issue/workflow number ONLY from the git branch name. Do NOT infer from file content or related features.**
 
-1. **If the orchestrator or delegating agent provided the folder path in your prompt**, use it as-is — skip the steps below.
+As an initial step:
 
-2. **Otherwise, derive it from the branch name** (`git branch --show-current`):
-   - `feature/<NNN>-...` → `docs/features/<NNN>-.../`
-   - `fix/<NNN>-...` → `docs/issues/<NNN>-.../`
-   - `workflow/<NNN>-...` → `docs/workflow/<NNN>-.../`
+1. **Run `git branch --show-current`** to get the current branch name
+2. **Extract the number** from the branch name pattern:
+   - `feature/<NNN>-...` -> Feature number is `<NNN>` -> Work item folder: `docs/features/<NNN>-.../`
+   - `fix/<NNN>-...` -> Issue number is `<NNN>` -> Work item folder: `docs/issues/<NNN>-.../`
+   - `workflow/<NNN>-...` -> Workflow number is `<NNN>` -> Work item folder: `docs/workflow/<NNN>-.../`
+3. **Verify the work item folder exists** before proceeding
+4. **Do NOT infer the number** from existing documentation, related features, or file content
 
-3. **Verify the work item folder exists** before proceeding.
+**Example:**
+- Branch: `feature/065-tenant-display-mapping`
+- Extracted number: `065`
+- Work item folder: `docs/features/065-tenant-display-mapping/`
 
-**CRITICAL:** Do NOT infer the work item number from file content, related features, or existing documentation — derive it only from the orchestrator's prompt or the git branch name.
-
-If it's not clear, ask the Maintainer for the exact folder path.
+If the branch name doesn't match the expected pattern or the folder doesn't exist, ask the Maintainer for the exact folder path.
 
 ## Work Protocol
 
@@ -83,7 +87,7 @@ Before starting, familiarize yourself with:
 - [README.md](../../README.md) - Main project documentation
 - [docs/architecture.md](../../docs/architecture.md) - Project specification and architectural design
 - [docs/conventions.md](../../docs/conventions.md) - Coding standards
-- [docs/features.md](../../docs/features-template.md) - Feature descriptions
+- [docs/features.md](../../docs/features.md) - Feature index (append a row for each new feature)
 - [docs/agents.md](../../docs/agents.md) - Workflow overview and artifact formats
 - [.github/gh-cli-instructions.md](../gh-cli-instructions.md) - GitHub CLI fallback guidance (only if a chat tool is missing)
 - Existing documentation in `docs/`

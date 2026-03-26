@@ -70,7 +70,7 @@ task({
 })
 ```
 
-**Available Custom Agents**: `architect`, `code-reviewer`, `developer`, `issue-analyst`, `quality-engineer`, `release-manager`, `requirements-engineer`, `retrospective`, `task-planner`, `technical-writer`, `uat-tester`, `web-designer`, `workflow-engineer`
+**Available Custom Agents**: `architect`, `code-reviewer`, `developer`, `issue-analyst`, `quality-engineer`, `release-manager`, `requirements-engineer`, `retrospective`, `task-planner`, `technical-writer`, `uat-tester`, `workflow-engineer`
 
 **CRITICAL**: ONLY invoke these custom agents. Do NOT use generic agents like `explore`, `task`, or `general-purpose`.
 
@@ -97,8 +97,7 @@ task({
 - Check agent outputs for blockers or errors before proceeding to next agent
 - Report progress after each major workflow stage
 - Handle rework gracefully by delegating back to the appropriate agent
-- On `feature/NNN-*` / `fix/NNN-*` / `workflow/NNN-*` branches, pass the NNN from the branch name to every agent as the work item folder
-- On `copilot/*` branches (GitHub-auto-created when an issue is assigned to @copilot), tell the entry-point agent to run `scripts/next-issue-number.sh` to obtain the NNN and create the work item folder; then propagate that resolved folder to every subsequent agent
+- Ensure branch naming follows conventions (feature/NNN, fix/NNN, workflow/NNN)
 - **Trust that specialized agents have the right tools** - don't assume tool limitations or try to work around them
 
 ### ⚠️ Ask First
@@ -140,50 +139,24 @@ Before starting orchestration:
 
 ## Orchestration Workflow
 
-### 0. Resolve the Work Item Folder (CRITICAL — do this before delegating)
-
-The work item folder (`docs/features/NNN-<slug>/`, `docs/issues/NNN-<slug>/`, or
-`docs/workflow/NNN-<slug>/`) **must be resolved and passed explicitly to every agent
-you delegate to.** Without it, agents cannot create their artifacts.
-
-**How to resolve the folder depends on the current branch:**
-
-#### On a `feature/NNN-*`, `fix/NNN-*`, or `workflow/NNN-*` branch
-Extract the NNN from the branch name and construct the folder path directly:
-```
-Branch: feature/025-custom-title  →  work item folder: docs/features/025-custom-title/
-Branch: fix/042-login-loop        →  work item folder: docs/issues/042-login-loop/
-Branch: workflow/010-ci-speed     →  work item folder: docs/workflow/010-ci-speed/
-```
-Pass this path to every agent you delegate to.
-
-#### On a `copilot/*` branch (GitHub-auto-created from an issue assignment)
-The branch has no NNN — you **must** tell the entry-point agent to determine it.
-When delegating to the entry-point agent (Requirements Engineer for features,
-Issue Analyst for bugs, Workflow Engineer for workflow), include these instructions
-in the prompt:
-
-```
-WORK ITEM FOLDER SETUP (copilot/* branch — you are running as a subagent):
-1. Do NOT create a new git branch. All work stays on the current copilot/* branch.
-2. Run `scripts/next-issue-number.sh` to get the next issue number (NNN).
-3. Derive a slug from the issue title (lowercase, hyphenated words, ≤ 5 words).
-4. Create the work item folder:
-   - Feature:  docs/features/<NNN>-<slug>/
-   - Bug fix:  docs/issues/<NNN>-<slug>/
-   - Workflow: docs/workflow/<NNN>-<slug>/
-5. Save all your artifacts to that folder.
-6. Report the resolved folder path in your response so the orchestrator can
-   propagate it to subsequent agents.
-```
-
-After the entry-point agent reports back, **extract the resolved folder path from
-its response** and use it in every subsequent delegation prompt.
-
 ### 1. Parse and Delegate Immediately
-- Read the complete issue body
-- Extract what you can understand about the type (feature, bug, or workflow)
-- Resolve the work item folder (see § 0 above) and include it in the delegation prompt
+
+**CRITICAL: Determine issue type from labels first, then body — never from the title alone.**
+
+The issue title is often ambiguous (e.g. "Building the GrünBilanz app" is a feature, not a build failure). Always follow this priority order to classify the issue type:
+
+1. **Check GitHub issue labels** (highest priority):
+   - Label contains `feature`, `enhancement`, `type: feature` → **Feature**
+   - Label contains `bug`, `defect`, `type: bug` → **Bug**
+   - Label contains `workflow`, `process`, `type: workflow` → **Workflow**
+
+2. **Check issue body** (if no clear label):
+   - Body describes expected new behavior, new capabilities, or a new system to build → **Feature**
+   - Body describes something that used to work and is now broken, or unexpected behavior → **Bug**
+   - Body describes improvements to the agent/CI/workflow process itself → **Workflow**
+
+3. **When in doubt**: default to **Feature** (Requirements Engineer), not Bug. The Requirements Engineer can redirect if needed, but the Issue Analyst is only for defects.
+
 - **Immediately delegate** to the appropriate entry point agent:
   - Features → Requirements Engineer (they will gather any missing requirements)
   - Bugs → Issue Analyst (they will investigate and clarify details)
@@ -212,15 +185,9 @@ For each stage:
      Current context:
      - GitHub issue: [link or summary]
      - Scope: [scope description]
-     - Work item folder: docs/features/025-<slug>/   ← always provide the resolved folder
-     
-     IMPORTANT (copilot/* branch): Do NOT create a new git branch. Use
-     `scripts/next-issue-number.sh` to obtain NNN if the folder is not yet
-     known, derive the slug from the issue title, then save all artifacts to
-     docs/features/<NNN>-<slug>/. Report the resolved folder in your response.
      
      Please create the feature specification following the template in docs/agents.md.
-     Save to docs/features/<NNN>-<slug>/specification.md.
+     Save to docs/features/NNN-<slug>/specification.md.
      
      IMPORTANT: Use edit/create tools to apply all file changes. Call report_progress before completing to commit your changes.`
    })
@@ -245,7 +212,7 @@ For each stage:
 - After Developer completes rework, return to Code Reviewer
 
 **UAT Failures:**
-- If UAT Tester finds rendering issues, delegate to Developer for fixes
+- If UAT Tester finds any failures (broken use cases, missing data, wrong behavior, UI defects) — whether from automated E2E tests or Maintainer's FAIL comment — delegate to Developer for fixes
 - Provide specific UAT feedback to Developer
 - After fixes, return to UAT Tester
 

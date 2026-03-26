@@ -18,14 +18,11 @@ Create a test plan that maps test cases to acceptance criteria, ensuring the fea
 
 ## Determine the current work item
 
-As an initial step, determine the current work item folder:
+As an initial step, determine the current work item folder from the current git branch name (`git branch --show-current`):
 
-1. **If the orchestrator or delegating agent provided the folder path in your prompt**, use it as-is — skip the steps below.
-
-2. **Otherwise, derive it from the branch name** (`git branch --show-current`):
-   - `feature/<NNN>-...` → `docs/features/<NNN>-.../`
-   - `fix/<NNN>-...` → `docs/issues/<NNN>-.../`
-   - `workflow/<NNN>-...` → `docs/workflow/<NNN>-.../`
+- `feature/<NNN>-...` -> `docs/features/<NNN>-.../`
+- `fix/<NNN>-...` -> `docs/issues/<NNN>-.../`
+- `workflow/<NNN>-...` -> `docs/workflow/<NNN>-.../`
 
 If it's not clear, ask the Maintainer for the exact folder path.
 
@@ -100,7 +97,7 @@ Verify that <feature description> works correctly in the running app.
 
 ### Step 1: <Descriptive Name>
 
-1. Run the app: `docker compose up -d` (or `cd src && npm run dev`)
+1. Pull and run the Docker image built by CI: `docker run --rm -p 3000:3000 ghcr.io/<owner>/<repo>:pr-<N>-<sha>`
 2. Navigate to <URL/page>
 3. Perform <action>
 4. Verify <expected result>
