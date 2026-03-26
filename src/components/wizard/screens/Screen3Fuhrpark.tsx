@@ -172,6 +172,13 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
             {errors[f.id] && <p className="text-xs text-red-600">{errors[f.id]?.message}</p>}
             {f.id === 'diesel' && <PlausibilityWarning message={warnings.DIESEL_FUHRPARK ?? null} />}
             <p className="text-xs text-gray-400">{f.hint} (UBA 2024)</p>
+            <FieldDocumentZone
+              fieldKey={f.fieldKey}
+              year={year}
+              suppressInitialUpload={f.fieldKey === 'DIESEL_FUHRPARK' || f.fieldKey === 'BENZIN_FUHRPARK'}
+              refreshKey={f.fieldKey === 'DIESEL_FUHRPARK' ? dieselRefreshKey : f.fieldKey === 'BENZIN_FUHRPARK' ? benzinRefreshKey : 0}
+              onDocumentsChange={f.category ? (docs) => setValue(f.id, calculateTotal(docs)) : undefined}
+            />
             {/* UploadOCR is only shown for fuel-consumption fields that have an OCR category */}
             {f.fieldKey === 'DIESEL_FUHRPARK' && (
               <UploadOCR
@@ -191,13 +198,6 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
                 onDocumentStored={() => setBenzinRefreshKey((k) => k + 1)}
               />
             )}
-            <FieldDocumentZone
-              fieldKey={f.fieldKey}
-              year={year}
-              suppressInitialUpload={f.fieldKey === 'DIESEL_FUHRPARK' || f.fieldKey === 'BENZIN_FUHRPARK'}
-              refreshKey={f.fieldKey === 'DIESEL_FUHRPARK' ? dieselRefreshKey : f.fieldKey === 'BENZIN_FUHRPARK' ? benzinRefreshKey : 0}
-              onDocumentsChange={f.category ? (docs) => setValue(f.id, calculateTotal(docs)) : undefined}
-            />
           </div>
         ))}
 

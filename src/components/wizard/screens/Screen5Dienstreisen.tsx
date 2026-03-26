@@ -107,19 +107,19 @@ export default function Screen5Dienstreisen({ year }: Screen5Props) {
           {errors.flug && <p className="text-xs text-red-600">{errors.flug.message}</p>}
           <PlausibilityWarning message={warnings.GESCHAEFTSREISEN_FLUG ?? null} />
           <p className="text-xs text-gray-400">Summe aller Flüge in km. Faktor: 0,255 kg CO₂e/km (UBA 2024)</p>
-          <UploadOCR
-            category="GESCHAEFTSREISEN_FLUG"
-            fieldKey="GESCHAEFTSREISEN_FLUG"
-            year={year}
-            onResult={(value, _confidence) => setValue('flug', value)}
-            onDocumentStored={() => setFlugRefreshKey((k) => k + 1)}
-          />
           <FieldDocumentZone
             fieldKey="GESCHAEFTSREISEN_FLUG"
             year={year}
             suppressInitialUpload
             refreshKey={flugRefreshKey}
             onDocumentsChange={(docs) => setValue('flug', calculateTotal(docs))}
+          />
+          <UploadOCR
+            category="GESCHAEFTSREISEN_FLUG"
+            fieldKey="GESCHAEFTSREISEN_FLUG"
+            year={year}
+            onResult={(value, _confidence) => setValue('flug', value)}
+            onDocumentStored={() => setFlugRefreshKey((k) => k + 1)}
           />
         </div>
 
@@ -128,19 +128,19 @@ export default function Screen5Dienstreisen({ year }: Screen5Props) {
           <Input id="bahn" type="number" step="1" min={0} {...register('bahn')} />
           {errors.bahn && <p className="text-xs text-red-600">{errors.bahn.message}</p>}
           <p className="text-xs text-gray-400">Faktor: 0,032 kg CO₂e/km (UBA 2024)</p>
-          <UploadOCR
-            category="GESCHAEFTSREISEN_BAHN"
-            fieldKey="GESCHAEFTSREISEN_BAHN"
-            year={year}
-            onResult={(value, _confidence) => setValue('bahn', value)}
-            onDocumentStored={() => setBahnRefreshKey((k) => k + 1)}
-          />
           <FieldDocumentZone
             fieldKey="GESCHAEFTSREISEN_BAHN"
             year={year}
             suppressInitialUpload
             refreshKey={bahnRefreshKey}
             onDocumentsChange={(docs) => setValue('bahn', calculateTotal(docs))}
+          />
+          <UploadOCR
+            category="GESCHAEFTSREISEN_BAHN"
+            fieldKey="GESCHAEFTSREISEN_BAHN"
+            year={year}
+            onResult={(value, _confidence) => setValue('bahn', value)}
+            onDocumentStored={() => setBahnRefreshKey((k) => k + 1)}
           />
         </div>
 

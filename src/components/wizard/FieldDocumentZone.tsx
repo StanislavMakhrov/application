@@ -15,7 +15,7 @@
  * running totals using the calculateTotal helper pattern.
  *
  * Props:
- * - suppressInitialUpload: when true, hides the "Rechnung hochladen" button in
+ * - suppressInitialUpload: when true, hides the "Rechnung hinzufügen" button in
  *   the empty state — used when UploadOCR is already handling uploads for this field.
  * - refreshKey: increment this value from the parent to trigger a re-fetch of the
  *   document list (e.g., after UploadOCR creates a new FieldDocument).
@@ -39,7 +39,7 @@ interface FieldDocumentZoneProps {
   fieldKey: string;
   year: number;
   /**
-   * When true, the "Rechnung hochladen" button in the empty state is hidden.
+   * When true, the "Rechnung hinzufügen" button in the empty state is hidden.
    * Use when UploadOCR is already providing an upload trigger for this field,
    * to avoid showing two separate upload buttons.
    */
@@ -232,10 +232,14 @@ export function FieldDocumentZone({
   };
 
   const unit = FIELD_UNIT_MAP[fieldKey] ?? 'Einheit';
-  // Show the "+ Beleg hinzufügen" button only once at least one document exists.
-  // The empty-state area renders a separate upload button when !suppressInitialUpload,
-  // so showing this button in the empty state would create a duplicate upload trigger.
-  const showAddButton = docs.length > 0;
+  // Show the "+ Beleg hinzufügen" button only when both conditions hold:
+  //   1. suppressInitialUpload is false — meaning no external UploadOCR owns uploads
+  //      for this field; when true, UploadOCR is the sole upload trigger and this
+  //      secondary button must stay hidden to avoid a duplicate.
+  //   2. At least one document already exists — the empty-state block already renders
+  //      its own upload button when !suppressInitialUpload, so this button is only
+  //      needed once the list is non-empty.
+  const showAddButton = !suppressInitialUpload && docs.length > 0;
 
   return (
     <div className="space-y-1.5">
@@ -335,7 +339,7 @@ export function FieldDocumentZone({
               onClick={() => inputRef.current?.click()}
               className="ml-auto shrink-0 rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-500 hover:border-gray-400 hover:text-gray-700 disabled:opacity-50"
             >
-              {isUploading ? 'Wird hochgeladen…' : 'Rechnung hochladen'}
+              {isUploading ? 'Wird hochgeladen…' : 'Rechnung hinzufügen'}
             </button>
           )}
         </div>

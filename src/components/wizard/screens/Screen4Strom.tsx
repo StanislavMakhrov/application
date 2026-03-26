@@ -165,19 +165,19 @@ export default function Screen4Strom({ year }: Screen4Props) {
           <p className="text-xs text-gray-400">
             Faktor: {isOekostrom ? '0,030' : '0,380'} kg CO₂e/kWh (UBA 2024)
           </p>
-          <UploadOCR
-            category="STROM"
-            fieldKey="STROM"
-            year={year}
-            onResult={(value, _confidence) => setValue('strom', value)}
-            onDocumentStored={() => setStromRefreshKey((k) => k + 1)}
-          />
           <FieldDocumentZone
             fieldKey="STROM"
             year={year}
             suppressInitialUpload
             refreshKey={stromRefreshKey}
             onDocumentsChange={(docs) => setValue('strom', calculateTotal(docs))}
+          />
+          <UploadOCR
+            category="STROM"
+            fieldKey="STROM"
+            year={year}
+            onResult={(value, _confidence) => setValue('strom', value)}
+            onDocumentStored={() => setStromRefreshKey((k) => k + 1)}
           />
         </div>
 
@@ -203,19 +203,19 @@ export default function Screen4Strom({ year }: Screen4Props) {
           <Input id="fernwaerme" type="number" step="1" min={0} {...register('fernwaerme')} />
           {errors.fernwaerme && <p className="text-xs text-red-600">{errors.fernwaerme.message}</p>}
           <p className="text-xs text-gray-400">Faktor: 0,175 kg CO₂e/kWh (UBA 2024). Nur wenn Fernwärme vorhanden.</p>
-          <UploadOCR
-            category="FERNWAERME"
-            fieldKey="FERNWAERME"
-            year={year}
-            onResult={(value, _confidence) => setValue('fernwaerme', value)}
-            onDocumentStored={() => setFernwaermeRefreshKey((k) => k + 1)}
-          />
           <FieldDocumentZone
             fieldKey="FERNWAERME"
             year={year}
             suppressInitialUpload
             refreshKey={fernwaermeRefreshKey}
             onDocumentsChange={(docs) => setValue('fernwaerme', calculateTotal(docs))}
+          />
+          <UploadOCR
+            category="FERNWAERME"
+            fieldKey="FERNWAERME"
+            year={year}
+            onResult={(value, _confidence) => setValue('fernwaerme', value)}
+            onDocumentStored={() => setFernwaermeRefreshKey((k) => k + 1)}
           />
         </div>
 

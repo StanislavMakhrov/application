@@ -40,7 +40,7 @@ interface UploadOCRProps {
 export function UploadOCR({
   category,
   onResult,
-  label = 'Rechnung hochladen',
+  label = 'Rechnung hinzufügen',
   fieldKey,
   year,
   onDocumentStored,
