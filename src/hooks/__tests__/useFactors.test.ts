@@ -1,10 +1,9 @@
+// @vitest-environment jsdom
 /**
  * Unit tests for the useFactors custom hook (TC-16, TC-17, TC-18).
  *
  * Uses @testing-library/react renderHook with jsdom environment to test
  * the fetch lifecycle, loading states, and error handling.
- *
- * @vitest-environment jsdom
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
