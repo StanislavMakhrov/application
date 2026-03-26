@@ -55,3 +55,10 @@
   - `as any[]` type assertions needed in `methodology.ts` because the Prisma client is generated as `any` in this environment — consistent with the same pattern in `emissions.ts`. Code reviewer flagged this as a concern but it's an established project convention.
   - Map iteration (`for...of map.entries()`) required wrapping with `Array.from()` due to TypeScript target configuration.
   - `npm run build` fails at the "collect page data" phase due to Prisma client not being initialized in the build environment (pre-existing issue, unrelated to this feature — confirmed by running the same build on the baseline).
+
+### Technical Writer
+- **Date:** 2025-07-14
+- **Summary:** Reviewed specification, architecture, tasks, work-protocol, and implementation files for the Methodology Summary feature. Confirmed that `docs/architecture.md` (arc42) does not require updates — the feature follows the established `lib → API route → component` pattern already documented. Appended work-protocol entry as final documentation artifact.
+- **Artifacts Produced:**
+  - `docs/features/002-methodology-summary/work-protocol.md` — this entry
+- **Problems Encountered:** None. The feature is scoped to GHG Protocol reports only; all implementation details match the specification. No new architectural patterns, CLI options, or installation steps were introduced, so README.md and docs/features.md do not require updates beyond what the Developer already covered.
