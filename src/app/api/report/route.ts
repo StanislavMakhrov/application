@@ -53,8 +53,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Firmenprofil nicht gefunden' }, { status: 404 });
     }
 
-    const benchmark = await prisma.industryBenchmark.findUnique({
+    const benchmark = await prisma.industryBenchmark.findFirst({
+      where: { branche: profile.branche, validYear: reportingYear.year },
+    }) ?? await prisma.industryBenchmark.findFirst({
       where: { branche: profile.branche },
+      orderBy: { validYear: 'desc' },
     });
 
     // Calculate totals

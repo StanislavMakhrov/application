@@ -5,12 +5,11 @@
 import Link from 'next/link';
 import { Leaf, ArrowLeft } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
-import { getAllEmissionFactorRecords } from '@/lib/factors';
 import { YearManagement } from '@/components/settings/YearManagement';
 import { FirmenprofilSettings } from '@/components/settings/FirmenprofilSettings';
-import { EmissionFactorsTable } from '@/components/settings/EmissionFactorsTable';
-import { IndustryBenchmarkTable } from '@/components/settings/IndustryBenchmarkTable';
-import type { Branche } from '@/types';
+import { EmissionFactorsTableEditable } from '@/components/settings/EmissionFactorsTableEditable';
+import { IndustryBenchmarkTableEditable } from '@/components/settings/IndustryBenchmarkTableEditable';
+import type { EmissionFactorRow, IndustryBenchmarkRow } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,11 +21,25 @@ export default async function SettingsPage() {
   // Derive the most recent reporting year for factor display; fall back to current calendar year
   const currentYear = years.length > 0 ? years[years.length - 1] : new Date().getFullYear();
 
-  // Fetch factor records and benchmarks server-side (direct lib call — no HTTP needed)
-  const factorRecords = await getAllEmissionFactorRecords(currentYear);
-  const benchmarks = await prisma.industryBenchmark.findMany({
-    orderBy: { branche: 'asc' },
-  }) as Array<{ branche: Branche; co2ePerEmployeePerYear: number }>;
+  // Fetch factor records and benchmarks server-side for editable CRUD tables
+  const factorRecords: EmissionFactorRow[] = (await prisma.emissionFactor.findMany({
+    orderBy: [{ validYear: 'desc' }, { key: 'asc' }],
+  })).map((f) => ({
+    id: String(f.id),
+    key: f.key,
+    factorKg: f.factorKg,
+    unit: f.unit,
+    source: f.source,
+    validYear: f.validYear,
+  }));
+  const benchmarks: IndustryBenchmarkRow[] = (await prisma.industryBenchmark.findMany({
+    orderBy: [{ validYear: 'desc' }, { branche: 'asc' }],
+  })).map((b) => ({
+    id: String(b.id),
+    branche: b.branche,
+    valueKg: b.co2ePerEmployeePerYear,
+    validYear: b.validYear,
+  }));
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -83,7 +96,7 @@ export default async function SettingsPage() {
             Aktive UBA-Emissionsfaktoren für das Berichtsjahr {currentYear}. Diese Werte werden
             für alle CO₂e-Berechnungen verwendet.
           </p>
-          <EmissionFactorsTable factors={factorRecords} year={currentYear} />
+          <EmissionFactorsTableEditable rows={factorRecords} />
         </section>
 
         {/* Industry benchmarks reference table — read-only */}
@@ -94,7 +107,7 @@ export default async function SettingsPage() {
           <p className="text-sm text-gray-500 mb-5">
             Durchschnittliche CO₂e-Emissionen pro Mitarbeiter und Jahr nach Branche (Referenzwerte).
           </p>
-          <IndustryBenchmarkTable benchmarks={benchmarks} />
+          <IndustryBenchmarkTableEditable rows={benchmarks} />
         </section>
       </div>
     </div>
