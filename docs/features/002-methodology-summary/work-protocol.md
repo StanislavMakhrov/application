@@ -16,3 +16,10 @@
   - `docs/features/002-methodology-summary/specification.md`
   - `docs/features/002-methodology-summary/work-protocol.md`
 - **Problems Encountered:** None. The existing codebase has all required data already available (EmissionFactor records, EmissionEntry.inputMethod, CompanyProfile boundary notes), making the backend assembly straightforward for the Architect and Developer to implement.
+
+### Architect
+- **Date:** 2025-07-14
+- **Summary:** Analyzed the existing report generation architecture (API route → lib functions → GHGReport component) and designed the methodology data assembly approach. Evaluated three implementation options: inline assembly in the API route, assembly in the component, and a new `assembleMethodologyData()` function in `src/lib/methodology.ts`. Chose Option 3 (new lib function) as it best follows the established pattern (same as `getTotalCO2e()`), keeps the API route lean, and keeps `GHGReport` a purely presentational component.
+- **Artifacts Produced:**
+  - `docs/features/002-methodology-summary/architecture.md` — full ADR with data shape, component design, sequence diagram, and file-level change guidance
+- **Problems Encountered:** None. No Prisma schema changes are needed. No new npm packages are needed. The `EmissionFactor` model already stores all required metadata (`unit`, `source`, `validYear`). The only DB-level gap is that `factors.ts` currently only exposes the numeric factor value — the architecture adds `getEmissionFactorRecord()` to return the full record object for methodology purposes.
