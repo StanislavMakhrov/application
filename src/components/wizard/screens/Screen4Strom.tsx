@@ -24,7 +24,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { WizardNav } from '@/components/wizard/WizardNav';
-import { UploadOCR } from '@/components/wizard/UploadOCR';
 import { CsvImport } from '@/components/wizard/CsvImport';
 import { FieldDocumentZone, type FieldDocument } from '@/components/wizard/FieldDocumentZone';
 import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
@@ -62,13 +61,8 @@ interface Screen4Props {
 
 export default function Screen4Strom({ year }: Screen4Props) {
   const [yearId, setYearId] = useState<number | null>(null);
-  // documentId is carried from OCR/CSV result to saveEntry for audit linkage
   const [lastDocumentId, setLastDocumentId] = useState<number | undefined>();
   const [warnings, setWarnings] = useState<Record<string, string | null>>({});
-  // Incremented when UploadOCR stores a FieldDocument; causes FieldDocumentZone to re-fetch
-  const [refreshKeys, setRefreshKeys] = useState<Record<string, number>>({
-    STROM: 0, FERNWAERME: 0,
-  });
 
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } =
     useForm<FormValues>({
@@ -163,19 +157,10 @@ export default function Screen4Strom({ year }: Screen4Props) {
 
         {/* Annual Strom total */}
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="strom">
-              Strom (kWh/Jahr)
-              <HelpTooltip text="Auf der Strom-Jahresabrechnung unter 'Verbrauch kWh' oder 'Gesamtverbrauch'. Bei monatlichen Rechnungen alle 12 Monate addieren." />
-            </Label>
-            <UploadOCR
-              category="STROM"
-              fieldKey="STROM"
-              year={year}
-              onResult={(_v, _conf, docId) => { setLastDocumentId(docId); }}
-              onDocumentStored={() => setRefreshKeys((k) => ({ ...k, STROM: k.STROM + 1 }))}
-            />
-          </div>
+          <Label htmlFor="strom">
+            Strom (kWh/Jahr)
+            <HelpTooltip text="Auf der Strom-Jahresabrechnung unter 'Verbrauch kWh' oder 'Gesamtverbrauch'. Bei monatlichen Rechnungen alle 12 Monate addieren." />
+          </Label>
           <Input
             id="strom"
             type="number"
@@ -192,8 +177,6 @@ export default function Screen4Strom({ year }: Screen4Props) {
           <FieldDocumentZone
             fieldKey="STROM"
             year={year}
-            suppressInitialUpload={true}
-            refreshKey={refreshKeys.STROM}
             onDocumentsChange={(docs) => setValue('strom', calculateTotal(docs))}
           />
         </div>
@@ -213,27 +196,16 @@ export default function Screen4Strom({ year }: Screen4Props) {
 
         {/* Fernwärme */}
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="fernwaerme">
-              Fernwärme (kWh/Jahr)
-              <HelpTooltip text="Auf der Fernwärme-Jahresabrechnung Ihres Versorgers" />
-            </Label>
-            <UploadOCR
-              category="FERNWAERME"
-              fieldKey="FERNWAERME"
-              year={year}
-              onResult={(_v, _conf, docId) => { setLastDocumentId(docId); }}
-              onDocumentStored={() => setRefreshKeys((k) => ({ ...k, FERNWAERME: k.FERNWAERME + 1 }))}
-            />
-          </div>
+          <Label htmlFor="fernwaerme">
+            Fernwärme (kWh/Jahr)
+            <HelpTooltip text="Auf der Fernwärme-Jahresabrechnung Ihres Versorgers" />
+          </Label>
           <Input id="fernwaerme" type="number" step="1" min={0} {...register('fernwaerme')} />
           {errors.fernwaerme && <p className="text-xs text-red-600">{errors.fernwaerme.message}</p>}
           <p className="text-xs text-gray-400">Faktor: 0,175 kg CO₂e/kWh (UBA 2024). Nur wenn Fernwärme vorhanden.</p>
           <FieldDocumentZone
             fieldKey="FERNWAERME"
             year={year}
-            suppressInitialUpload={true}
-            refreshKey={refreshKeys.FERNWAERME}
             onDocumentsChange={(docs) => setValue('fernwaerme', calculateTotal(docs))}
           />
         </div>

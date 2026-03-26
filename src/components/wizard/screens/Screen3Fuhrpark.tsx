@@ -20,7 +20,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { WizardNav } from '@/components/wizard/WizardNav';
-import { UploadOCR } from '@/components/wizard/UploadOCR';
 import { CsvImport } from '@/components/wizard/CsvImport';
 import { FieldDocumentZone, type FieldDocument } from '@/components/wizard/FieldDocumentZone';
 import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
@@ -61,13 +60,8 @@ interface Screen3Props {
 
 export default function Screen3Fuhrpark({ year }: Screen3Props) {
   const [yearId, setYearId] = useState<number | null>(null);
-  // documentId carried from OCR/CSV result to saveEntry for audit linkage
   const [lastDocumentId, setLastDocumentId] = useState<number | undefined>();
   const [warnings, setWarnings] = useState<Record<string, string | null>>({});
-  // Incremented when UploadOCR stores a FieldDocument; causes FieldDocumentZone to re-fetch
-  const [refreshKeys, setRefreshKeys] = useState<Record<string, number>>({
-    DIESEL_FUHRPARK: 0, BENZIN_FUHRPARK: 0,
-  });
 
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } =
     useForm<FormValues>({
@@ -163,30 +157,15 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
 
         {fields.map((f) => (
           <div key={f.id} className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <Label htmlFor={f.id}>
-                {f.id === 'diesel' ? (
-                  <>{f.label}<HelpTooltip text="Aus Tankbelegen, DATEV-Konto 4530, oder vom Fuhrparkmanager" /></>
-                ) : f.id === 'benzin' ? (
-                  <>{f.label}<HelpTooltip text="Aus Tankbelegen oder DATEV-Konto 4530" /></>
-                ) : (
-                  f.label
-                )}
-              </Label>
-              {f.category && (
-                <UploadOCR
-                  category={f.category}
-                  fieldKey={f.fieldKey}
-                  year={year}
-                  onResult={(_v, _conf, docId) => {
-                    setLastDocumentId(docId);
-                  }}
-                  onDocumentStored={() =>
-                    setRefreshKeys((k) => ({ ...k, [f.fieldKey]: (k[f.fieldKey] ?? 0) + 1 }))
-                  }
-                />
+            <Label htmlFor={f.id}>
+              {f.id === 'diesel' ? (
+                <>{f.label}<HelpTooltip text="Aus Tankbelegen, DATEV-Konto 4530, oder vom Fuhrparkmanager" /></>
+              ) : f.id === 'benzin' ? (
+                <>{f.label}<HelpTooltip text="Aus Tankbelegen oder DATEV-Konto 4530" /></>
+              ) : (
+                f.label
               )}
-            </div>
+            </Label>
             <Input
               id={f.id}
               type="number"
@@ -205,8 +184,6 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
             <FieldDocumentZone
               fieldKey={f.fieldKey}
               year={year}
-              suppressInitialUpload={!!f.category}
-              refreshKey={refreshKeys[f.fieldKey] ?? 0}
               onDocumentsChange={f.category ? (docs) => setValue(f.id, calculateTotal(docs)) : undefined}
             />
           </div>
