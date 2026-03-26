@@ -23,3 +23,11 @@
   - `docs/features/003-factor-selection-ux/issue-analysis.md`
   - `docs/features/003-factor-selection-ux/work-protocol.md`
 - **Problems Encountered:** None. All code paths were traceable from the wizard components through to the `EmissionFactor` DB model. The disconnect between hardcoded hint text and live DB factors is the clearest root cause.
+
+### Quality Engineer
+- **Date:** 2025-07-14
+- **Summary:** Defined comprehensive test plan for the Factor Selection & Display UX feature (18 test cases across 6 test files). Explored all existing test patterns in `src/lib/__tests__/` (Vitest, vi.mock Prisma, describe/it/expect conventions). Mapped all 5 acceptance criteria (AC-1 through AC-5) to specific test cases. Created both an automated test plan and a UAT test plan for Maintainer review of the running app.
+- **Artifacts Produced:**
+  - `docs/features/003-factor-selection-ux/test-plan.md` — 18 test cases covering `getAllEmissionFactorRecords`, `/api/factors` route, `FactorHint` component, `EmissionFactorsTable`, `IndustryBenchmarkTable`, and `useFactors` hook
+  - `docs/features/003-factor-selection-ux/uat-test-plan.md` — 5 manual verification steps for the running app (wizard screens, Settings page, browser console)
+- **Problems Encountered:** None. All new components have clear contracts defined in the architecture doc; mocking strategy follows the same pattern as `factors.test.ts` and `methodology.test.ts`. No new test infrastructure is required.
