@@ -24,6 +24,13 @@
   - `docs/features/003-factor-selection-ux/work-protocol.md`
 - **Problems Encountered:** None. All code paths were traceable from the wizard components through to the `EmissionFactor` DB model. The disconnect between hardcoded hint text and live DB factors is the clearest root cause.
 
+### Task Planner
+- **Date:** 2025-07-14
+- **Summary:** Created actionable implementation task plan for the Factor Selection & Display UX feature. Read all three prior agent artifacts (issue analysis, architecture, test plan) and produced 15 ordered tasks covering: the `FactorRecord` type addition, the new `getAllEmissionFactorRecords()` lib function, the `/api/factors` API route, the `useFactors` hook, the `FactorHint` component, all six wizard screen updates (Screens 2–7), the two new Settings server components (`EmissionFactorsTable`, `IndustryBenchmarkTable`), the Settings page integration, and the full unit test suite (18 test cases). Each task has clear, measurable acceptance criteria and explicit dependency tracking.
+- **Artifacts Produced:**
+  - `docs/features/003-factor-selection-ux/tasks.md` — 15 tasks in implementation order
+- **Problems Encountered:** None. Architecture doc was thorough and unambiguous. All design decisions were pre-resolved; no open questions remain.
+
 ### Quality Engineer
 - **Date:** 2025-07-14
 - **Summary:** Defined comprehensive test plan for the Factor Selection & Display UX feature (18 test cases across 6 test files). Explored all existing test patterns in `src/lib/__tests__/` (Vitest, vi.mock Prisma, describe/it/expect conventions). Mapped all 5 acceptance criteria (AC-1 through AC-5) to specific test cases. Created both an automated test plan and a UAT test plan for Maintainer review of the running app.
