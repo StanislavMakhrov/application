@@ -84,3 +84,9 @@
 - **Artifacts Produced:** Updated `docs/features.md` row for feature 001.
 - **Problems Encountered:** None.
 
+### Issue Analyst (Bug Investigation Round 2)
+- **Date:** 2025-07-19
+- **Summary:** Investigated three remaining bugs reported by the Maintainer after the initial implementation: (1) "Monatliche Rechnungen verwenden" checkbox still present in Screen4Strom.tsx, (2) per-invoice "Jahresabrechnung" checkbox and "Erkannter Wert" display missing from FieldDocumentZone, (3) invoice sum calculation replaces instead of incrementing. Root-cause traced to all four layers: Prisma schema (missing columns on FieldDocument), API routes (OCR route not persisting recognizedValue, no PATCH endpoint), FieldDocumentZone component (no per-doc metadata UI or onDocumentsChange callback), and screen components (onResult replaces total instead of deferring to calculateTotal).
+- **Artifacts Produced:** `docs/features/001-company-settings-ui/bug-analysis.md` — full root-cause analysis with exact file paths, line numbers, required changes table, and test cases.
+- **Problems Encountered:** None. All bugs fully identified and documented.
+
