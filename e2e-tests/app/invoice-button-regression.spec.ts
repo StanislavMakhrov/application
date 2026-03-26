@@ -57,9 +57,9 @@ test.describe("Bug #2 regression — correct button label", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Bug #1 regression — no duplicate button (empty state, no docs)
+// Bug #1 regression — no duplicate upload buttons per field (empty state)
 // ---------------------------------------------------------------------------
-test.describe("Bug #1 regression — single upload button (empty state)", () => {
+test.describe("Bug #1 regression — no duplicate upload buttons per field (empty state)", () => {
   test("screen 4 shows exactly two upload buttons in empty state (one per OCR field)", async ({
     page,
   }) => {
@@ -73,17 +73,15 @@ test.describe("Bug #1 regression — single upload button (empty state)", () => 
     await expect(uploadButtons).toHaveCount(2);
   });
 
-  test("screen 2 shows exactly one upload button per OCR field in empty state", async ({
+  test("screen 2 shows exactly three upload buttons in empty state (one per OCR field)", async ({
     page,
   }) => {
     // Screen 2 (Heizung) has three OCR-enabled fields: ERDGAS, HEIZOEL, FLUESSIGGAS.
+    // Pre-fix, after any upload, showAddButton would fire a duplicate per uploaded field.
     await page.goto("/wizard/2?year=2024");
     const uploadButtons = page.getByRole("button", { name: /Rechnung hinzufügen/i });
-    // Three OCR fields → three buttons. Pre-fix, after any upload, there would be a duplicate.
-    const count = await uploadButtons.count();
-    // At minimum there must be upload buttons and no more than one per OCR-enabled field.
-    // Screen 2 has 3 OCR fields (Erdgas, Heizöl, Flüssiggas) → expect exactly 3.
-    expect(count).toBe(3);
+    // Three OCR fields → expect exactly 3 buttons (one per field, no duplicates).
+    await expect(uploadButtons).toHaveCount(3);
   });
 });
 
@@ -179,11 +177,15 @@ test.describe("Bug #3 regression — document zone before upload button", () => 
 
     // Assert DOM order: the empty-state placeholder must appear BEFORE the upload button.
     // A positive compareDocumentPosition result bit 0x4 means "b follows a" (i.e., a before b).
+    // The empty-state placeholder is identified by its unique text content to avoid
+    // relying on fragile internal markup (aria-hidden attributes, etc.).
     const isDocumentZoneBeforeButton = await page.evaluate(() => {
-      const emptyState = document.querySelector(
-        // The empty-state div contains the "Kein Dokument hochgeladen" text span
-        '[aria-hidden="true"] + span'
-      )?.closest("div");
+      // Find the element that contains the "Kein Dokument hochgeladen" text.
+      const allSpans = Array.from(document.querySelectorAll("span"));
+      const emptyState = allSpans
+        .find((el) => el.textContent?.trim() === "Kein Dokument hochgeladen")
+        ?.closest("div");
+
       const uploadButton = Array.from(
         document.querySelectorAll("button")
       ).find((btn) => btn.textContent?.includes("Rechnung hinzufügen"));
@@ -222,10 +224,13 @@ test.describe("Bug #3 regression — document zone before upload button", () => 
     await expect(page.getByText("strom-rechnung-2024.pdf")).toBeVisible();
 
     // The document list item (containing the filename) must precede the upload button.
+    // Scope the <li> search to the FieldDocumentZone's <ul> (which has a green border
+    // class) to avoid matching unrelated list items elsewhere on the page.
     const isDocumentListBeforeButton = await page.evaluate(() => {
-      const docItem = Array.from(document.querySelectorAll("li")).find((li) =>
-        li.textContent?.includes("strom-rechnung-2024.pdf")
-      );
+      // FieldDocumentZone renders list items with a distinctive border-green-400 class.
+      const docItem = Array.from(
+        document.querySelectorAll("li.border-green-400, li[class*='border-green']")
+      ).find((li) => li.textContent?.includes("strom-rechnung-2024.pdf"));
       const uploadButton = Array.from(document.querySelectorAll("button")).find(
         (btn) => btn.textContent?.includes("Rechnung hinzufügen")
       );
