@@ -42,3 +42,18 @@
   - **Integration (API):** GET/POST /api/field-documents (TC-13–14), DELETE /api/field-documents/[id] (TC-15–16), POST /api/ocr extended (TC-17–18).
   - **E2E:** Settings→Dashboard Firmenprofil flow; Screen 1 read-only assertion (referenced in uat-test-plan.md, to be implemented in e2e-tests/app/e2e.spec.ts tagged @feature-001).
 - **Problems Encountered:** None. Two open questions logged in the test plan (TC-09 and TC-15 edge cases pending Developer clarification).
+
+### Task Planner
+- **Date:** 2025-07-17
+- **Summary:** Read the full specification, architecture, all four ADRs, and the test plan. Explored the relevant source files (Prisma schema, FieldDocumentZone, UploadOCR, Screen1–Screen7, /api/field-documents, /api/ocr, settings/page.tsx, and existing settings components). Produced a detailed 18-task plan covering database migration, API route changes, component refactoring, screen wiring, and unit/integration tests.
+- **Artifacts Produced:** `docs/features/001-company-settings-ui/tasks.md` — 18 prioritised tasks with acceptance criteria, file references, and dependencies.
+- **Task Breakdown:**
+  - Tasks 1–4: Database migration and API layer (foundational; must complete first)
+  - Tasks 5–7: Company settings centralisation (FirmenprofilSettings + Settings page + Screen1 read-only)
+  - Tasks 8–13: Upload unification (OCR API extension, UploadOCR props, FieldDocumentZone multi-doc refactor, Screen 2/3/4 wiring)
+  - Tasks 14–18: Unit and integration tests (component tests, API tests)
+- **Open Questions:**
+  1. Screen3Fuhrpark: confirm exact `fieldKey` values for fields paired with UploadOCR.
+  2. Screen5Dienstreisen and Screen7Abfall: verify neither has UploadOCR (and thus requires no wiring task).
+  3. `onDocumentStored` callback payload shape from `/api/ocr` extended response.
+- **Problems Encountered:** None.
