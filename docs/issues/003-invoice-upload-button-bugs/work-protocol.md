@@ -26,6 +26,19 @@
   - `docs/issues/003-invoice-upload-button-bugs/analysis.md` — Full issue analysis with root cause, affected files, and suggested fix approach
 - **Problems Encountered:** None
 
+### Developer (regression tests)
+- **Date:** 2026-03-26
+- **Summary:** Added 8 Playwright E2E regression tests covering all three bug fixes. Tests run against the live application (Docker container) using Playwright's `page.route()` to mock `/api/field-documents` responses for the "docs present" scenarios, avoiding the need for a real file upload during CI.
+- **Artifacts Produced:**
+  - `e2e-tests/app/invoice-button-regression.spec.ts` — 8 Playwright E2E tests organized into four `describe` blocks:
+    - **Bug #2 (label)**: asserts button text is "Rechnung hinzufügen" and old label "Rechnung hochladen" is absent
+    - **Bug #1 (duplicate, empty state)**: asserts exactly 2 upload buttons on Screen 4 and 3 on Screen 2 (one per OCR field)
+    - **Bug #1 (duplicate, with docs)**: mocks API to return a document, verifies no extra button appears and the FieldDocumentZone doc list renders instead
+    - **Bug #3 (position)**: uses `compareDocumentPosition` to assert document zone renders before upload button in DOM order (both empty-state and with-docs variants)
+- **Tests Run:** `npm test` (Vitest) — 22/22 passed (no regressions); Playwright tests listed via `--list` — 8 new tests recognised
+- **Commit:** `test: add regression tests for invoice button bug fixes (#003)`
+- **Problems Encountered:** None
+
 ### Technical Writer
 - **Date:** 2026-03-26
 - **Summary:** Updated all documentation to reflect the button label rename from "Rechnung hochladen" to "Rechnung hinzufügen" introduced by Fix #2. Updated user-journey descriptions, code comments, feature specifications, test plans, and acceptance criteria. Historical bug analysis documents (issue analysis files) were intentionally left unchanged as they document the original broken state.
