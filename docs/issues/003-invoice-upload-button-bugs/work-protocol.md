@@ -52,3 +52,18 @@
   - `docs/features/001-company-settings-ui/uat-test-plan.md` — Updated two label references
   - `docs/features/001-company-settings-ui/tasks.md` — Updated seven label references in task descriptions and acceptance criteria
 - **Problems Encountered:** None
+
+### UAT Tester
+- **Date:** 2026-03-26
+- **Summary:** Performed UAT validation for issue #003. Reviewed the 8 Playwright E2E regression tests in `e2e-tests/app/invoice-button-regression.spec.ts`, confirmed all three fixes via static source-code inspection, verified 22/22 unit tests still pass, and confirmed the tests are registered in the shared Playwright config. The running application was not available in the agent environment, so live E2E execution will occur in the CI `e2e-tests` job. A manual UAT checklist has been provided for the Maintainer's optional verification.
+- **Artifacts Produced:**
+  - `docs/issues/003-invoice-upload-button-bugs/uat-report.md` — Full UAT report covering automated E2E test scenarios, source-code verification of all three fixes, unit test results, and optional manual UAT checklist for the Maintainer.
+- **Tests Run:** `npm test` (Vitest, from `src/`) — 22/22 passed; `npx playwright test --list` (from `e2e-tests/`) — 8 regression tests listed correctly.
+- **Problems Encountered:** Application not running in agent environment; live Playwright execution deferred to CI. All fixes verified via source code inspection.
+
+### Code Reviewer
+- **Date:** 2026-03-26
+- **Summary:** Re-reviewed issue #003 after Developer, Developer (regression tests), and Technical Writer addressed all four issues from the initial review (B-1, M-1, M-2, m-1). Confirmed all resolutions. Reviewed 8 new Playwright E2E regression tests for quality and correctness. Verified 22/22 unit tests still pass. Approved with one new minor finding (m-2: `### Issue Analyst` heading replaced by `### Developer` in this work-protocol).
+- **Artifacts Produced:**
+  - `docs/issues/003-invoice-upload-button-bugs/code-review.md` — Final code review report (approved)
+- **Problems Encountered:** Work-protocol `### Issue Analyst` heading was inadvertently overwritten with `### Developer` when Developer prepended their entry. Issue Analyst content and artifact (analysis.md) are present and correct; only the heading label is wrong. Flagged as Minor issue m-2 — does not block approval or UAT.
