@@ -21,6 +21,7 @@ new values and to keep benchmark comparisons accurate.
 | Agent | Status | Notes |
 |---|---|---|
 | Issue Analyst | ✅ Done | Created analysis, identified root cause |
+| Architect | ✅ Done | Created architecture.md with 6 decisions |
 | Developer | ⬜ Pending | Implement CRUD UI + API routes |
 | Code Reviewer | ⬜ Pending | Review implementation |
 | QA / UAT Tester | ⬜ Pending | End-to-end test of management flows |
@@ -50,3 +51,41 @@ source files, Prisma schema, and the API route directory.
 
 **Handoff:** Ready for Developer agent to implement CRUD API routes and
 inline-editing UI in the Settings page.
+
+---
+
+### Architect — 2025-07-14
+
+**Summary:** Designed the technical approach for the entity management feature.
+Reviewed the Prisma schema, existing API route patterns, Settings page structure,
+Client Component conventions, and toast/feedback usage throughout the codebase.
+
+**Key decisions made:**
+
+1. **Schema migration (Decision 1):** Add `validYear Int` to `IndustryBenchmark`
+   (default `2024`); change unique constraint to `@@unique([branche, validYear])`.
+   Required for year-accurate benchmark comparisons and consistency with the
+   existing `EmissionFactor` versioning pattern.
+2. **API routes (Decision 2):** Extend `POST /api/factors`, new
+   `PUT/DELETE /api/factors/[id]`, new `GET+POST /api/benchmarks`, new
+   `PUT /api/benchmarks/[id]`. Follows the existing collection/item route split.
+3. **UI mix (Decision 3):** Replace the two read-only Server Component tables
+   with new Client Components (`EmissionFactorsTableEditable`,
+   `IndustryBenchmarkTableEditable`). Server Component passes full DB rows (with
+   `id`) as props; components use `router.refresh()` after mutations — identical
+   to the `YearManagement` pattern.
+4. **Type additions (Decision 4):** New `EmissionFactorRow` and
+   `IndustryBenchmarkRow` interfaces in `src/types/index.ts`. Existing
+   `FactorRecord` unchanged.
+5. **State management (Decision 5):** `useState` for edit row + value;
+   `router.refresh()` for re-sync. No SWR/React Query needed.
+6. **Toast pattern (Decision 6):** `sonner` with German messages, consistent
+   with existing wizard screens.
+
+**Artifacts produced:**
+- `docs/features/004-entity-management/architecture.md`
+
+**Problems encountered:** None. All needed patterns were clearly established in
+the codebase (YearManagement, FirmenprofilSettings, field-documents API).
+
+**Handoff:** Ready for Developer agent (or Task Planner to break into tasks first).
