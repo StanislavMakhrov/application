@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.6](https://github.com/StanislavMakhrov/application/compare/v0.1.5...v0.1.6) (2026-03-26)
+
+
+### Features
+
+* add UI/UX Designer agent and update related documentation ([da00007](https://github.com/StanislavMakhrov/application/commit/da00007fece6ec279604d6a70d92f2d33f2cd755))
+* company settings management, UI simplification, and invoice flexibility ([088bdf0](https://github.com/StanislavMakhrov/application/commit/088bdf0521dc56217865145afcb1cadb2bc7003d))
+
+
+### Bug Fixes
+
+* agents cannot create docs/features/NNN-*/ on copilot/* branches ([3040d4c](https://github.com/StanislavMakhrov/application/commit/3040d4c08e8f87da07472ee1aa68cad62f313650))
+* correct E2E button count assertion for screen 2 (7 upload zones, not 3) ([eb94abb](https://github.com/StanislavMakhrov/application/commit/eb94abb12b5f5dc5f9a51a2b094ea5467c82a0e7))
+* extract calculateTotal, add Screen6 UploadOCR, fix PATCH error handling ([1304c23](https://github.com/StanislavMakhrov/application/commit/1304c23c20057e8d2107ec12e26e757684414309))
+* invoice upload UI bugs - remove monthly mode, add per-doc metadata, fix sum calculation ([6b76d20](https://github.com/StanislavMakhrov/application/commit/6b76d20233d99f0ba811c5683fe020120948d0e8))
+* make Jahresabrechnung mutually exclusive per field zone ([dfde92b](https://github.com/StanislavMakhrov/application/commit/dfde92bbf71d17145b91bcc3298dd58b24d8a228))
+* remove duplicate UploadOCR buttons alongside FieldDocumentZone ([425860a](https://github.com/StanislavMakhrov/application/commit/425860a4a9ddc7d137f28b38f17dba241aecf2f6))
+* remove exception clause to enforce full orchestrator pipeline for issue assignments ([cbc9742](https://github.com/StanislavMakhrov/application/commit/cbc9742b1fd91aa2cfae56eae80f0bda805e3e51))
+* rename invoice button label and fix duplicate button and wrong position ([6c761c1](https://github.com/StanislavMakhrov/application/commit/6c761c11fe13e97e5c063aed08ad7455e60a234c)), closes [#2](https://github.com/StanislavMakhrov/application/issues/2) [#3](https://github.com/StanislavMakhrov/application/issues/3)
+* resolve code review blockers (path traversal, docs, merge conflicts) ([97b2a49](https://github.com/StanislavMakhrov/application/commit/97b2a49f2d0549743538ce59af374b8d84708648))
+* restore OCR upload and fix annual invoice calculateTotal ([7cd3e00](https://github.com/StanislavMakhrov/application/commit/7cd3e0089c39015578d8369b8db54f91e6a29c4c))
+
 ## [0.1.5](https://github.com/StanislavMakhrov/application/compare/v0.1.4...v0.1.5) (2026-03-24)
 
 

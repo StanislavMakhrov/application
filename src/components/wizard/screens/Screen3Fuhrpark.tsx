@@ -20,9 +20,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { WizardNav } from '@/components/wizard/WizardNav';
-import { UploadOCR } from '@/components/wizard/UploadOCR';
 import { CsvImport } from '@/components/wizard/CsvImport';
 import { FieldDocumentZone } from '@/components/wizard/FieldDocumentZone';
+import { calculateTotal } from '@/lib/wizard/calculateTotal';
+import { UploadOCR } from '@/components/wizard/UploadOCR';
 import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
 import { PlausibilityWarning, getPlausibilityWarning } from '@/components/wizard/PlausibilityWarning';
 import { HelpTooltip } from '@/components/ui/HelpTooltip';
@@ -47,9 +48,11 @@ interface Screen3Props {
 
 export default function Screen3Fuhrpark({ year }: Screen3Props) {
   const [yearId, setYearId] = useState<number | null>(null);
-  // documentId carried from OCR/CSV result to saveEntry for audit linkage
   const [lastDocumentId, setLastDocumentId] = useState<number | undefined>();
   const [warnings, setWarnings] = useState<Record<string, string | null>>({});
+  // Refresh keys trigger FieldDocumentZone to re-fetch after UploadOCR creates a doc
+  const [dieselRefreshKey, setDieselRefreshKey] = useState(0);
+  const [benzinRefreshKey, setBenzinRefreshKey] = useState(0);
 
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } =
     useForm<FormValues>({
@@ -145,26 +148,15 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
 
         {fields.map((f) => (
           <div key={f.id} className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <Label htmlFor={f.id}>
-                {f.id === 'diesel' ? (
-                  <>{f.label}<HelpTooltip text="Aus Tankbelegen, DATEV-Konto 4530, oder vom Fuhrparkmanager" /></>
-                ) : f.id === 'benzin' ? (
-                  <>{f.label}<HelpTooltip text="Aus Tankbelegen oder DATEV-Konto 4530" /></>
-                ) : (
-                  f.label
-                )}
-              </Label>
-              {f.category && (
-                <UploadOCR
-                  category={f.category}
-                  onResult={(v, _conf, docId) => {
-                    setValue(f.id, v);
-                    setLastDocumentId(docId);
-                  }}
-                />
+            <Label htmlFor={f.id}>
+              {f.id === 'diesel' ? (
+                <>{f.label}<HelpTooltip text="Aus Tankbelegen, DATEV-Konto 4530, oder vom Fuhrparkmanager" /></>
+              ) : f.id === 'benzin' ? (
+                <>{f.label}<HelpTooltip text="Aus Tankbelegen oder DATEV-Konto 4530" /></>
+              ) : (
+                f.label
               )}
-            </div>
+            </Label>
             <Input
               id={f.id}
               type="number"
@@ -180,7 +172,32 @@ export default function Screen3Fuhrpark({ year }: Screen3Props) {
             {errors[f.id] && <p className="text-xs text-red-600">{errors[f.id]?.message}</p>}
             {f.id === 'diesel' && <PlausibilityWarning message={warnings.DIESEL_FUHRPARK ?? null} />}
             <p className="text-xs text-gray-400">{f.hint} (UBA 2024)</p>
-            <FieldDocumentZone fieldKey={f.fieldKey} year={year} />
+            <FieldDocumentZone
+              fieldKey={f.fieldKey}
+              year={year}
+              suppressInitialUpload={f.fieldKey === 'DIESEL_FUHRPARK' || f.fieldKey === 'BENZIN_FUHRPARK'}
+              refreshKey={f.fieldKey === 'DIESEL_FUHRPARK' ? dieselRefreshKey : f.fieldKey === 'BENZIN_FUHRPARK' ? benzinRefreshKey : 0}
+              onDocumentsChange={f.category ? (docs) => setValue(f.id, calculateTotal(docs)) : undefined}
+            />
+            {/* UploadOCR is only shown for fuel-consumption fields that have an OCR category */}
+            {f.fieldKey === 'DIESEL_FUHRPARK' && (
+              <UploadOCR
+                category="DIESEL_FUHRPARK"
+                fieldKey="DIESEL_FUHRPARK"
+                year={year}
+                onResult={(value, _confidence) => setValue('diesel', value)}
+                onDocumentStored={() => setDieselRefreshKey((k) => k + 1)}
+              />
+            )}
+            {f.fieldKey === 'BENZIN_FUHRPARK' && (
+              <UploadOCR
+                category="BENZIN_FUHRPARK"
+                fieldKey="BENZIN_FUHRPARK"
+                year={year}
+                onResult={(value, _confidence) => setValue('benzin', value)}
+                onDocumentStored={() => setBenzinRefreshKey((k) => k + 1)}
+              />
+            )}
           </div>
         ))}
 
