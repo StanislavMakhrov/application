@@ -31,3 +31,10 @@
   - `docs/features/002-methodology-summary/test-plan.md` — 17 unit test cases, coverage matrix, edge case table
   - `docs/features/002-methodology-summary/uat-test-plan.md` — 7-step UAT walkthrough for manual PDF verification
 - **Problems Encountered:** None. All required data and test infrastructure already exist. The `MaterialEntry` model does not carry a `scope` field (materials are always Scope 3), which TC-13 explicitly asserts — flagged as an implementation note for the Developer.
+
+### Task Planner
+- **Date:** 2025-07-14
+- **Summary:** Reviewed specification, architecture, test plan, and existing codebase (`src/types/index.ts`, `src/lib/factors.ts`, `src/lib/__tests__/factors.test.ts`) to understand the implementation context. Produced a 5-task implementation plan ordered by dependency, covering all aspects of the feature: type definitions, factor record lookup helper, methodology assembly function, API route wiring, and GHGReport component rendering.
+- **Artifacts Produced:**
+  - `docs/features/002-methodology-summary/tasks.md` — 5 ordered tasks with acceptance criteria, dependencies, and open questions
+- **Problems Encountered:** No `MATERIAL_UNITS` map found in `src/types/index.ts` (only `CATEGORY_UNITS` for emission categories exists). Flagged as an open question for the Developer to handle inline within `assembleMethodologyData()`. No existing unit test file for the API route was found; TC-17 deferred to manual code inspection or UAT as recommended in the test plan.
