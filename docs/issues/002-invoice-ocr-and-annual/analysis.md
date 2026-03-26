@@ -83,9 +83,11 @@ The `UploadOCR` component was designed to:
 3. Call `onResult(value, confidence, documentId)` so the parent screen calls `setValue(fieldName, value)`
 4. Call `onDocumentStored(doc)` to trigger `FieldDocumentZone`'s `refreshKey` increment
 
-Commit `425860a` removed all `UploadOCR` instances from Screen2, Screen3, and Screen4 (the three screens that had them). The stated reason was a duplicate-button regression: `FieldDocumentZone.showAddButton` was `suppressInitialUpload || docs.length > 0`, which is `true || false = true` when `suppressInitialUpload=true` (passed whenever `UploadOCR` was present), causing the `+ Beleg hinzufügen` button to appear in the empty state alongside the `UploadOCR` button.
+Commit `425860a` ("fix: remove duplicate UploadOCR buttons alongside FieldDocumentZone", branch `copilot/improve-company-settings-management`) removed all `UploadOCR` instances from Screen2, Screen3, and Screen4 (the three screens that had them). The stated reason was a duplicate-button regression: `FieldDocumentZone.showAddButton` was `suppressInitialUpload || docs.length > 0`, which is `true || false = true` when `suppressInitialUpload=true` (passed whenever `UploadOCR` was present), causing the `+ Beleg hinzufügen` button to appear in the empty state alongside the `UploadOCR` button.
 
 **The root fix was applied incorrectly.** Removing `UploadOCR` eliminated the duplicate-button UI bug but silently broke the entire OCR pipeline. The correct fix would have been to adjust the `showAddButton` logic in `FieldDocumentZone`.
+
+> 🔍 **How to verify**: Run `git show 425860a -- src/components/wizard/screens/Screen2Heizung.tsx` to see the original `UploadOCR` usage that was removed.
 
 Current (broken) `showAddButton` logic:
 ```ts
@@ -263,3 +265,7 @@ The same fix must be applied in all three screens (Screen2, Screen3, Screen4).
 ### OCR Stub
 
 `src/lib/ocr/index.ts` → `extractFromFile()` has stub values for 9 categories (STROM, ERDGAS, DIESEL_FUHRPARK, HEIZOEL, FLUESSIGGAS, FERNWAERME, GESCHAEFTSREISEN_FLUG, GESCHAEFTSREISEN_BAHN, KUPFER). All other categories fall back to `{ value: 1000, unit: 'Einheit' }`. The stub simulates 1–2 s latency. The TODO comment indicates this will eventually call a Tesseract microservice.
+
+### Known Script Bug
+
+`scripts/next-issue-number.sh` emits `[: : integer expression expected` and returns `001` even when `docs/features/001-*` already exists. Issue number `002` was used manually for this analysis. The script bug should be tracked and fixed separately to prevent future numbering conflicts.
