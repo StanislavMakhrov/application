@@ -179,6 +179,18 @@ export const CATEGORY_UNITS: Record<EmissionCategory, string> = {
   SONSTIGE_KAELTEMITTEL: 'kg',
 };
 
+/** Unit labels for each material category */
+export const MATERIAL_UNITS: Record<MaterialCategory, string> = {
+  KUPFER: 'kg',
+  STAHL: 'kg',
+  ALUMINIUM: 'kg',
+  HOLZ: 'kg',
+  KUNSTSTOFF_PVC: 'kg',
+  BETON: 'kg',
+  FARBEN_LACKE: 'kg',
+  SONSTIGE: 'kg',
+};
+
 /** Maps each emission category to its scope */
 export const CATEGORY_SCOPE: Record<EmissionCategory, Scope> = {
   ERDGAS: 'SCOPE1',
@@ -204,3 +216,33 @@ export const CATEGORY_SCOPE: Record<EmissionCategory, Scope> = {
   R134A_KAELTEMITTEL: 'SCOPE1',
   SONSTIGE_KAELTEMITTEL: 'SCOPE1',
 };
+
+// === Methodology ===
+
+/** One row in the methodology emission factor table */
+export interface MethodologyFactorRow {
+  categoryKey: string;       // e.g. "ERDGAS"
+  categoryLabel: string;     // human-readable German label
+  scope: Scope;              // "SCOPE1" | "SCOPE2" | "SCOPE3"
+  factorKg: number | null;   // null if factor not found in DB
+  unit: string;              // e.g. "m³", "kWh", "L"
+  source: string | null;     // e.g. "UBA Datenbericht 2024"; null if factor missing
+  validYear: number | null;  // e.g. 2024; null if factor missing
+}
+
+/** One row in the methodology data quality table */
+export interface MethodologyQualityRow {
+  categoryKey: string;
+  categoryLabel: string;
+  inputMethod: InputMethod;  // "MANUAL" | "OCR" | "CSV"
+}
+
+/** Complete methodology data block, assembled at report-generation time */
+export interface MethodologyData {
+  standard: string;                     // "GHG Protocol Corporate Standard"
+  scopesIncluded: Scope[];              // scopes that have at least one entry
+  factorRows: MethodologyFactorRow[];   // one row per recorded category
+  qualityRows: MethodologyQualityRow[]; // one row per recorded category
+  boundaryNotes: string | null;         // CompanyProfile.reportingBoundaryNotes
+  exclusions: string | null;            // CompanyProfile.exclusions
+}

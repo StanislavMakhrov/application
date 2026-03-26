@@ -22,9 +22,10 @@ import {
   StyleSheet,
   Image,
 } from '@react-pdf/renderer';
-import type { CO2eTotals, CompanyProfileData } from '@/types';
+import type { CO2eTotals, CompanyProfileData, MethodologyData } from '@/types';
 import { CATEGORY_LABELS, CATEGORY_UNITS, BRANCHE_LABELS } from '@/types';
 import type { Branche } from '@/types';
+import { GHGReportMethodologyPage } from './GHGReportMethodologyPage';
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, fontFamily: 'Helvetica', color: '#1a1a1a' },
@@ -67,9 +68,11 @@ interface GHGReportProps {
   entries: Array<{ category: string; quantity: number; isOekostrom: boolean; scope: string }>;
   materials: Array<{ material: string; quantityKg: number; supplierName?: string | null }>;
   benchmarkValue?: number;
+  /** Optional methodology data — when provided, a "Methodik & Datenqualität" page is appended. */
+  methodology?: MethodologyData;
 }
 
-export function GHGReport({ profile, year, totals, entries, materials, benchmarkValue = 12.5 }: GHGReportProps) {
+export function GHGReport({ profile, year, totals, entries, materials, benchmarkValue = 12.5, methodology }: GHGReportProps) {
   const co2ePerEmployee = profile.mitarbeiter > 0 ? totals.total / profile.mitarbeiter : 0;
   const vsBenchmark = benchmarkValue > 0 ? ((co2ePerEmployee - benchmarkValue) / benchmarkValue) * 100 : 0;
 
@@ -217,6 +220,7 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
       {/* Materials Page */}
       {materials.length > 0 && (
         <Page size="A4" style={styles.page}>
+          {/* Materials page — no static Methodik paragraph (superseded by the dynamic methodology page) */}
           <Text style={styles.sectionTitle}>Scope 3 Kategorie 1 — Eingekaufte Materialien</Text>
           <View style={styles.table}>
             <View style={styles.tableHeader}>
@@ -238,20 +242,18 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
             })}
           </View>
 
-          {/* Methodology */}
-          <Text style={styles.sectionTitle}>Methodik</Text>
-          <Text style={{ fontSize: 9, color: '#555', lineHeight: 1.6 }}>
-            Diese CO₂-Bilanz wurde nach dem GHG Protocol Corporate Standard erstellt. 
-            Alle Emissionsfaktoren stammen aus dem Umweltbundesamt (UBA) Datenbericht 2024.
-            Die Berechnung folgt dem Ansatz: CO₂e = Aktivitätsdaten × Emissionsfaktor.
-            Scope 3 Kategorie 1 umfasst vorgelagerte Emissionen eingekaufter Waren und Dienstleistungen.
-            Negative Werte (z.B. Altmetall-Recycling) stellen anerkannte Gutschriften dar.
-          </Text>
-
           <Text style={styles.footer}>
             GrünBilanz · GHG Protocol Corporate Standard · Emissionsfaktoren: UBA 2024 · Seite 2
           </Text>
         </Page>
+      )}
+
+      {/* Methodology page — rendered only when methodology data is provided */}
+      {methodology && (
+        <GHGReportMethodologyPage
+          methodology={methodology}
+          pageNumber={materials.length > 0 ? 3 : 2}
+        />
       )}
     </Document>
   );

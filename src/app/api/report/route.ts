@@ -17,6 +17,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import React from 'react';
 import { prisma } from '@/lib/prisma';
 import { getTotalCO2e } from '@/lib/emissions';
+import { assembleMethodologyData } from '@/lib/methodology';
 import { renderPdf } from '@/lib/pdf';
 import { GHGReport } from '@/components/reports/GHGReport';
 import { CSRDQuestionnaire } from '@/components/reports/CSRDQuestionnaire';
@@ -73,6 +74,10 @@ export async function GET(req: NextRequest) {
       });
       pdfBuffer = await renderPdf(doc);
     } else {
+      // Assemble methodology data for the GHG Protocol report only.
+      // CSRD_QUESTIONNAIRE reports intentionally do not include methodology data.
+      const methodology = await assembleMethodologyData(yearId, reportingYear.year, profile);
+
       const doc = React.createElement(GHGReport, {
         profile,
         year: reportingYear.year,
@@ -85,6 +90,7 @@ export async function GET(req: NextRequest) {
         })),
         materials: reportingYear.materialEntries,
         benchmarkValue: benchmark?.co2ePerEmployeePerYear,
+        methodology,
       });
       pdfBuffer = await renderPdf(doc);
     }
