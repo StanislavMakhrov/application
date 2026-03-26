@@ -89,3 +89,36 @@ Client Component conventions, and toast/feedback usage throughout the codebase.
 the codebase (YearManagement, FirmenprofilSettings, field-documents API).
 
 **Handoff:** Ready for Developer agent (or Task Planner to break into tasks first).
+
+---
+
+### Quality Engineer — 2025-07-14
+
+**Summary:** Created a full test plan and UAT test plan for Feature 004 (Entity
+Management). Reviewed the architecture document, analysis, and all existing test
+files to match project conventions.
+
+**Key decisions made:**
+
+- Mapped all 9 acceptance criteria (AC-1 through AC-9) to 28 numbered test cases.
+- API integration tests (TC-01 – TC-18) follow the existing
+  `vi.mock('@/lib/prisma', ...)` + `NextRequest` pattern from
+  `src/app/api/factors/__tests__/route.test.ts`.
+- Component tests (TC-19 – TC-28) use React Testing Library with
+  `@vitest-environment jsdom` because the new editable tables are Client
+  Components with `useState` and `fetch`; the existing `renderToStaticMarkup`
+  approach only works for pure Server Components.
+- Identified two open questions in the test plan:
+  (1) Whether `GET /api/benchmarks` with no `year` param should return 400 or
+  fall back to most-recent year; (2) whether `POST /api/factors` restricts `key`
+  to existing enum values.
+
+**Artifacts produced:**
+- `docs/features/004-entity-management/test-plan.md`
+- `docs/features/004-entity-management/uat-test-plan.md`
+
+**Problems encountered:** None. All patterns were clear from existing tests and
+architecture decisions.
+
+**Handoff:** Ready for Developer agent to implement API routes, schema migration,
+and editable table components. Task Planner may break implementation into tasks first.
