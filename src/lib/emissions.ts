@@ -84,8 +84,11 @@ export async function getTotalCO2e(yearId: number): Promise<CO2eTotals> {
 
   // Determine which categories have a final-annual entry — those entries
   // supersede all monthly/provider-specific rows for that category.
-  const finalAnnualCategories = new Set(
-    entries.filter((e) => e.isFinalAnnual).map((e) => e.category)
+  // `entries` is any[] because the Prisma client is generated as `any` in this environment.
+  // eslint-disable-next-line
+  const finalAnnualCategories = new Set<string>(
+    // eslint-disable-next-line
+    (entries as any[]).filter((e) => e.isFinalAnnual).map((e) => e.category as string)
   );
 
   // Process emission entries, skipping non-final rows when a final annual

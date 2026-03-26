@@ -93,7 +93,7 @@ The table below is the canonical reference for what data enters the system, how 
 1. User opens browser → lands on Dashboard; sees all categories marked "Nicht erfasst".
 2. Clicks "+ Neues Jahr" → selects 2024 as Berichtsjahr.
 3. Navigates to Screen 1 (Firmenprofil) → confirms or updates company data → clicks "Weiter".
-4. Screen 2 (Heizung & Gebäude) → picks up gas bill, clicks "Rechnung hochladen", uploads PDF → OCR pre-fills 4.200 m³ → user confirms → clicks "Weiter".
+4. Screen 2 (Heizung & Gebäude) → picks up gas bill, clicks "Rechnung hinzufügen", uploads PDF → OCR pre-fills 4.200 m³ → user confirms → clicks "Weiter".
 5. Screen 3 (Fuhrpark) → uploads DATEV CSV → maps "Diesel Gesamt" column → 3 rows are populated → user edits one row → "Weiter".
 6. Screen 4 (Strom & Fernwärme) → types 28.400 kWh manually → ticks "Ökostrom: Nein" → "Weiter".
 7. Screen 5 (Dienstreisen & Pendler) → enters 2 employees × 25 km × 220 days = 11.000 km Pendler → "Weiter".
@@ -553,21 +553,26 @@ model IndustryBenchmark {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Field Documents — per-field invoice/receipt attachments
-// One attachment per (fieldKey, year). Stored on the container filesystem.
-// fieldKey is a category string (e.g. "ERDGAS_2024"). Displayed as a green
-// dashed zone under each numeric input field in the wizard.
+// Field Documents — per-field invoice/receipt attachments (multiple per field/year).
+// fieldKey is a category string (e.g. "ERDGAS"). Displayed as a dashed zone
+// under each numeric input field in the wizard. Multiple documents can exist
+// for the same fieldKey + year combination (e.g. monthly invoices + annual invoice).
 // ─────────────────────────────────────────────────────────────────────────────
 model FieldDocument {
   id               Int      @id @default(autoincrement())
-  fieldKey         String   // e.g. "ERDGAS_2024"
+  fieldKey         String   // e.g. "ERDGAS"
   year             Int
   filePath         String
   originalFilename String
   mimeType         String
   uploadedAt       DateTime @default(now())
-
-  @@unique([fieldKey, year])
+  // OCR-extracted value stored at upload time (null if uploaded without OCR)
+  recognizedValue     Float?
+  // Which month (1–12) this invoice covers; null = unspecified
+  billingMonth        Int?
+  // True if this invoice covers the entire year (overrides monthly accumulation)
+  isJahresabrechnung  Boolean  @default(false)
+  // No unique constraint — multiple invoices per field/year are supported
 }
 
 enum AuditAction {
@@ -1104,6 +1109,78 @@ export async function extractFromFile(
 ```
 
 The **current stub** simulates a 1–2 second processing delay and returns hardcoded values per category. It is designed to be replaced with a real implementation (e.g. a call to Claude claude-sonnet-4-20250514 with the document as base64, or the Tesseract HTTP service at `TESSERACT_URL`) without any changes to the wizard UI components.
+
+#### `UploadOCR` + `FieldDocumentZone` Integration Pattern
+
+Each OCR-capable wizard field uses a two-component pattern:
+
+1. **`UploadOCR`** — renders an upload button that calls `POST /api/ocr`. The API route:
+   - Runs `extractFromFile()` to get the recognised value
+   - Creates an `UploadedDocument` (audit evidence, stored in DB bytes)
+   - Creates a `FieldDocument` with `recognizedValue` set (invoice attached to the field)
+   - Returns `{ value, unit, confidence, documentId, fieldDocumentId }`
+
+   The parent screen's `onResult` callback receives the extracted value and immediately updates the form field (`setValue('erdgas', value)`). A toast shows the recognised value and confidence.
+
+2. **`FieldDocumentZone`** — renders the list of attached invoice files below the numeric input. It fetches documents on mount and after each mutation. Its `onDocumentsChange` callback fires whenever the list changes, allowing the parent to recalculate the running total.
+
+   When `UploadOCR` is present for the same field, pass `suppressInitialUpload` to `FieldDocumentZone` to hide its own upload button in the empty state (prevents a duplicate upload button). Set `refreshKey` to a counter incremented inside `onDocumentStored` so the zone re-fetches immediately after `UploadOCR` creates a new document.
+
+   ```
+   showAddButton = docs.length > 0
+   ```
+   The "+ Beleg hinzufügen" button only appears once at least one document is already attached, regardless of `suppressInitialUpload`. (Note: prior to the fix in issue #002, this was incorrectly `suppressInitialUpload || docs.length > 0`, which caused the button to appear in the empty state whenever `suppressInitialUpload` was true.)
+
+**Typical usage in a wizard screen:**
+
+```tsx
+const [erdgasRefreshKey, setErdgasRefreshKey] = useState(0);
+
+<UploadOCR
+  category="ERDGAS"
+  fieldKey="ERDGAS"
+  year={year}
+  onResult={(value) => setValue('erdgas', value)}
+  onDocumentStored={() => setErdgasRefreshKey((k) => k + 1)}
+/>
+<FieldDocumentZone
+  fieldKey="ERDGAS"
+  year={year}
+  suppressInitialUpload          // hides upload button in empty state
+  refreshKey={erdgasRefreshKey}  // re-fetches after UploadOCR adds a doc
+  onDocumentsChange={(docs) => setValue('erdgas', calculateTotal(docs))}
+/>
+```
+
+#### `calculateTotal` Pattern
+
+Each wizard screen that supports OCR uploads uses a shared `calculateTotal` helper to derive the field value from the attached documents:
+
+```typescript
+function calculateTotal(docs: FieldDocument[]): number {
+  const annualDocs = docs.filter((d) => d.isJahresabrechnung);
+  if (annualDocs.length > 0) {
+    const lastAnnual = annualDocs[annualDocs.length - 1];
+    if (lastAnnual.recognizedValue != null) {
+      return lastAnnual.recognizedValue;  // annual OCR value overrides sum
+    }
+  }
+  // Fall back to sum of all OCR values; docs without recognizedValue contribute 0.
+  // This preserves any manually typed value when no OCR-processed docs are attached.
+  return docs.reduce((sum, d) => sum + (d.recognizedValue ?? 0), 0);
+}
+```
+
+Behaviour summary:
+
+| Situation | Field value |
+|---|---|
+| Annual doc with OCR value | Uses that doc's `recognizedValue` (overrides sum) |
+| Annual doc without OCR value | Falls through to sum (manual entry preserved) |
+| Multiple monthly docs with OCR values | Sum of all `recognizedValue`s |
+| No docs / no OCR values | 0 (or current manual input is preserved via separate save) |
+
+Screens applying this pattern: Screen2Heizung, Screen3Fuhrpark, Screen4Strom, Screen5Dienstreisen.
 
 ### 8.3 Audit Trail
 

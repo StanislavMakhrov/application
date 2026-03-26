@@ -1,17 +1,18 @@
 /**
- * Settings page — manage reporting years and other app-level configuration.
+ * Settings page — manage company profile and reporting years.
  */
 
 import Link from 'next/link';
 import { Leaf, ArrowLeft } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { YearManagement } from '@/components/settings/YearManagement';
+import { FirmenprofilSettings } from '@/components/settings/FirmenprofilSettings';
 
 export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
   const allYears = await prisma.reportingYear.findMany({ orderBy: { year: 'asc' } });
-  const years = allYears.map((y) => y.year);
+  const years = allYears.map((y: { year: number }) => y.year);
   const nextYear = years.length > 0 ? years[years.length - 1] + 1 : new Date().getFullYear();
 
   return (
@@ -42,6 +43,15 @@ export default async function SettingsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Einstellungen</h1>
           <p className="text-sm text-gray-500 mt-1">App-Konfiguration und Datenverwaltung</p>
         </div>
+
+        {/* Company profile — placed first as it is the most prominent identity setting */}
+        <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <h2 className="text-base font-semibold text-gray-800 mb-1">Firmenprofil</h2>
+          <p className="text-sm text-gray-500 mb-5">
+            Stammdaten Ihres Unternehmens — erscheinen auf dem PDF-Bericht und im Dashboard.
+          </p>
+          <FirmenprofilSettings />
+        </section>
 
         {/* Year management */}
         <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">

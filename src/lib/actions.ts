@@ -12,8 +12,12 @@
 
 import { revalidatePath } from 'next/cache';
 import { prisma } from './prisma';
+import type { Prisma } from '@prisma/client';
 import type { Scope, EmissionCategory, MaterialCategory, Branche, InputMethod } from '@/types';
-import type { AuditAction } from '@prisma/client';
+
+// AuditAction mirrors the Prisma schema enum. Defined locally because the
+// generated @prisma/client may not export it in all environments (Prisma v7).
+type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE';
 
 type ActionResult = { success: boolean; error?: string };
 
@@ -341,7 +345,7 @@ export async function saveMaterialEntries(input: {
   try {
     // Use an interactive transaction so the pre-deletion snapshot, the
     // delete, and the create all occur atomically — no race conditions.
-    const { deleted, created } = await prisma.$transaction(async (tx) => {
+    const { deleted, created } = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Snapshot existing rows before deletion (within the same transaction)
       const existingRows = await tx.materialEntry.findMany({
         where: { reportingYearId: input.yearId },

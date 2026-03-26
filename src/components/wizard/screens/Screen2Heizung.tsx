@@ -21,9 +21,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { WizardNav } from '@/components/wizard/WizardNav';
-import { UploadOCR } from '@/components/wizard/UploadOCR';
 import { CsvImport } from '@/components/wizard/CsvImport';
 import { FieldDocumentZone } from '@/components/wizard/FieldDocumentZone';
+import { calculateTotal } from '@/lib/wizard/calculateTotal';
+import { UploadOCR } from '@/components/wizard/UploadOCR';
 import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
 import { PlausibilityWarning, getPlausibilityWarning } from '@/components/wizard/PlausibilityWarning';
 import { HelpTooltip } from '@/components/ui/HelpTooltip';
@@ -50,9 +51,12 @@ interface Screen2Props {
 
 export default function Screen2Heizung({ year }: Screen2Props) {
   const [yearId, setYearId] = useState<number | null>(null);
-  // documentId carried from OCR/CSV result to saveEntry for audit linkage
   const [lastDocumentId, setLastDocumentId] = useState<number | undefined>();
   const [warnings, setWarnings] = useState<Record<string, string | null>>({});
+  // Refresh keys trigger FieldDocumentZone to re-fetch after UploadOCR creates a doc
+  const [erdgasRefreshKey, setErdgasRefreshKey] = useState(0);
+  const [heizoelRefreshKey, setHeizoelRefreshKey] = useState(0);
+  const [fluessiggasRefreshKey, setFluessiggasRefreshKey] = useState(0);
 
   const {
     register,
@@ -158,16 +162,10 @@ export default function Screen2Heizung({ year }: Screen2Props) {
 
         {/* Erdgas */}
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="erdgas">
-              Erdgas (m³/Jahr)
-              <HelpTooltip text="Auf der Gas-Jahresabrechnung Ihres Versorgers unter 'Jahresverbrauch' oder 'Gesamtverbrauch in m³'" />
-            </Label>
-            <UploadOCR
-              category="ERDGAS"
-              onResult={(v, _conf, docId) => { setValue('erdgas', v); setLastDocumentId(docId); }}
-            />
-          </div>
+          <Label htmlFor="erdgas">
+            Erdgas (m³/Jahr)
+            <HelpTooltip text="Auf der Gas-Jahresabrechnung Ihres Versorgers unter 'Jahresverbrauch' oder 'Gesamtverbrauch in m³'" />
+          </Label>
           <Input
             id="erdgas"
             type="number"
@@ -179,43 +177,70 @@ export default function Screen2Heizung({ year }: Screen2Props) {
           {errors.erdgas && <p className="text-xs text-red-600">{errors.erdgas.message}</p>}
           <PlausibilityWarning message={warnings.ERDGAS ?? null} />
           <p className="text-xs text-gray-400">Quelle: Gas-Jahresabrechnung. Faktor: 2,000 kg CO₂e/m³ (UBA 2024)</p>
-          <FieldDocumentZone fieldKey="ERDGAS" year={year} />
+          <FieldDocumentZone
+            fieldKey="ERDGAS"
+            year={year}
+            suppressInitialUpload
+            refreshKey={erdgasRefreshKey}
+            onDocumentsChange={(docs) => setValue('erdgas', calculateTotal(docs))}
+          />
+          <UploadOCR
+            category="ERDGAS"
+            fieldKey="ERDGAS"
+            year={year}
+            onResult={(value, _confidence) => setValue('erdgas', value)}
+            onDocumentStored={() => setErdgasRefreshKey((k) => k + 1)}
+          />
         </div>
 
         {/* Heizöl */}
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="heizoel">
-              Heizöl (Liter/Jahr)
-              <HelpTooltip text="Aus Lieferscheinen des Heizöllieferanten oder der Jahresabrechnung" />
-            </Label>
-            <UploadOCR
-              category="HEIZOEL"
-              onResult={(v, _conf, docId) => { setValue('heizoel', v); setLastDocumentId(docId); }}
-            />
-          </div>
+          <Label htmlFor="heizoel">
+            Heizöl (Liter/Jahr)
+            <HelpTooltip text="Aus Lieferscheinen des Heizöllieferanten oder der Jahresabrechnung" />
+          </Label>
           <Input id="heizoel" type="number" step="0.1" min={0} {...register('heizoel')} />
           {errors.heizoel && <p className="text-xs text-red-600">{errors.heizoel.message}</p>}
           <p className="text-xs text-gray-400">Quelle: Lieferscheine. Faktor: 2,650 kg CO₂e/L (UBA 2024)</p>
-          <FieldDocumentZone fieldKey="HEIZOEL" year={year} />
+          <FieldDocumentZone
+            fieldKey="HEIZOEL"
+            year={year}
+            suppressInitialUpload
+            refreshKey={heizoelRefreshKey}
+            onDocumentsChange={(docs) => setValue('heizoel', calculateTotal(docs))}
+          />
+          <UploadOCR
+            category="HEIZOEL"
+            fieldKey="HEIZOEL"
+            year={year}
+            onResult={(value, _confidence) => setValue('heizoel', value)}
+            onDocumentStored={() => setHeizoelRefreshKey((k) => k + 1)}
+          />
         </div>
 
         {/* Flüssiggas */}
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="fluessiggas">
-              Flüssiggas (kg/Jahr)
-              <HelpTooltip text="Aus Lieferscheinen des Gaslieferanten" />
-            </Label>
-            <UploadOCR
-              category="FLUESSIGGAS"
-              onResult={(v, _conf, docId) => { setValue('fluessiggas', v); setLastDocumentId(docId); }}
-            />
-          </div>
+          <Label htmlFor="fluessiggas">
+            Flüssiggas (kg/Jahr)
+            <HelpTooltip text="Aus Lieferscheinen des Gaslieferanten" />
+          </Label>
           <Input id="fluessiggas" type="number" step="0.1" min={0} {...register('fluessiggas')} />
           {errors.fluessiggas && <p className="text-xs text-red-600">{errors.fluessiggas.message}</p>}
           <p className="text-xs text-gray-400">Faktor: 1,650 kg CO₂e/kg (UBA 2024)</p>
-          <FieldDocumentZone fieldKey="FLUESSIGGAS" year={year} />
+          <FieldDocumentZone
+            fieldKey="FLUESSIGGAS"
+            year={year}
+            suppressInitialUpload
+            refreshKey={fluessiggasRefreshKey}
+            onDocumentsChange={(docs) => setValue('fluessiggas', calculateTotal(docs))}
+          />
+          <UploadOCR
+            category="FLUESSIGGAS"
+            fieldKey="FLUESSIGGAS"
+            year={year}
+            onResult={(value, _confidence) => setValue('fluessiggas', value)}
+            onDocumentStored={() => setFluessiggasRefreshKey((k) => k + 1)}
+          />
         </div>
 
         {/* Kältemittel — Scope 1 direct emissions from refrigerant leaks */}
