@@ -196,15 +196,21 @@ export function FieldDocumentZone({
    */
   const handleJahresabrechnungChange = (id: number, checked: boolean) => {
     if (checked) {
+      // Save state before the optimistic update so we can roll back on failure
+      const previousDocs = docs;
+
       // Optimistic update: reflect the exclusive selection immediately in the UI
       applyDocs(docs.map((d) => ({ ...d, isJahresabrechnung: d.id === id })));
 
-      // Sync the newly-checked document to the server
+      // Sync the newly-checked document to the server; roll back on failure
       fetch(`/api/field-documents/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isJahresabrechnung: true }),
-      }).catch(() => {});
+      }).catch((err) => {
+        console.error('Failed to set Jahresabrechnung on document', id, err);
+        applyDocs(previousDocs);
+      });
 
       // Uncheck all previously-checked siblings — only PATCH those that need to change
       docs
@@ -214,7 +220,10 @@ export function FieldDocumentZone({
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ isJahresabrechnung: false }),
-          }).catch(() => {});
+          }).catch((err) => {
+            console.error('Failed to uncheck Jahresabrechnung on sibling document', d.id, err);
+            applyDocs(previousDocs);
+          });
         });
     } else {
       // Simple uncheck — no exclusion logic needed when unchecking

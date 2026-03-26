@@ -15,7 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { WizardNav } from '@/components/wizard/WizardNav';
 import { CsvImport } from '@/components/wizard/CsvImport';
-import { FieldDocumentZone, type FieldDocument } from '@/components/wizard/FieldDocumentZone';
+import { FieldDocumentZone } from '@/components/wizard/FieldDocumentZone';
+import { calculateTotal } from '@/lib/wizard/calculateTotal';
 import { UploadOCR } from '@/components/wizard/UploadOCR';
 import { ScreenChangeLog } from '@/components/wizard/ScreenChangeLog';
 import { PlausibilityWarning, getPlausibilityWarning } from '@/components/wizard/PlausibilityWarning';
@@ -29,26 +30,6 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
-
-/**
- * Calculates the running total from a list of FieldDocuments.
- *
- * If any document is marked as Jahresabrechnung AND has an OCR-extracted value,
- * that value overrides the sum entirely (annual invoice replaces all monthly totals).
- * If the annual document has no OCR value (uploaded via the plain file button), fall
- * through to the regular sum so manually-typed values are not erased.
- * Regular invoices without an annual flag are summed together.
- */
-function calculateTotal(docs: FieldDocument[]): number {
-  const annualDocs = docs.filter((d) => d.isJahresabrechnung);
-  if (annualDocs.length > 0) {
-    const lastAnnual = annualDocs[annualDocs.length - 1];
-    if (lastAnnual.recognizedValue != null) {
-      return lastAnnual.recognizedValue;
-    }
-  }
-  return docs.reduce((sum, d) => sum + (d.recognizedValue ?? 0), 0);
-}
 
 interface Screen5Props {
   year: number;

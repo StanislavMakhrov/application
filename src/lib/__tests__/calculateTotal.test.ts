@@ -1,11 +1,9 @@
 /**
- * Unit tests for the calculateTotal helper used by wizard screens.
+ * Unit tests for the shared calculateTotal helper.
  *
- * calculateTotal is duplicated across Screen2Heizung, Screen3Fuhrpark,
- * Screen4Strom, and Screen5Dienstreisen — all copies share the same logic.
- * This test file verifies the shared logic in isolation by implementing the
- * canonical version. Any divergence in the screen copies should be treated
- * as a bug.
+ * calculateTotal is now defined once in src/lib/wizard/calculateTotal.ts and
+ * imported by Screen2Heizung, Screen3Fuhrpark, Screen4Strom, Screen5Dienstreisen,
+ * and Screen6Materialien.
  *
  * Behaviour under test:
  * - Annual doc with OCR value → returns OCR value (overrides sum)
@@ -16,41 +14,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-
-// ──────────────────────────────────────────────────────────────────────────────
-// Inline canonical implementation — must stay in sync with wizard screen copies
-// ──────────────────────────────────────────────────────────────────────────────
-
-interface FieldDocument {
-  id: number;
-  filePath: string;
-  originalFilename: string;
-  mimeType: string;
-  uploadedAt: string;
-  recognizedValue: number | null;
-  billingMonth: number | null;
-  isJahresabrechnung: boolean;
-}
-
-/**
- * Calculates the running total from a list of FieldDocuments.
- *
- * If any document is marked as Jahresabrechnung AND has an OCR-extracted value,
- * that value overrides the sum entirely (annual invoice replaces all monthly totals).
- * If the annual document has no OCR value (uploaded via the plain file button), fall
- * through to the regular sum so manually-typed values are not erased.
- * Regular invoices without an annual flag are summed together.
- */
-function calculateTotal(docs: FieldDocument[]): number {
-  const annualDocs = docs.filter((d) => d.isJahresabrechnung);
-  if (annualDocs.length > 0) {
-    const lastAnnual = annualDocs[annualDocs.length - 1];
-    if (lastAnnual.recognizedValue != null) {
-      return lastAnnual.recognizedValue;
-    }
-  }
-  return docs.reduce((sum, d) => sum + (d.recognizedValue ?? 0), 0);
-}
+import { calculateTotal } from '@/lib/wizard/calculateTotal';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Helpers
