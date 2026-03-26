@@ -14,3 +14,19 @@
 - **Summary:** Gathered and documented requirements for three related UI/data improvements: (1) centralising company profile settings so Firmenname/Branche are managed from the Settings page rather than the per-year wizard; (2) removing the duplicate "Rechnung hochladen" button that appears when both UploadOCR and FieldDocumentZone are rendered for the same field; (3) allowing multiple invoice documents to be attached per emission category instead of the current one-document limit.
 - **Artifacts Produced:** `docs/features/001-company-settings-ui/specification.md`, `docs/features/001-company-settings-ui/work-protocol.md`
 - **Problems Encountered:** None. Requirements derived from the GitHub issue description combined with codebase exploration.
+
+### Architect
+- **Date:** 2025-07-17
+- **Summary:** Analysed the feature specification and existing codebase (Prisma schema, wizard screens, FieldDocumentZone, UploadOCR, Settings page, OCR and field-documents API routes). Resolved all four open questions from the specification and produced architecture decision records and an implementation-guidance document.
+- **Decisions Made:**
+  1. **Screen 1** → Read-only summary with Settings link (ADR-001). Renumbering wizard URLs has no justification; preserving `/wizard/1` avoids bookmark breakage and keeps the UX pattern of reviewing company context before entering year data.
+  2. **Upload unification** → Extend `/api/ocr` to accept optional `fieldKey`/`year` params and create a `FieldDocument` when they are present (ADR-002). Single network round-trip; atomic audit + evidence record creation; backward-compatible.
+  3. **FieldDocument multi-document** → Drop `@@unique([fieldKey, year])`, switch to `create` (no upsert), add `DELETE /api/field-documents/[id]` route (ADR-003). Non-destructive migration; existing rows preserved as first document in each list.
+  4. **Document count limit** → Soft UI warning at ≥ 20 documents, no hard cap (ADR-004). Appropriate for single-tenant deployment; avoids blocking legitimate high-volume workflows.
+- **Artifacts Produced:**
+  - `docs/features/001-company-settings-ui/architecture.md`
+  - `docs/features/001-company-settings-ui/adr/adr-001-screen1-readonly-vs-removal.md`
+  - `docs/features/001-company-settings-ui/adr/adr-002-upload-unification-strategy.md`
+  - `docs/features/001-company-settings-ui/adr/adr-003-fielddocument-multi-document-model.md`
+  - `docs/features/001-company-settings-ui/adr/adr-004-document-count-limit.md`
+- **Problems Encountered:** None.
