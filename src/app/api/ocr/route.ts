@@ -55,34 +55,43 @@ export async function POST(req: NextRequest) {
     // FieldDocumentZone when UploadOCR is already present for the same field.
     let fieldDocumentId: number | undefined;
     if (fieldKey && yearStr) {
-      const yearNum = parseInt(yearStr, 10);
-      if (!isNaN(yearNum)) {
-        try {
-          const uploadPath = path.join(UPLOAD_DIR, yearStr, fieldKey);
-          await mkdir(uploadPath, { recursive: true });
+      // Sanitize fieldKey: only allow alphanumeric, underscores, and hyphens to prevent
+      // path traversal attacks when constructing the upload directory path.
+      const safeFieldKey = fieldKey.replace(/[^a-zA-Z0-9_-]/g, '');
+      if (safeFieldKey !== fieldKey || safeFieldKey.length === 0) {
+        return NextResponse.json({ error: 'Invalid fieldKey' }, { status: 400 });
+      }
+      // Validate year as a 4-digit integer in the reporting range (2000-2099).
+      const safeYear = parseInt(String(yearStr), 10);
+      if (isNaN(safeYear) || safeYear < 2000 || safeYear > 2099) {
+        return NextResponse.json({ error: 'Invalid year' }, { status: 400 });
+      }
 
-          // Sanitise filename (same rules as /api/field-documents) + timestamp prefix for uniqueness
-          const ext = file.name.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '') ?? 'bin';
-          const base = file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 80);
-          const filename = `${Date.now()}_${base}.${ext}`;
-          const filePath = path.join(uploadPath, filename);
-          await writeFile(filePath, Buffer.from(fileBytes));
+      try {
+        const uploadPath = path.join(UPLOAD_DIR, String(safeYear), safeFieldKey);
+        await mkdir(uploadPath, { recursive: true });
 
-          const relPath = `/uploads/${yearStr}/${fieldKey}/${filename}`;
-          const fieldDoc = await prisma.fieldDocument.create({
-            data: {
-              fieldKey,
-              year: yearNum,
-              filePath: relPath,
-              originalFilename: file.name,
-              mimeType: file.type || 'application/octet-stream',
-            },
-          });
-          fieldDocumentId = fieldDoc.id;
-        } catch (fieldDocErr) {
-          // FieldDocument creation is best-effort; OCR result is still returned
-          console.error('OCR: FieldDocument creation failed:', fieldDocErr);
-        }
+        // Sanitise filename (same rules as /api/field-documents) + timestamp prefix for uniqueness
+        const ext = file.name.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '') ?? 'bin';
+        const base = file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 80);
+        const filename = `${Date.now()}_${base}.${ext}`;
+        const filePath = path.join(uploadPath, filename);
+        await writeFile(filePath, Buffer.from(fileBytes));
+
+        const relPath = `/uploads/${safeYear}/${safeFieldKey}/${filename}`;
+        const fieldDoc = await prisma.fieldDocument.create({
+          data: {
+            fieldKey: safeFieldKey,
+            year: safeYear,
+            filePath: relPath,
+            originalFilename: file.name,
+            mimeType: file.type || 'application/octet-stream',
+          },
+        });
+        fieldDocumentId = fieldDoc.id;
+      } catch (fieldDocErr) {
+        // FieldDocument creation is best-effort; OCR result is still returned
+        console.error('OCR: FieldDocument creation failed:', fieldDocErr);
       }
     }
 

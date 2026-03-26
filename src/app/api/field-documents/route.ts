@@ -40,8 +40,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'file, fieldKey und year sind erforderlich' }, { status: 400 });
     }
 
-    const yearNum = parseInt(year, 10);
-    const uploadPath = path.join(UPLOAD_DIR, year, fieldKey);
+    // Sanitize fieldKey: only allow alphanumeric, underscores, and hyphens to prevent
+    // path traversal attacks (e.g. "../../../etc/passwd" in path.join).
+    const safeFieldKey = fieldKey.replace(/[^a-zA-Z0-9_-]/g, '');
+    if (safeFieldKey !== fieldKey || safeFieldKey.length === 0) {
+      return NextResponse.json({ error: 'Invalid fieldKey' }, { status: 400 });
+    }
+    // Parse year as an integer and restrict to a valid reporting range (2000-2099)
+    // to prevent directory traversal via values like "../.." or "9999999".
+    const safeYear = parseInt(String(year), 10);
+    if (isNaN(safeYear) || safeYear < 2000 || safeYear > 2099) {
+      return NextResponse.json({ error: 'Invalid year' }, { status: 400 });
+    }
+
+    const yearNum = safeYear;
+    const uploadPath = path.join(UPLOAD_DIR, String(safeYear), safeFieldKey);
     await mkdir(uploadPath, { recursive: true });
 
     // Sanitise filename to prevent path traversal and double-extension attacks.
@@ -55,12 +68,12 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     await writeFile(filePath, buffer);
 
-    const relPath = `/uploads/${year}/${fieldKey}/${filename}`;
+    const relPath = `/uploads/${safeYear}/${safeFieldKey}/${filename}`;
 
     // Append a new document record — no upsert, since multiple docs per field/year
     // are now supported (unique constraint removed in migration 20260325000000).
     const doc = await prisma.fieldDocument.create({
-      data: { fieldKey, year: yearNum, filePath: relPath, originalFilename: file.name, mimeType: file.type },
+      data: { fieldKey: safeFieldKey, year: yearNum, filePath: relPath, originalFilename: file.name, mimeType: file.type },
     });
 
     return NextResponse.json(doc);
