@@ -180,6 +180,48 @@ export function FieldDocumentZone({
     }
   };
 
+  /**
+   * Handles Jahresabrechnung checkbox changes with mutual exclusion.
+   *
+   * Only ONE document per zone may be marked as the annual invoice (Jahresabrechnung).
+   * Behaves like a radio-button group styled as a checkbox: checking one document
+   * automatically unchecks all other documents in the same zone.
+   *
+   * Implementation:
+   * 1. Apply an optimistic update immediately so the UI responds without waiting
+   *    for server round-trips (set the chosen doc to true, all others to false).
+   * 2. PATCH the chosen document to isJahresabrechnung: true.
+   * 3. PATCH every previously-checked sibling document to isJahresabrechnung: false.
+   *    Only documents that were actually checked need a PATCH (avoids redundant calls).
+   */
+  const handleJahresabrechnungChange = (id: number, checked: boolean) => {
+    if (checked) {
+      // Optimistic update: reflect the exclusive selection immediately in the UI
+      applyDocs(docs.map((d) => ({ ...d, isJahresabrechnung: d.id === id })));
+
+      // Sync the newly-checked document to the server
+      fetch(`/api/field-documents/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isJahresabrechnung: true }),
+      }).catch(() => {});
+
+      // Uncheck all previously-checked siblings — only PATCH those that need to change
+      docs
+        .filter((d) => d.id !== id && d.isJahresabrechnung)
+        .forEach((d) => {
+          fetch(`/api/field-documents/${d.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isJahresabrechnung: false }),
+          }).catch(() => {});
+        });
+    } else {
+      // Simple uncheck — no exclusion logic needed when unchecking
+      handlePatch(id, { isJahresabrechnung: false });
+    }
+  };
+
   const unit = FIELD_UNIT_MAP[fieldKey] ?? 'Einheit';
   const showAddButton = suppressInitialUpload || docs.length > 0;
 
@@ -248,13 +290,14 @@ export function FieldDocumentZone({
                   </select>
                 </label>
 
-                {/* Jahresabrechnung checkbox */}
+                {/* Jahresabrechnung checkbox — mutually exclusive within this zone:
+                    checking one document automatically unchecks all others. */}
                 <label className="flex items-center gap-1.5 text-xs text-green-800 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={doc.isJahresabrechnung}
                     onChange={(e) =>
-                      handlePatch(doc.id, { isJahresabrechnung: e.target.checked })
+                      handleJahresabrechnungChange(doc.id, e.target.checked)
                     }
                     className="rounded border-green-400 text-green-600 focus:ring-green-400"
                   />
