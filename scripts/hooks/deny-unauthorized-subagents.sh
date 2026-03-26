@@ -4,11 +4,7 @@
 # The Workflow Orchestrator must only invoke custom agents (architect,
 # code-reviewer, developer, issue-analyst, quality-engineer,
 # release-manager, requirements-engineer, retrospective, task-planner,
-<<<<<<< HEAD
 # technical-writer, uiux-designer, uat-tester, web-designer, workflow-engineer).
-=======
-# technical-writer, uat-tester, web-designer, workflow-engineer).
->>>>>>> 9edd39e (docs: add test plan and UAT test plan for 001-company-settings-ui)
 # Generic built-in agents (explore, task, general-purpose) are NOT permitted.
 #
 # This script is called as a preToolUse hook. It receives a JSON payload on
@@ -43,11 +39,7 @@ case "$AGENT_TYPE" in
       --arg agent "$AGENT_TYPE" \
       '{
         permissionDecision: "deny",
-<<<<<<< HEAD
         permissionDecisionReason: ("Unauthorized agent type: \"" + $agent + "\". REMINDER: You are the Workflow Orchestrator. You must ONLY invoke custom agents (architect, code-reviewer, developer, issue-analyst, quality-engineer, release-manager, requirements-engineer, retrospective, task-planner, technical-writer, uiux-designer, uat-tester, web-designer, workflow-engineer). Generic agents (explore, task, general-purpose) are NOT permitted. You are an orchestrator only \u2014 delegate using custom agents, never analyze or implement anything yourself.")
-=======
-        permissionDecisionReason: ("Unauthorized agent type: \"" + $agent + "\". REMINDER: You are the Workflow Orchestrator. You must ONLY invoke custom agents (architect, code-reviewer, developer, issue-analyst, quality-engineer, release-manager, requirements-engineer, retrospective, task-planner, technical-writer, uat-tester, web-designer, workflow-engineer). Generic agents (explore, task, general-purpose) are NOT permitted. You are an orchestrator only — delegate using custom agents, never analyze or implement anything yourself.")
->>>>>>> 9edd39e (docs: add test plan and UAT test plan for 001-company-settings-ui)
       }'
     ;;
 esac
