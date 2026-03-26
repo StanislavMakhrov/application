@@ -49,7 +49,7 @@ When GitHub starts a coding agent session it automatically creates an "Initial p
 
 **PR Validation and draft PRs**:
 The `PR Validation` pipeline only runs on **ready (non-draft) PRs**. When a coding agent pushes commits to a draft PR, the `synchronize` event triggers the workflow but all jobs are intentionally skipped — this is expected and the "skipped" run in the Actions history is not a failure. The pipeline runs for real only when `scripts/pr-github.sh mark-ready` converts the draft PR to ready-for-review (firing the `ready_for_review` event). This design prevents wasted CI resources on intermediate commits during development.
-
+**Draft PR Rework Cycle:** When rework is needed (code review feedback, UAT failure, CI failure requiring multiple fixes), the Orchestrator calls `scripts/pr-github.sh mark-draft` to convert the PR back to draft before delegating fixes. This prevents PR Validation from running on every intermediate rework commit. After rework is complete, `mark-ready` is called again to re-trigger validation.
 **Verification note:** If a change only touches agent instructions / skills / documentation (for example `.github/agents/`, `.github/skills/`, `.github/copilot-instructions.md`, or `docs/`), running `npm test` is not required because the test suite does not validate those changes. Run `cd src && npm test` when application code changes.
 
 ---
@@ -237,7 +237,7 @@ flowchart TB
 
 	%% Release Artifacts
 	REL["🚀 Release Notes"]
-	PR["🔀 Pull Request<br/>(draft → ready-for-review<br/>via mark-ready)"]
+	PR["🔀 Pull Request<br/>(draft ⇄ ready-for-review<br/>via mark-draft / mark-ready)"]
 	CI["⚙️ PR Validation CI<br/>Docker build + E2E tests"]
 
 	%% Maintainer touchpoints

@@ -207,14 +207,18 @@ For each stage:
 ### 4. Handle Feedback Loops
 
 **Code Review Rework:**
+- **Convert PR back to draft first:** Call `scripts/pr-github.sh mark-draft` to prevent PR Validation from running on intermediate rework commits
 - If Code Reviewer requests changes, delegate back to Developer
 - Provide Developer with review feedback and specific change requests
 - After Developer completes rework, return to Code Reviewer
+- The Release Manager will call `scripts/pr-github.sh mark-ready` again when the PR is ready
 
 **UAT Failures:**
+- **Convert PR back to draft first:** Call `scripts/pr-github.sh mark-draft` to prevent CI from running on intermediate fix commits
 - If UAT Tester finds any failures (broken use cases, missing data, wrong behavior, UI defects) — whether from automated E2E tests or Maintainer's FAIL comment — delegate to Developer for fixes
 - Provide specific UAT feedback to Developer
 - After fixes, return to UAT Tester
+- The Release Manager will call `scripts/pr-github.sh mark-ready` again when the PR is ready
 
 **Build/CI Failures (CRITICAL — Proactive Monitoring):**
 

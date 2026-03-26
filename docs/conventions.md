@@ -69,7 +69,7 @@ If these appear as **transitive dependencies** (pulled in by another package), u
 
 **Test Optimization:** Tests only run in PR Validation workflow to eliminate redundancy. CI workflow focuses solely on versioning after merge.
 
-**Draft PR Workflow:** Coding agents create PRs as **drafts** so that PR Validation does not run on intermediate commits. PR Validation is triggered exactly once per work session by calling `scripts/pr-github.sh mark-ready` (which converts the draft to ready-for-review) only after all work is complete.
+**Draft PR Workflow:** Coding agents create PRs as **drafts** so that PR Validation does not run on intermediate commits. PR Validation is triggered exactly once per work session by calling `scripts/pr-github.sh mark-ready` (which converts the draft to ready-for-review) only after all work is complete. When rework is needed (code review feedback, UAT failure), call `scripts/pr-github.sh mark-draft` to convert back to draft before pushing fixes, then `mark-ready` again when done.
 
 **Commit Guardrails:** Pull requests that only change workflow/internal tooling (e.g., `.github/`, `scripts/`, `docs/`) must not use version-bumping Conventional Commit types such as `feat:` or `fix:`. Use `chore:`, `docs:`, `ci:` instead.
 

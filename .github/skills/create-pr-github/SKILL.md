@@ -106,6 +106,24 @@ scripts/pr-github.sh mark-ready
 PAGER=cat gh pr ready <pr-number>
 ```
 
+### 4a. Convert Back to Draft (During Rework)
+
+When rework is needed (code review feedback, UAT failure, CI failure that requires
+multiple intermediate commits), convert the PR back to draft to prevent PR Validation
+from running on every intermediate push.
+
+#### Preferred: Wrapper Script
+```bash
+scripts/pr-github.sh mark-draft
+```
+
+#### Fallback: `gh` CLI
+```bash
+PAGER=cat gh pr ready <pr-number> --undo
+```
+
+After rework is complete, call `mark-ready` again (step 4) to re-trigger PR Validation.
+
 ### 5. Merge (Only When Explicitly Requested)
 This repository requires **rebase and merge**.
 

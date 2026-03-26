@@ -15,6 +15,8 @@ Usage:
 
   scripts/pr-github.sh mark-ready [<pr-number>]
 
+  scripts/pr-github.sh mark-draft [<pr-number>]
+
 Options:
   --title <title>         PR title (use Conventional Commits style)
   --body-from-stdin       Read PR body from stdin
@@ -24,7 +26,10 @@ Notes:
   - This script intentionally does not guess title/body
   - PRs are created as **drafts** by default. Call `mark-ready` when all work is
     complete — this converts the draft to ready-for-review and triggers PR Validation.
-  - **Agent guidance:** This script is the **authoritative** repo tool for creating and merging PRs. Use `scripts/pr-github.sh create` to create PRs (as draft) and `scripts/pr-github.sh mark-ready` to trigger PR Validation. Use `scripts/pr-github.sh create-and-merge` to merge them (rebase + delete branch). Body must be piped via stdin.
+  - Call `mark-draft` to convert a ready PR back to draft when rework is needed
+    (e.g., after code review feedback or UAT failure). This prevents PR Validation
+    from running on intermediate rework commits.
+  - **Agent guidance:** This script is the **authoritative** repo tool for creating and merging PRs. Use `scripts/pr-github.sh create` to create PRs (as draft) and `scripts/pr-github.sh mark-ready` to trigger PR Validation. Use `scripts/pr-github.sh mark-draft` to convert back to draft during rework. Use `scripts/pr-github.sh create-and-merge` to merge them (rebase + delete branch). Body must be piped via stdin.
   - **Fallback:** Use GitHub chat tools (`github/*`) only when the script does not support a necessary advanced operation or for quick inspection of checks.
   - Requires: git + GitHub CLI (gh) authenticated when used as a CLI fallback
   - Merge policy: uses rebase-and-merge for linear history (per CONTRIBUTING.md)
@@ -195,6 +200,26 @@ main() {
       echo "Converting PR #${pr_arg} from draft to ready for review..." >&2
       gh_safe pr ready "$pr_arg"
       echo "✓ PR #${pr_arg} is now ready for review — PR Validation will trigger." >&2
+      return 0
+      ;;
+    mark-draft)
+      require_not_main
+      if ! command -v gh >/dev/null 2>&1; then
+        echo "Error: gh is not installed." >&2
+        exit 2
+      fi
+      if ! gh auth status >/dev/null 2>&1; then
+        echo "Error: gh is not authenticated. Run: gh auth login" >&2
+        exit 2
+      fi
+      local pr_arg="${1:-}"
+      if [[ -z "$pr_arg" ]]; then
+        pr_arg="$(get_pr_number_for_branch)"
+      fi
+      require_non_empty "$pr_arg" "PR number"
+      echo "Converting PR #${pr_arg} back to draft..." >&2
+      gh_safe pr ready "$pr_arg" --undo
+      echo "✓ PR #${pr_arg} is now a draft — PR Validation will skip subsequent pushes." >&2
       return 0
       ;;
     *)
