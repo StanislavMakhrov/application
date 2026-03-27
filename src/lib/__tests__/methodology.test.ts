@@ -46,14 +46,18 @@ const STROM_FACTOR = {
   validYear: 2024,
 };
 
-/** Helper: build a minimal EmissionEntry shape */
+/** Helper: build a minimal EmissionEntry shape.
+ * Return type is `any` so TypeScript accepts partial objects in mockResolvedValueOnce —
+ * methodology.ts only accesses category, scope, inputMethod, isFinalAnnual, and
+ * quantity, so unneeded Prisma fields are irrelevant to the tests.
+ */
 function emissionEntry(overrides: {
   category: string;
   scope: string;
   inputMethod?: string;
   isFinalAnnual?: boolean;
   quantity?: number;
-}) {
+}): ReturnType<typeof Object.assign> {
   return {
     category: overrides.category,
     scope: overrides.scope,
@@ -63,12 +67,15 @@ function emissionEntry(overrides: {
   };
 }
 
-/** Helper: build a minimal MaterialEntry shape */
+/** Helper: build a minimal MaterialEntry shape.
+ * Return type avoids strict Prisma model check in mockResolvedValueOnce —
+ * methodology.ts only accesses material, inputMethod, and quantityKg.
+ */
 function materialEntry(overrides: {
   material: string;
   inputMethod?: string;
   quantityKg?: number;
-}) {
+}): ReturnType<typeof Object.assign> {
   return {
     material: overrides.material,
     inputMethod: overrides.inputMethod ?? 'MANUAL',

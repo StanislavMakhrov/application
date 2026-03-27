@@ -15,6 +15,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { calculateTotal } from '@/lib/wizard/calculateTotal';
+import type { FieldDocument } from '@/components/wizard/FieldDocumentZone';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Helpers
