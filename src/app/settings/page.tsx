@@ -7,23 +7,37 @@ import { Leaf, ArrowLeft } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { YearManagement } from '@/components/settings/YearManagement';
 import { FirmenprofilSettings } from '@/components/settings/FirmenprofilSettings';
-import { EmissionFactorsTableEditable } from '@/components/settings/EmissionFactorsTableEditable';
+import { EmissionFactorsInfo } from '@/components/settings/EmissionFactorsInfo';
 import { IndustryBenchmarkTableEditable } from '@/components/settings/IndustryBenchmarkTableEditable';
 import type { EmissionFactorRow, IndustryBenchmarkRow } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
-  const allYears = await prisma.reportingYear.findMany({ orderBy: { year: 'asc' } });
-  const years = allYears.map((y: { year: number }) => y.year);
-  const nextYear = years.length > 0 ? years[years.length - 1] + 1 : new Date().getFullYear();
+  const allYears = await prisma.reportingYear.findMany({
+    orderBy: { year: 'asc' },
+    include: { factorSet: true },
+  });
+  const years = allYears.map((y) => ({ year: y.year, factorSetName: y.factorSet?.name ?? null }));
+  const yearValues = allYears.map((y) => y.year);
+  const nextYear = yearValues.length > 0 ? yearValues[yearValues.length - 1] + 1 : new Date().getFullYear();
 
-  // Derive the most recent reporting year for factor display; fall back to current calendar year
-  const currentYear = years.length > 0 ? years[years.length - 1] : new Date().getFullYear();
+  // Fetch the most recent FactorSet for display in the emission factors section.
+  // Falls back to a sensible default if no FactorSet has been seeded yet.
+  const activeFactorSet = await prisma.factorSet.findFirst({ orderBy: { year: 'desc' } });
+  const factorSetName = activeFactorSet?.name ?? 'UBA 2024';
+  const factorSetSource = activeFactorSet?.source ?? 'Umweltbundesamt';
+  const factorSetYear = activeFactorSet?.year ?? 2024;
 
-  // Fetch factor records and benchmarks server-side for editable CRUD tables
+  // Fetch factor rows for the collapsible detail table (read-only display).
+  // When a FactorSet is active, scope the query to its factors only.
+  // When no FactorSet exists yet (fresh install before first seed), fall back
+  // to showing all factors so the table is never empty.
   const factorRecords: EmissionFactorRow[] = (await prisma.emissionFactor.findMany({
     orderBy: [{ validYear: 'desc' }, { key: 'asc' }],
+    where: activeFactorSet
+      ? { factorSetId: activeFactorSet.id }
+      : { factorSetId: null }, // show unlinked factors only if no set exists
   })).map((f) => ({
     id: String(f.id),
     key: f.key,
@@ -32,6 +46,7 @@ export default async function SettingsPage() {
     source: f.source,
     validYear: f.validYear,
   }));
+
   const benchmarks: IndustryBenchmarkRow[] = (await prisma.industryBenchmark.findMany({
     orderBy: [{ validYear: 'desc' }, { branche: 'asc' }],
   })).map((b) => ({
@@ -89,17 +104,24 @@ export default async function SettingsPage() {
           <YearManagement years={years} nextYear={nextYear} />
         </section>
 
-        {/* Emission factors reference table — read-only, shows all DB factor values */}
+        {/* Emission factors — read-only display of the active system-provided FactorSet.
+            Factors are no longer user-editable; the system ships UBA 2024 as default. */}
         <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
           <h2 className="text-base font-semibold text-gray-800 mb-1">Emissionsfaktoren</h2>
           <p className="text-sm text-gray-500 mb-5">
-            Aktive UBA-Emissionsfaktoren für das Berichtsjahr {currentYear}. Diese Werte werden
-            für alle CO₂e-Berechnungen verwendet.
+            Das System verwendet automatisch die offiziellen UBA-Emissionsfaktoren für jedes
+            Berichtsjahr. Die Faktoren sind vom System vorgegeben und gewährleisten reproduzierbare
+            Berechnungen.
           </p>
-          <EmissionFactorsTableEditable rows={factorRecords} />
+          <EmissionFactorsInfo
+            factorSetName={factorSetName}
+            factorSetSource={factorSetSource}
+            factorSetYear={factorSetYear}
+            rows={factorRecords}
+          />
         </section>
 
-        {/* Industry benchmarks reference table — read-only */}
+        {/* Industry benchmarks reference table — editable (separate from emission factors) */}
         <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
           <h2 className="text-base font-semibold text-gray-800 mb-1">
             Branchenvergleich (Benchmarks)

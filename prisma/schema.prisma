@@ -31,10 +31,21 @@ enum Branche {
   SONSTIGES
 }
 
+model FactorSet {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique  // e.g. "UBA 2024"
+  source         String           // e.g. "Umweltbundesamt"
+  year           Int              // 2024
+  factors        EmissionFactor[]
+  reportingYears ReportingYear[]
+}
+
 model ReportingYear {
-  id        Int      @id @default(autoincrement())
-  year      Int      @unique
-  createdAt DateTime @default(now())
+  id          Int        @id @default(autoincrement())
+  year        Int        @unique
+  createdAt   DateTime   @default(now())
+  factorSetId Int?
+  factorSet   FactorSet? @relation(fields: [factorSetId], references: [id])
 
   entries         EmissionEntry[]
   materialEntries MaterialEntry[]
@@ -128,14 +139,16 @@ enum MaterialCategory {
 }
 
 model EmissionFactor {
-  id        Int      @id @default(autoincrement())
-  key       String
-  validYear Int
-  factorKg  Float
-  unit      String
-  source    String
-  scope     Scope
-  createdAt DateTime @default(now())
+  id          Int        @id @default(autoincrement())
+  key         String
+  validYear   Int
+  factorKg    Float
+  unit        String
+  source      String
+  scope       Scope
+  factorSetId Int?
+  factorSet   FactorSet? @relation(fields: [factorSetId], references: [id])
+  createdAt   DateTime   @default(now())
 
   @@unique([key, validYear])
 }

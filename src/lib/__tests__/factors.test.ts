@@ -35,6 +35,7 @@ describe('getEmissionFactor', () => {
       unit: 'm³',
       source: 'UBA 2024',
       scope: 'SCOPE1',
+      factorSetId: null,
       createdAt: new Date(),
     });
 
@@ -57,6 +58,7 @@ describe('getEmissionFactor', () => {
       unit: 'm³',
       source: 'UBA 2024',
       scope: 'SCOPE1',
+      factorSetId: null,
       createdAt: new Date(),
     });
 
@@ -85,6 +87,7 @@ describe('getEmissionFactor', () => {
       unit: 'kWh',
       source: 'UBA 2024',
       scope: 'SCOPE2',
+      factorSetId: null,
       createdAt: new Date(),
     });
 
@@ -108,6 +111,7 @@ describe('getEmissionFactorRecord', () => {
       unit: 'm³',
       source: 'UBA Datenbericht 2024',
       scope: 'SCOPE1',
+      factorSetId: null,
       createdAt: new Date(),
     });
 
@@ -136,6 +140,7 @@ describe('getEmissionFactorRecord', () => {
       unit: 'kWh',
       source: 'UBA Datenbericht 2024',
       scope: 'SCOPE2',
+      factorSetId: null,
       createdAt: new Date(),
     });
 
@@ -179,12 +184,12 @@ describe('getAllEmissionFactorRecords', () => {
     vi.mocked(prisma.emissionFactor.findUnique)
       .mockResolvedValueOnce({
         id: 1, key: 'ERDGAS', validYear: 2024, factorKg: 2.02,
-        unit: 'm³', source: 'UBA 2024', scope: 'SCOPE1', createdAt: new Date(),
+        unit: 'm³', source: 'UBA 2024', scope: 'SCOPE1', factorSetId: null, createdAt: new Date(),
       })
       // getEmissionFactorRecord called for STROM (exact match)
       .mockResolvedValueOnce({
         id: 2, key: 'STROM', validYear: 2024, factorKg: 0.434,
-        unit: 'kWh', source: 'UBA 2024', scope: 'SCOPE2', createdAt: new Date(),
+        unit: 'kWh', source: 'UBA 2024', scope: 'SCOPE2', factorSetId: null, createdAt: new Date(),
       });
 
     const result = await getAllEmissionFactorRecords(2024);
@@ -209,7 +214,7 @@ describe('getAllEmissionFactorRecords', () => {
     vi.mocked(prisma.emissionFactor.findUnique)
       .mockResolvedValueOnce({
         id: 1, key: 'ERDGAS', validYear: 2024, factorKg: 2.02,
-        unit: 'm³', source: 'UBA 2024', scope: 'SCOPE1', createdAt: new Date(),
+        unit: 'm³', source: 'UBA 2024', scope: 'SCOPE1', factorSetId: null, createdAt: new Date(),
       })
       // UNKNOWN: no exact match
       .mockResolvedValueOnce(null);
@@ -234,7 +239,7 @@ describe('getAllEmissionFactorRecords', () => {
     // Falls back to 2024 record
     vi.mocked(prisma.emissionFactor.findFirst).mockResolvedValueOnce({
       id: 2, key: 'STROM', validYear: 2024, factorKg: 0.434,
-      unit: 'kWh', source: 'UBA 2024', scope: 'SCOPE2', createdAt: new Date(),
+      unit: 'kWh', source: 'UBA 2024', scope: 'SCOPE2', factorSetId: null, createdAt: new Date(),
     });
 
     const result = await getAllEmissionFactorRecords(2026);

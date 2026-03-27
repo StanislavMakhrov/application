@@ -97,6 +97,7 @@ describe('getTotalCO2e', () => {
       id: 1,
       year: 2024,
       createdAt: new Date(),
+      factorSetId: null,
     });
     vi.mocked(prisma.emissionEntry.findMany).mockResolvedValueOnce([
       { id: 1, reportingYearId: 1, scope: 'SCOPE1', category: 'ERDGAS', quantity: 1000, isOekostrom: false, memo: null, inputMethod: 'MANUAL', billingMonth: null, isFinalAnnual: false, providerName: null, createdAt: new Date(), updatedAt: new Date() },
@@ -121,6 +122,7 @@ describe('getTotalCO2e', () => {
       id: 2,
       year: 2024,
       createdAt: new Date(),
+      factorSetId: null,
     });
     vi.mocked(prisma.emissionEntry.findMany).mockResolvedValueOnce([
       // 800 kg Restmüll × 0.45 = 360 kg CO₂e
@@ -146,6 +148,7 @@ describe('getTotalCO2e', () => {
       id: 3,
       year: 2024,
       createdAt: new Date(),
+      factorSetId: null,
     });
     vi.mocked(prisma.emissionEntry.findMany).mockResolvedValueOnce([]);
     vi.mocked(prisma.materialEntry.findMany).mockResolvedValueOnce([

@@ -93,13 +93,24 @@ export async function getOrCreateYear(year: number): Promise<{ id: number; year:
  * Creates a new ReportingYear for the given calendar year.
  * Used by the dashboard "Add year" button and the Settings page.
  * Returns the year value on success so the caller can redirect to it.
+ *
+ * Auto-assigns the most recent FactorSet (default: UBA 2024) so that every
+ * new year has a reproducible factor snapshot from the moment it is created.
  */
 export async function createYear(year: number): Promise<ActionResult & { year?: number }> {
   try {
+    // Assign the most recent factor set to ensure reports use consistent factors.
+    // "Most recent year wins" is intentional: if a newer set (e.g. "UBA 2025") has
+    // been added, new years should use it automatically. The FactorSet FK is nullable,
+    // so if no set has been seeded yet the year is still created successfully.
+    const defaultFactorSet = await prisma.factorSet.findFirst({
+      orderBy: { year: 'desc' },
+    });
+
     await prisma.reportingYear.upsert({
       where: { year },
       update: {},
-      create: { year },
+      create: { year, factorSetId: defaultFactorSet?.id ?? null },
     });
     revalidatePath('/');
     revalidatePath('/settings');

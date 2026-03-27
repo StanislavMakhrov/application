@@ -3,6 +3,7 @@
 /**
  * Year management panel for the Settings page.
  * Allows adding the next reporting year and deleting existing ones.
+ * Each year now displays its associated FactorSet name for transparency.
  */
 
 import { useState } from 'react';
@@ -11,8 +12,18 @@ import { Trash2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createYear, deleteYear } from '@/lib/actions';
 
+interface YearEntry {
+  year: number;
+  /**
+   * Name of the FactorSet linked to this year (e.g. "UBA 2024"), or null when
+   * no FactorSet has been assigned — possible for years created before the
+   * FactorSet feature was introduced or when the DB has not been seeded yet.
+   */
+  factorSetName: string | null;
+}
+
 interface YearManagementProps {
-  years: number[];
+  years: YearEntry[];
   nextYear: number;
 }
 
@@ -57,9 +68,16 @@ export function YearManagement({ years, nextYear }: YearManagementProps) {
             Noch keine Berichtsjahre vorhanden.
           </p>
         ) : (
-          years.map((year) => (
+          years.map(({ year, factorSetName }) => (
             <div key={year} className="flex items-center justify-between px-4 py-3">
-              <span className="text-sm font-medium text-gray-800">{year}</span>
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-gray-800">{year}</span>
+                {factorSetName && (
+                  <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                    {factorSetName}
+                  </span>
+                )}
+              </div>
 
               {pendingDelete === year ? (
                 <div className="flex items-center gap-2">

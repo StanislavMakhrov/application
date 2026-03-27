@@ -60,6 +60,23 @@ async function main() {
   }
   console.log(`Seeded ${factors.length} emission factors.`);
 
+  // Create the "UBA 2024" FactorSet and link all 2024 factors to it.
+  // This establishes the system-provided concept: emission factors belong to
+  // a named set so each ReportingYear can reference it for reproducibility.
+  const uba2024Set = await prisma.factorSet.upsert({
+    where: { name: 'UBA 2024' },
+    update: { source: 'Umweltbundesamt', year: 2024 },
+    create: { name: 'UBA 2024', source: 'Umweltbundesamt', year: 2024 },
+  });
+  console.log(`Seeded FactorSet: ${uba2024Set.name} (id=${uba2024Set.id})`);
+
+  // Link all factors for 2024 to the UBA 2024 set (idempotent — only updates nulls)
+  await prisma.emissionFactor.updateMany({
+    where: { validYear: 2024, factorSetId: null },
+    data: { factorSetId: uba2024Set.id },
+  });
+  console.log('Linked 2024 emission factors to UBA 2024 FactorSet.');
+
   // Industry benchmarks (t CO₂e per employee per year)
   const benchmarks = [
     { branche: Branche.ELEKTROHANDWERK, co2ePerEmployeePerYear: 3.2, validYear: 2024 },
@@ -97,8 +114,8 @@ async function main() {
   // Demo data: 2023
   const year2023 = await prisma.reportingYear.upsert({
     where: { year: 2023 },
-    update: {},
-    create: { year: 2023 },
+    update: { factorSetId: uba2024Set.id },
+    create: { year: 2023, factorSetId: uba2024Set.id },
   });
 
   const entries2023 = [
@@ -138,8 +155,8 @@ async function main() {
   // Demo data: 2024
   const year2024 = await prisma.reportingYear.upsert({
     where: { year: 2024 },
-    update: {},
-    create: { year: 2024 },
+    update: { factorSetId: uba2024Set.id },
+    create: { year: 2024, factorSetId: uba2024Set.id },
   });
 
   const entries2024 = [
