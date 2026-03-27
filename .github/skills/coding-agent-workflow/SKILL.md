@@ -18,6 +18,19 @@ This skill is automatically loaded by all coding agents. It defines the core wor
 
 **You are running as a GitHub Copilot coding agent.** Follow this workflow:
 
+> ⛔ **HARD RULE — MANDATORY CI WATCH AFTER EVERY `report_progress` PUSH**
+>
+> Every time you call `report_progress` (which pushes code), you **MUST** immediately
+> invoke the **`watch-pr-validation`** skill next — no exceptions, no skipping.
+>
+> - This is **not optional**. It is the next step, always.
+> - Do **not** hand off to the next agent, post a summary comment, or end your session
+>   until `watch-pr-validation` confirms CI is **green**.
+> - If CI fails: fix the issues, call `report_progress` again, then watch again.
+>   Repeat until green.
+>
+> **Violating this rule leaves the PR in an unknown state and breaks the workflow.**
+
 ### CRITICAL: Branch and PR Management
 
 **GitHub Copilot automatically creates branches and PRs** - you do NOT create them:
@@ -59,6 +72,9 @@ This skill is automatically loaded by all coding agents. It defines the core wor
        """
      )
      ```
+
+     > ⛔ **IMMEDIATELY after calling `report_progress`**: invoke the **`watch-pr-validation`** skill.
+     > Do not proceed to any next step until CI is confirmed green.
 
    - **Delegated subagent** (spawned via `task` tool): **`report_progress` is NOT available** — it exists only in the primary agent's tool context. Use `git commit` instead:
      ```bash

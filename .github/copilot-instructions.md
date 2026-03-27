@@ -42,8 +42,13 @@ For project-specific instructions, refer to the `docs/architecture.md` and `docs
 
 **The agent is responsible for delivering a PR that passes all CI checks.** The Maintainer should only review — never fix CI failures.
 
+> ⛔ **HARD RULE — `watch-pr-validation` is MANDATORY after every `report_progress` push.**
+> Every time `report_progress` is called (pushing code), the very next action **must** be
+> to load and follow the **`watch-pr-validation`** skill. This is not optional.
+> Do not hand off, post summaries, or end your session until CI is confirmed green.
+
 1. **Before pushing**: Run the `pre-push-validation` skill (lint, type-check, test, build, markdownlint) locally. Do not push code that fails any check.
-2. **After pushing**: Load and follow the `watch-pr-validation` skill. It covers the complete loop: find the triggered PR Validation run, watch it, read failure logs if it fails, fix issues, re-validate locally, and push again.
+2. **After every `report_progress` push** (**MANDATORY**): Immediately load and follow the **`watch-pr-validation`** skill. It covers the complete loop: find the triggered PR Validation run, watch it, read failure logs if it fails, fix issues, re-validate locally, and push again. **Never skip this step.**
 3. **Before handoff**: Confirm CI is green. Do not hand off a PR with failing checks to the next agent or to the Maintainer.
 
 ### Why Manual Git Commands Fail
@@ -99,6 +104,8 @@ The commits accumulate in the local branch. When the **parent agent** later call
 - When you want to save progress and ensure it's in the PR
 - Before asking for feedback or clarification
 - When work is complete and ready for handoff
+
+**After every `report_progress` call** — immediately follow the `watch-pr-validation` skill (MANDATORY).
 
 **Note**: The workflow-orchestrator agent doesn't use `report_progress` because it delegates all work to other agents and doesn't commit changes itself.
 
