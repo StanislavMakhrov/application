@@ -22,7 +22,7 @@ import {
   StyleSheet,
   Image,
 } from '@react-pdf/renderer';
-import type { CO2eTotals, CompanyProfileData } from '@/types';
+import type { CO2eTotals, CompanyProfileData, MethodologyData } from '@/types';
 import { CATEGORY_LABELS, CATEGORY_UNITS, BRANCHE_LABELS } from '@/types';
 import type { Branche } from '@/types';
 
@@ -67,9 +67,10 @@ interface GHGReportProps {
   entries: Array<{ category: string; quantity: number; isOekostrom: boolean; scope: string }>;
   materials: Array<{ material: string; quantityKg: number; supplierName?: string | null }>;
   benchmarkValue?: number;
+  methodology?: MethodologyData;
 }
 
-export function GHGReport({ profile, year, totals, entries, materials, benchmarkValue = 12.5 }: GHGReportProps) {
+export function GHGReport({ profile, year, totals, entries, materials, benchmarkValue = 12.5, methodology }: GHGReportProps) {
   const co2ePerEmployee = profile.mitarbeiter > 0 ? totals.total / profile.mitarbeiter : 0;
   const vsBenchmark = benchmarkValue > 0 ? ((co2ePerEmployee - benchmarkValue) / benchmarkValue) * 100 : 0;
 
@@ -106,6 +107,72 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
       )}
     </View>
   );
+
+  /**
+   * Dynamic methodology section rendered on page 1 of the PDF.
+   * Shows the standard, factor set, scope coverage, data quality, boundary, and assumptions.
+   */
+  const MethodologySectionPdf = ({ m }: { m: MethodologyData }) => {
+    // Shared row style — applied to all rows except the last to keep spacing consistent
+    const METHODOLOGY_ROW_MARGIN = 3;
+
+    const dataQualityText =
+      m.dataQuality.total === 0
+        ? 'Datenqualität: Nicht erfasst — alle Werte werden als manuell erfasst behandelt.'
+        : [
+            m.dataQuality.manual > 0 ? `Manuell erfasst: ${m.dataQuality.manual} Einträge` : null,
+            m.dataQuality.ocrExtracted > 0 ? `OCR-extrahiert: ${m.dataQuality.ocrExtracted} Einträge` : null,
+            m.dataQuality.estimated > 0 ? `Geschätzt/CSV: ${m.dataQuality.estimated} Einträge` : null,
+          ]
+            .filter(Boolean)
+            .join(' · ');
+
+    const boundaryText =
+      m.boundary.companyName
+        ? [
+            `Unternehmen: ${m.boundary.companyName}`,
+            `Berichtsjahr: ${m.boundary.reportingYear}`,
+            m.boundary.employees != null ? `Mitarbeiter: ${m.boundary.employees}` : null,
+          ]
+            .filter(Boolean)
+            .join(' · ')
+        : 'Unternehmensprofil: Nicht konfiguriert';
+
+    const scopeLines: string[] = [];
+    if (m.scopesCovered.scope1.length) scopeLines.push(`Scope 1: ${m.scopesCovered.scope1.join(', ')}`);
+    if (m.scopesCovered.scope2.length) scopeLines.push(`Scope 2: ${m.scopesCovered.scope2.join(', ')}`);
+    if (m.scopesCovered.scope3.length) scopeLines.push(`Scope 3: ${m.scopesCovered.scope3.join(', ')}`);
+    const scopeText = scopeLines.length ? scopeLines.join('\n') : 'Keine Emissionsdaten erfasst.';
+
+    return (
+      <View style={{ marginTop: 14, marginBottom: 10, backgroundColor: '#f0fdf4', borderRadius: 4, padding: 10 }}>
+        <Text style={styles.sectionTitle}>Methodik</Text>
+        <Text style={{ fontSize: 8, color: '#333', marginBottom: METHODOLOGY_ROW_MARGIN }}>
+          <Text style={{ fontFamily: 'Helvetica-Bold' }}>Berechnungsstandard: </Text>{m.standard}
+        </Text>
+        <Text style={{ fontSize: 8, color: '#333', marginBottom: METHODOLOGY_ROW_MARGIN }}>
+          <Text style={{ fontFamily: 'Helvetica-Bold' }}>Emissionsfaktoren: </Text>
+          {m.factorSet.name} · {m.factorSet.source} · {m.factorSet.year}
+        </Text>
+        <Text style={{ fontSize: 8, color: '#333', marginBottom: METHODOLOGY_ROW_MARGIN }}>
+          <Text style={{ fontFamily: 'Helvetica-Bold' }}>Enthaltene Scopes: </Text>{scopeText}
+        </Text>
+        <Text style={{ fontSize: 8, color: '#333', marginBottom: METHODOLOGY_ROW_MARGIN }}>
+          <Text style={{ fontFamily: 'Helvetica-Bold' }}>Datenqualität: </Text>{dataQualityText}
+        </Text>
+        <Text style={{ fontSize: 8, color: '#333', marginBottom: METHODOLOGY_ROW_MARGIN }}>
+          <Text style={{ fontFamily: 'Helvetica-Bold' }}>Berichtsrahmen: </Text>{boundaryText}
+        </Text>
+        <Text style={{ fontSize: 8, color: '#333', marginBottom: METHODOLOGY_ROW_MARGIN }}>
+          <Text style={{ fontFamily: 'Helvetica-Bold' }}>Annahmen und Ausschlüsse: </Text>
+          {m.assumptions ?? 'Keine Annahmen oder Ausschlüsse dokumentiert.'}
+        </Text>
+        <Text style={{ fontSize: 8, color: '#333' }}>
+          <Text style={{ fontFamily: 'Helvetica-Bold' }}>Berechnungsversion: </Text>GrünBilanz v{m.engineVersion}
+        </Text>
+      </View>
+    );
+  };
 
   const renderScopeTable = (
     scopeEntries: typeof entries,
@@ -198,6 +265,9 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
             <Text style={styles.kpiValue}>{profile.mitarbeiter}</Text>
           </View>
         </View>
+
+        {/* Dynamic Methodik section — placed between Executive Summary and Scope Tables */}
+        {methodology && <MethodologySectionPdf m={methodology} />}
 
         {/* Scope Tables */}
         <Text style={styles.sectionTitle}>Emissionen nach Scope (GHG Protocol)</Text>

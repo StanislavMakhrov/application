@@ -6,7 +6,7 @@
  */
 
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
-import type { CO2eTotals, CompanyProfileData } from '@/types';
+import type { CO2eTotals, CompanyProfileData, MethodologyData } from '@/types';
 import { BRANCHE_LABELS } from '@/types';
 import type { Branche } from '@/types';
 
@@ -26,6 +26,7 @@ interface CSRDQuestionnaireProps {
   profile: CompanyProfileData;
   year: number;
   totals: CO2eTotals;
+  methodology?: MethodologyData;
 }
 
 function Row({ label, value }: { label: string; value: string }) {
@@ -37,7 +38,7 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function CSRDQuestionnaire({ profile, year, totals }: CSRDQuestionnaireProps) {
+export function CSRDQuestionnaire({ profile, year, totals, methodology }: CSRDQuestionnaireProps) {
   const co2ePerEmployee = profile.mitarbeiter > 0 ? totals.total / profile.mitarbeiter : 0;
 
   return (
@@ -72,11 +73,17 @@ export function CSRDQuestionnaire({ profile, year, totals }: CSRDQuestionnairePr
 
         {/* Methodology */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>3. Methodik & Datenquellen</Text>
+          <Text style={styles.sectionTitle}>3. Methodik &amp; Datenquellen</Text>
           <Row label="Berechnungsmethode" value="Aktivitätsdaten × Emissionsfaktor" />
-          <Row label="Emissionsfaktoren" value="UBA 2024 (Umweltbundesamt)" />
+          <Row label="Berechnungsstandard" value={methodology?.standard ?? 'GHG Protocol Corporate Standard'} />
+          <Row label="Emissionsfaktoren" value={methodology ? `${methodology.factorSet.name} (${methodology.factorSet.source})` : 'UBA 2024 (Umweltbundesamt)'} />
           <Row label="Systemgrenzen" value="Scope 1, 2, 3 (Kategorie 1, 6, 7)" />
-          <Row label="Software" value="GrünBilanz v0.1" />
+          <Row label="Datenqualität" value={
+            methodology && methodology.dataQuality.total > 0
+              ? `${methodology.dataQuality.manual} manuell, ${methodology.dataQuality.ocrExtracted} OCR, ${methodology.dataQuality.estimated} geschätzt`
+              : 'Nicht erfasst — alle Werte manuell behandelt'
+          } />
+          <Row label="Software" value={methodology ? `GrünBilanz v${methodology.engineVersion}` : 'GrünBilanz'} />
         </View>
 
         {/* Reporting Boundaries */}

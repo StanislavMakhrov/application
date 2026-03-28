@@ -179,6 +179,52 @@ export const CATEGORY_UNITS: Record<EmissionCategory, string> = {
   SONSTIGE_KAELTEMITTEL: 'kg',
 };
 
+// === Methodology Types ===
+
+/** Per-scope list of categories covered in a report */
+export interface MethodologyScopeCoverage {
+  scope1: string[];
+  scope2: string[];
+  scope3: string[];
+}
+
+/** Breakdown of how emission data was entered.
+ * `estimated` maps to CSV-imported entries, which are treated as estimated
+ * because they originate from third-party exports and may not have been
+ * individually verified.
+ */
+export interface MethodologyDataQuality {
+  manual: number;
+  ocrExtracted: number;
+  estimated: number;
+  total: number;
+}
+
+/** Emission factor database used for calculations */
+export interface MethodologyFactorSet {
+  name: string;
+  source: string;
+  year: number;
+}
+
+/** Organisational boundary of the report */
+export interface MethodologyBoundary {
+  companyName: string | null;
+  reportingYear: number;
+  employees: number | null;
+}
+
+/** Full methodology descriptor attached to every generated report */
+export interface MethodologyData {
+  standard: string;
+  factorSet: MethodologyFactorSet;
+  scopesCovered: MethodologyScopeCoverage;
+  dataQuality: MethodologyDataQuality;
+  boundary: MethodologyBoundary;
+  assumptions: string | null;
+  engineVersion: string;
+}
+
 /** Maps each emission category to its scope */
 export const CATEGORY_SCOPE: Record<EmissionCategory, Scope> = {
   ERDGAS: 'SCOPE1',

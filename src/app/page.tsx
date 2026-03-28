@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { Leaf, TrendingDown, Users, Zap, BarChart3, Settings } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { getTotalCO2e } from '@/lib/emissions';
+import { assembleMethodology } from '@/lib/methodology';
 import { KpiCard } from '@/components/dashboard/KpiCard';
 import { ScopeDonut } from '@/components/dashboard/ScopeDonut';
 import { CategoryBarChart } from '@/components/dashboard/CategoryBarChart';
@@ -16,6 +17,7 @@ import { YearOverYearChart } from '@/components/dashboard/YearOverYearChart';
 import { BranchenvergleichCard } from '@/components/dashboard/BranchenvergleichCard';
 import { CategoryStatusList } from '@/components/dashboard/CategoryStatusList';
 import { YearSelector } from '@/components/dashboard/YearSelector';
+import { MethodologySection } from '@/components/dashboard/MethodologySection';
 import { BRANCHE_LABELS } from '@/types';
 import type { CO2eTotals } from '@/types';
 import type { Branche } from '@/types';
@@ -46,6 +48,12 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   const emptyTotals: CO2eTotals = { scope1: 0, scope2: 0, scope3: 0, total: 0, byCategory: {} };
   const currentTotals = currentYearRecord ? await getTotalCO2e(currentYearRecord.id) : emptyTotals;
+
+  // Assemble methodology for the selected year — returns null on any error so the
+  // dashboard still renders if methodology assembly fails.
+  const methodology = currentYearRecord
+    ? await assembleMethodology(currentYearRecord.id).catch(() => null)
+    : null;
 
   const prevYear = selectedYear - 1;
   const prevYearRecord = await prisma.reportingYear.findUnique({ where: { year: prevYear } });
@@ -127,6 +135,9 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             Treibhausgasemissionen nach GHG Protocol · Scope 1, 2, 3
           </p>
         </div>
+
+        {/* Collapsible methodology block — auto-generated from reporting year data */}
+        {methodology && <MethodologySection methodology={methodology} />}
 
         {/* KPI Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
