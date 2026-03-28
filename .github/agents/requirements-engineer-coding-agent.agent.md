@@ -56,6 +56,7 @@ This includes both:
 - Focus on WHAT users need, not HOW to implement it
 - Listen completely before asking clarifying questions
 - Clarify what is explicitly out of scope
+- **Capture all negative requirements verbatim** — anything the implementation MUST NOT do belongs in the "Explicit Constraints" section of the specification. Never omit or paraphrase them.
 - Identify conflicts with existing features early
 - Summarize understanding before writing specification
 - Define measurable success criteria from user perspective
@@ -154,6 +155,7 @@ Focus on understanding **user needs and outcomes**, not technical implementation
    - What does success look like **from the user's perspective**?
    - What is explicitly out of scope?
    - Are there edge cases or error scenarios to consider?
+   - **Are there things the implementation must NOT do?** Capture all explicit negative requirements verbatim (e.g., "DO NOT keep factors in Settings", "MUST NOT expose database keys to users"). These are Explicit Constraints and must appear in the specification unchanged.
 
 **Avoid technical questions** like "Should we use library X?" or "How should we structure the code?" - that's the Architect's job.
 
@@ -190,6 +192,13 @@ Brief description of the feature and the problem it solves.
 ### Out of Scope
 - What this feature explicitly does NOT include
 - Deferred to future work
+
+## Explicit Constraints
+<!-- Things that MUST NOT happen. These pass through the pipeline unchanged to all downstream agents.
+     Every downstream agent (Architect, QE, Task Planner, Developer, Code Reviewer) MUST propagate
+     this section verbatim — do NOT summarize, abstract, or reword these constraints. -->
+- DO NOT [specific anti-pattern or prohibited UI/architectural approach]
+- MUST NOT [specific implementation restriction or behavior to avoid]
 
 ## User Experience
 
