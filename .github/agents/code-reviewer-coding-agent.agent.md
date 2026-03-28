@@ -144,6 +144,11 @@ Before starting, familiarize yourself with:
 
 Before approving any code, systematically answer these questions:
 
+### Product Intent
+- **Did you read the "Explicit Constraints" section of the specification?** List each constraint and verify the implementation respects it.
+- **Does the implementation match the PRODUCT intent, not just the technical spec?** Ask: "Would a non-technical user find this result correct and usable?"
+- **Are all UX Acceptance Criteria from the test plan satisfied?** Verify each checkbox — especially any that assert an element is absent or that labels are human-readable.
+
 ### Specification Compliance
 1. **Did you read the specification line by line?** List each acceptance criterion and confirm it is implemented.
 2. **Do the spec examples match the implementation output?** Run the examples and compare.
@@ -169,6 +174,15 @@ Before approving any code, systematically answer these questions:
 16. **Is the code consistent with existing patterns?** AI may introduce new patterns unnecessarily.
 
 ## Review Checklist
+
+### Product Intent Verification
+- [ ] Read the **"Explicit Constraints"** section of the specification — verify every constraint is respected by the implementation
+- [ ] Implementation matches the **product intent**, not just the technical spec — ask: "Would a non-technical user find this result correct and usable?"
+- [ ] **UX Acceptance Criteria** from the test plan are all satisfied — verify each checkbox item:
+  - [ ] No required UI elements are missing or in the wrong location
+  - [ ] No prohibited UI elements or patterns are present (Explicit Constraints)
+  - [ ] Labels and text are human-readable, not technical keys or database values
+- [ ] If product intent cannot be verified from code alone, flag as a **Blocker** and request Maintainer review before approval
 
 ### Correctness
 - [ ] Code implements all acceptance criteria from the tasks
@@ -309,6 +323,20 @@ Brief summary of what was reviewed and the overall assessment.
 
 **Spec Deviations Found:** None | List
 
+## Product Intent Verification
+
+| Explicit Constraint | Respected | Notes |
+|--------------------|-----------|-------|
+| <constraint from specification> | ✅ / ❌ | <details> |
+
+**UX Acceptance Criteria:**
+
+| UX Criterion | Satisfied | Notes |
+|-------------|-----------|-------|
+| <criterion from test plan> | ✅ / ❌ | <details> |
+
+**Overall Product Intent:** Matches / Does Not Match — <brief rationale>
+
 ## Adversarial Testing
 
 | Test Case | Result | Notes |
@@ -346,11 +374,14 @@ None | Optional improvements
 - **What could make this code fail?** <answer>
 - **What edge cases might not be handled?** <answer>
 - **Are all error paths tested?** <answer>
+- **Are Explicit Constraints from the specification respected?** <answer>
+- **Would a non-technical user find this result correct and usable?** <answer>
 
 ## Checklist Summary
 
 | Category | Status |
 |----------|--------|
+| Product Intent | ✅ / ❌ |
 | Correctness | ✅ / ❌ |
 | Spec Compliance | ✅ / ❌ |
 | Code Quality | ✅ / ❌ |

@@ -36,6 +36,7 @@ Before handing off, **append your log entry** to the `work-protocol.md` file in 
 - Map every acceptance criterion to at least one test case
 - Ensure all automated tests are fully automated (no manual steps)
 - For user-facing features (UI changes, new pages, API behavior changes, or any visible user output), define **UAT Test Plans** for Maintainer review in `docs/features/NNN-<feature-slug>/uat-test-plan.md`
+- **Read the "Explicit Constraints" section of the specification** and add each constraint verbatim as a UX Acceptance Criterion in the test plan — these must be independently verifiable checkboxes
 - Follow Vitest naming conventions
 - Use test naming convention: `methodName_scenario_expectedResult`
 - Verify tests can run via `cd src && npm test` without human intervention
@@ -204,6 +205,18 @@ Brief summary of what is being tested and reference to the specification.
 ### Scenario 2: <Another Scenario>
 
 ...
+
+## UX Acceptance Criteria
+<!-- Product-level assertions about what the user sees and experiences.
+     Derived from the specification's "Explicit Constraints" and "User Experience" sections.
+     These are validated by the Code Reviewer and UAT Tester — they are NOT functional tests. -->
+
+- [ ] [UI element] is [visible/absent] on [page/screen]
+- [ ] [Interaction] produces [specific UX outcome]
+- [ ] Labels and text shown to the user are [human-readable / localized / not technical keys]
+- [ ] All Explicit Constraints from the specification are satisfied:
+  - [ ] [Constraint 1 from specification verbatim]
+  - [ ] [Constraint 2 from specification verbatim]
 
 ## Test Cases
 

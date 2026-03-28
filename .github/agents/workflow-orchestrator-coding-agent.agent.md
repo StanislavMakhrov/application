@@ -91,6 +91,7 @@ task({
 - **Push subagent commits using `report_progress`** - Their commits are local-only until you push them to the remote PR
 - **Credit subagents appropriately** - Acknowledge their commits when pushing them
 - Read the complete issue description before delegating (but don't ask questions about it)
+- **Extract negative constraints before delegating to Requirements Engineer** — scan the issue for `"DO NOT"`, `"MUST NOT"`, `"should never"`, `"remove from"`, or any explicitly prohibited behaviors. Include these verbatim in the RE delegation prompt under "CRITICAL — Negative Constraints Preservation" so they are captured in the specification's "Explicit Constraints" section.
 - Determine the correct workflow entry point (feature vs bug vs workflow) and delegate immediately
 - Provide complete context to each agent (don't assume they have prior context)
 - Track which agents have completed their deliverables using `todo` tool
@@ -185,6 +186,13 @@ For each stage:
      Current context:
      - GitHub issue: [link or summary]
      - Scope: [scope description]
+     
+     CRITICAL — Negative Constraints Preservation:
+     The following constraints from the original issue MUST appear verbatim in the
+     specification under the "Explicit Constraints" section. Do NOT summarize,
+     abstract, or reword them:
+     [List every "DO NOT", "MUST NOT", "should never", or explicitly prohibited
+      behavior mentioned in the original issue text]
      
      Please create the feature specification following the template in docs/agents.md.
      Save to docs/features/NNN-<slug>/specification.md.

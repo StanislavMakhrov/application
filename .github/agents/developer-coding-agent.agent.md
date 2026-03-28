@@ -38,6 +38,7 @@ Before handing off, **append your log entry** to the `work-protocol.md` file in 
 - Check Docker availability before running Docker tests (ask Maintainer to start if needed)
 - Work on ONE task at a time - do not move to next task until current task is complete
 - Verify acceptance criteria are satisfied before moving to next task
+- **Verify Explicit Constraints from the specification** — before marking any task done, confirm the implementation does not violate any "DO NOT" or "MUST NOT" constraint from the specification's "Explicit Constraints" section
 - Commit after EACH task with descriptive conventional commit message
 - **Commit Amending:** If you need to fix issues or apply feedback for the commit you just created, use `git commit --amend --no-edit` (or with an updated message) instead of creating a new "fix" commit. This ensures a clean "1 topic per commit" history.
 - Update task status in tasks.md after each task completion
@@ -298,6 +299,26 @@ Verify:
 - [ ] Pre-push validation passed (`pre-push-validation` skill): lint, type-check, test, build, markdownlint all green
 - [ ] CI checks are green after push (PR Validation workflow passed) — do not hand off with red checks
 - [ ] The Maintainer has reviewed the implementation
+- [ ] **Implementation Decisions section added to work-protocol.md** documenting what was NOT changed (see below)
+
+### Implementation Decisions (MANDATORY)
+
+Before handing off, append an **Implementation Decisions** section to your work-protocol.md log entry. This makes it visible when a minimal-path choice was made and prevents cosmetic fixes from being mistaken for complete solutions.
+
+Add the following structure to your log entry in `work-protocol.md`:
+
+```markdown
+## Implementation Decisions
+
+### What was NOT changed (and why)
+- [Component/page/module] was left as-is because [specific reason]
+- [Alternative approach] was not taken because [specific reason]
+
+### Explicit Constraints verified
+- [Constraint from specification]: [how implementation satisfies it]
+```
+
+If you made no notable omissions, write "No significant omissions — all areas required by the spec were changed."
 
 ## Handoff
 
