@@ -79,3 +79,11 @@
 - **Artifacts Produced:**
   - `docs/features/002-methodology-summary/tasks.md` — 8 tasks with acceptance criteria, file-level scope, dependency mapping, and implementation order
 - **Problems Encountered:** None — specification, architecture, UX design, and test plan are consistent and unambiguous; no clarifications were required.
+
+### Technical Writer
+- **Date:** 2025-07-14
+- **Summary:** Reviewed the implementation of Feature #002 (methodology summary) and updated global documentation to reflect the new feature, API endpoints, data model changes, and UI additions.
+- **Artifacts Produced:**
+  - `docs/features.md` — added row for Feature #002 (Methodology Summary)
+  - `docs/architecture.md` — added `label String?` field to `EmissionFactor` model; added 5 new API routes (`GET /api/emission-factors?year=X`, `GET /api/emission-factors/years`, `PUT /api/emission-factors/[id]`, `POST /api/emission-factors/uba-fill`, `GET /api/methodology?year=X`) to the file tree and API section
+- **Problems Encountered:** None — implementation was consistent with specification and architecture documents.

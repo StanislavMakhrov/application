@@ -266,6 +266,13 @@ src/
 │       ├── badge/route.ts      # GET  /api/badge — generate badge PNG/SVG/HTML
 │       ├── entries/route.ts    # CRUD for emission entries
 │       ├── audit/route.ts      # GET  /api/audit — query audit log
+│       ├── emission-factors/
+│       │   ├── route.ts        # GET  /api/emission-factors?year=X — list factors for year
+│       │   ├── years/route.ts  # GET  /api/emission-factors/years — list available years
+│       │   ├── [id]/route.ts   # PUT  /api/emission-factors/[id] — update single factor
+│       │   └── uba-fill/route.ts # POST /api/emission-factors/uba-fill — auto-fill year with UBA reference values
+│       ├── methodology/
+│       │   └── route.ts        # GET  /api/methodology?year=X — get methodology block data
 │       ├── documents/
 │       │   └── [id]/route.ts   # GET  /api/documents/[id] — download uploaded file
 │       └── field-documents/
@@ -495,6 +502,7 @@ model EmissionFactor {
   unit      String   // "m³", "L", "kg", "kWh", "km"
   source    String   // "UBA 2024", "Ecoinvent 3.10"
   scope     Scope
+  label     String?  // optional German display label for methodology summary (e.g. "Erdgas (Heizung)")
   createdAt DateTime @default(now())
 
   @@unique([key, validYear])
