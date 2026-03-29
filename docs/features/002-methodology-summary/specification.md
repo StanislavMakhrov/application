@@ -4,7 +4,7 @@
 
 Every GrünBilanz report (PDF and UI) must include a clearly visible **Methodology Summary** block that states which calculation standard was applied, which emission factors were used, their source and version, which scopes were included, whether values are exact, estimated, or OCR-derived, and any assumptions embedded in the calculation. This block must be assembled automatically from existing data at report-generation time.
 
-Additionally, the application must provide a way for users to **manage UBA (Umweltbundesamt) emission factors** per reporting year — including the ability to auto-fill official UBA values for a given year — because manually entering all factor values by hand is not an acceptable workflow for users.
+Additionally, the application must provide a way for users to **manage UBA (Umweltbundesamt) emission factors** per reporting year — including the ability to auto-fill official UBA values for a given year — because manually entering all factor values is not an acceptable workflow for users.
 
 ---
 
@@ -99,8 +99,8 @@ In the **Settings page**, a new **"Emissionsfaktoren"** section provides:
 1. **Year selector** — a dropdown or tab bar listing all reporting years that have factor data, plus a prompt to add a new year.
 2. **Factor table** — for the selected year, shows all factors with editable value cells (factor key, German label, factor value, unit, scope, source).
 3. **"UBA-Werte übernehmen" button** — triggers the auto-fill action for the selected year:
-   - A confirmation dialog warns: "Dies überschreibt alle bestehenden Faktoren für [Jahr] mit den offiziellen UBA-Werten. Manuelle Änderungen gehen verloren."
-   - On confirmation, the official factor values for the selected year are applied.
+   - A confirmation dialog warns: "Dies überschreibt alle bestehenden Faktoren für [Jahr] mit den offiziellen UBA-Werten. Bestehende Werte (auch manuell geänderte) werden ersetzt."
+   - On confirmation, the official factor values for the selected year are applied, replacing all existing values including any previously customized ones. This is a **full replace**, not a merge — users who want to retain a custom override must re-enter it manually after auto-filling.
    - On success, a toast notification confirms: "UBA [Jahr] Faktoren wurden erfolgreich übernommen."
 4. **Manual override** — individual factor values can be edited inline. When a value differs from the official UBA default, its source label changes from "UBA [Jahr]" to "Benutzerdefiniert [Jahr]" so the deviation is visible.
 5. **Save button** — saves all pending edits. Unsaved changes are indicated visually (e.g., dirty-state row highlight).
