@@ -72,3 +72,10 @@
   - TC-16/TC-17 (UBA reference data validation) are pure data-validation tests with no DB dependency — fast and reliable.
   - Naming convention follows `methodName_scenario_expectedResult` as established in the project.
 - **Problems Encountered:** None — specification, architecture, and UX design are thorough and unambiguous.
+
+### Task Planner
+- **Date:** 2025-01-31
+- **Summary:** Read specification, architecture (including all four ADRs), UX design, test plan, and the Feature 001 tasks.md as format reference. Produced a comprehensive `tasks.md` with 8 prioritised tasks covering all aspects of the feature: schema migration, UBA reference data module, methodology service, API endpoints, Settings UI, Dashboard component, PDF integration, and automated tests. Each task has explicit acceptance criteria mapped to the specification's success criteria and the test plan's test cases. All open questions from the specification are resolved (confirmed in architecture.md). Implementation order section documents the dependency chain and parallel opportunities.
+- **Artifacts Produced:**
+  - `docs/features/002-methodology-summary/tasks.md` — 8 tasks with acceptance criteria, file-level scope, dependency mapping, and implementation order
+- **Problems Encountered:** None — specification, architecture, UX design, and test plan are consistent and unambiguous; no clarifications were required.
