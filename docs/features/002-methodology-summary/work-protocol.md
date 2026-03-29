@@ -59,3 +59,16 @@
   - PDF design reuses existing StyleSheet.create() styles from GHGReport.tsx — no new PDF styles needed.
   - All empty/null states have graceful fallbacks (never blank content areas).
 - **Problems Encountered:** None — design follows established patterns cleanly.
+
+### Quality Engineer
+- **Date:** 2025-01-31
+- **Summary:** Created a comprehensive test plan (27 test cases, TC-01 through TC-27) and a UAT test plan for the methodology summary and UBA parameter management feature. Mapped every acceptance criterion from the specification to at least one test case. Covered the new `getMethodologyData` service, `uba-reference-data` module, five new API routes, and four new/modified React components. Included edge cases (empty year, custom factor label rule, scope inclusion rule, year isolation, unknown year auto-fill).
+- **Artifacts Produced:**
+  - `docs/features/002-methodology-summary/test-plan.md` — 27 test cases spanning unit, integration, and component types; test coverage matrix; edge case table; UX acceptance criteria with all explicit constraints verbatim; non-functional tests
+  - `docs/features/002-methodology-summary/uat-test-plan.md` — 7 UAT steps covering Dashboard block, Settings factor management, inline override dirty state, UBA auto-fill dialog, year isolation, and PDF verification; complete verification checklist
+- **Key Decisions:**
+  - Test file locations follow the existing co-location pattern: `src/lib/__tests__/` for lib modules, `src/app/api/.../route.test.ts` for API routes, co-located `.test.tsx` for components.
+  - All tests use Vitest + Prisma mocks consistent with `factors.test.ts` and `emissions.test.ts` patterns. No new test infrastructure required.
+  - TC-16/TC-17 (UBA reference data validation) are pure data-validation tests with no DB dependency — fast and reliable.
+  - Naming convention follows `methodName_scenario_expectedResult` as established in the project.
+- **Problems Encountered:** None — specification, architecture, and UX design are thorough and unambiguous.
