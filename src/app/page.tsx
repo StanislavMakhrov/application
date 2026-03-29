@@ -16,6 +16,7 @@ import { YearOverYearChart } from '@/components/dashboard/YearOverYearChart';
 import { BranchenvergleichCard } from '@/components/dashboard/BranchenvergleichCard';
 import { CategoryStatusList } from '@/components/dashboard/CategoryStatusList';
 import { YearSelector } from '@/components/dashboard/YearSelector';
+import { MethodologySummary } from '@/components/reports/MethodologySummary';
 import { BRANCHE_LABELS } from '@/types';
 import type { CO2eTotals } from '@/types';
 import type { Branche } from '@/types';
@@ -217,6 +218,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             </div>
           </div>
         </div>
+
+        {/* Methodology block — collapsible, loaded client-side per year */}
+        {currentYearRecord && (
+          <div className="mt-6">
+            <MethodologySummary yearId={currentYearRecord.id} />
+          </div>
+        )}
       </div>
     </main>
   );

@@ -7,6 +7,7 @@ import { Leaf, ArrowLeft } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { YearManagement } from '@/components/settings/YearManagement';
 import { FirmenprofilSettings } from '@/components/settings/FirmenprofilSettings';
+import { EmissionsfaktorenSettings } from '@/components/settings/EmissionsfaktorenSettings';
 
 export const dynamic = 'force-dynamic';
 
@@ -61,6 +62,15 @@ export default async function SettingsPage() {
             alle zugehörigen Emissionsdaten.
           </p>
           <YearManagement years={years} nextYear={nextYear} />
+        </section>
+
+        {/* Emission factor management */}
+        <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <h2 className="text-base font-semibold text-gray-800 mb-1">Emissionsfaktoren</h2>
+          <p className="text-sm text-gray-500 mb-5">
+            Emissionsfaktoren pro Berichtsjahr verwalten und offizielle UBA-Werte übernehmen.
+          </p>
+          <EmissionsfaktorenSettings />
         </section>
       </div>
     </div>

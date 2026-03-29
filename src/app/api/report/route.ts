@@ -20,6 +20,7 @@ import { getTotalCO2e } from '@/lib/emissions';
 import { renderPdf } from '@/lib/pdf';
 import { GHGReport } from '@/components/reports/GHGReport';
 import { CSRDQuestionnaire } from '@/components/reports/CSRDQuestionnaire';
+import { getMethodologyData } from '@/lib/methodology';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
@@ -59,6 +60,9 @@ export async function GET(req: NextRequest) {
     // Calculate totals
     const totals = await getTotalCO2e(yearId);
 
+    // Assemble methodology data for the report
+    const methodologyData = await getMethodologyData(yearId);
+
     // Render PDF based on type
     let pdfBuffer: Buffer;
     const filename = type === 'CSRD_QUESTIONNAIRE'
@@ -70,6 +74,7 @@ export async function GET(req: NextRequest) {
         profile,
         year: reportingYear.year,
         totals,
+        methodologyData,
       });
       pdfBuffer = await renderPdf(doc);
     } else {
@@ -85,6 +90,7 @@ export async function GET(req: NextRequest) {
         })),
         materials: reportingYear.materialEntries,
         benchmarkValue: benchmark?.co2ePerEmployeePerYear,
+        methodologyData,
       });
       pdfBuffer = await renderPdf(doc);
     }
