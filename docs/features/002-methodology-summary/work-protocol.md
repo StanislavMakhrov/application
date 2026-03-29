@@ -40,3 +40,22 @@
   - Scope inclusion rule: scope included if any entry has `quantity ≠ 0`.
   - Factor source label rule: entire year set is labelled "Benutzerdefiniert" if any single factor is overridden (conservative for audit).
 - **Problems Encountered:** None — existing architecture is well-suited; changes are incremental.
+
+### UI/UX Designer
+- **Date:** 2025-01-31
+- **Summary:** Designed the complete UI/UX for all three surface areas: (1) the collapsible MethodologySummary block for the Dashboard, (2) the EmissionsfaktorenSettings section in Settings (including year selector, editable factor table, UBA auto-fill dialog), and (3) the Methodik PDF section (GHG Protocol and CSRD variants). Reviewed existing codebase patterns (settings page, dashboard, GHGReport, FirmenprofilSettings, YearManagement) and CSS tokens (globals.css, tailwind.config.ts) to ensure full design-language consistency. Created pixel-accurate HTML mockups for all states using the project's Tailwind config and brand tokens.
+- **Artifacts Produced:**
+  - `docs/features/002-methodology-summary/ux-design.md` — full UI/UX design specification (29 KB)
+  - `docs/features/002-methodology-summary/mockups/index.html` — mockup navigation page
+  - `docs/features/002-methodology-summary/mockups/methodology-summary-block.html` — dashboard block (collapsed, expanded, loading, empty, custom-factors, mobile states)
+  - `docs/features/002-methodology-summary/mockups/emissionsfaktoren-settings.html` — settings section (default, dirty, UBA dialog, loading skeleton, no-data, save error, success toast)
+  - `docs/features/002-methodology-summary/mockups/methodology-pdf.html` — PDF section simulation (GHG Protocol UBA, GHG Protocol custom, CSRD)
+- **Key Design Decisions:**
+  - Collapsible block uses `<details>`/`<summary>` (or shadcn/ui Accordion) — accessible, no JS overhead. Collapsed state shows the critical audit info at a glance (standard · source · scopes) without requiring expansion.
+  - Scope chips use semantic colors (green=1, blue=2, purple=3) — consistent with existing dashboard color language.
+  - Custom/UBA factor distinction: green badge for UBA, amber badge for Benutzerdefiniert — visible at both row level and block headline level.
+  - Dirty-state rows use amber left-border + background (FFFBEB) + strikethrough original value — clear visual diff without a modal.
+  - UBA auto-fill uses a full modal dialog with explicit amber warning box (irreversible action, full-replace semantics).
+  - PDF design reuses existing StyleSheet.create() styles from GHGReport.tsx — no new PDF styles needed.
+  - All empty/null states have graceful fallbacks (never blank content areas).
+- **Problems Encountered:** None — design follows established patterns cleanly.
