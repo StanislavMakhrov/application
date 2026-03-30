@@ -109,3 +109,19 @@
   - Scope color-coding chips in `MethodologySummary` (cosmetic UX improvement) — Suggestion only
 - **Decision:** Approved — all core criteria satisfied, all planned API tests added, explicit constraints verified
 - **Problems Encountered:** None — implementation was clean; issues found were quality/completeness gaps, not functional bugs
+
+### UAT Tester
+- **Date:** 2025-07-14
+- **Summary:** Explored existing e2e test patterns (`e2e-tests/app/e2e.spec.ts`, `e2e-tests/app/invoice-button-regression.spec.ts`) and the full feature implementation (all 5 new React components + 5 API routes). Authored a comprehensive Playwright e2e test suite covering every user-facing scenario from the UAT test plan. Tests are independent, navigate from scratch, and use resilient selectors (aria-expanded, role, text, data-testid fallbacks). API tests validate the new `/api/methodology` and `/api/emission-factors` endpoints directly.
+- **Artifacts Produced:**
+  - `e2e-tests/methodology-summary/e2e.spec.ts` — 22 Playwright e2e tests in 6 describe blocks
+- **Scenarios Covered:**
+  - Settings Emissionsfaktoren section heading, description, year selector, factor table columns, source badges, year switching
+  - UBA auto-fill dialog: opens on click, shows warning text, Abbrechen closes without changes, Bestätigen shows success toast
+  - Inline factor override: amber dirty-state row highlight, Speichern button appears
+  - Dashboard Methodik block: visible, collapsed by default, no details table in collapsed state
+  - Methodik expand/collapse toggle (aria-expanded attribute)
+  - Faktoren verwalten link: visible when expanded, navigates to /settings
+  - API: /api/methodology required fields, /api/emission-factors/years response shape, year isolation after uba-fill
+- **Note:** Tests require a running server (no mock server available in the repo). They are designed to run against the CI Docker image via the `e2e-tests` CI job with `BASE_URL` set to the running container.
+- **Problems Encountered:** None — implementation was clean and selectors were predictable from the component code.
