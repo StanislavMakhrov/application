@@ -2,11 +2,11 @@
  * API route tests for GET /api/emission-factors/years
  *
  * Covers TC-12 from the test plan:
- * - TC-12: Returns both dbYears (from DB) and ubaReferenceYears (from static data)
+ * - TC-12: Returns dbYears (from DB); ubaReferenceYears is always empty
+ *   since UBA reference data is managed in the DB, not bundled in source code.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { NextRequest } from 'next/server';
 import { GET } from './route';
 
 vi.mock('@/lib/prisma', () => ({
@@ -24,25 +24,22 @@ describe('GET /api/emission-factors/years', () => {
     vi.clearAllMocks();
   });
 
-  it('GET_emissionFactorYears_returnsDbAndUbaReferenceYears', async () => {
+  it('GET_emissionFactorYears_returnsDbYears', async () => {
     vi.mocked(prisma.emissionFactor.findMany).mockResolvedValue([
       { validYear: 2023 },
       { validYear: 2024 },
     ] as never);
 
-    const req = new NextRequest('http://localhost/api/emission-factors/years');
     const res = await GET();
     const data = (await res.json()) as { dbYears: number[]; ubaReferenceYears: number[] };
 
     expect(res.status).toBe(200);
     expect(data.dbYears).toContain(2023);
     expect(data.dbYears).toContain(2024);
-    expect(data.ubaReferenceYears).toContain(2023);
-    expect(data.ubaReferenceYears).toContain(2024);
+    expect(data.ubaReferenceYears).toEqual([]);
   });
 
-  it('GET_emissionFactorYears_withEmptyDb_stillReturnsUbaReferenceYears', async () => {
-    // DB has no factors but UBA reference years are always available
+  it('GET_emissionFactorYears_withEmptyDb_returnsEmptyArrays', async () => {
     vi.mocked(prisma.emissionFactor.findMany).mockResolvedValue([] as never);
 
     const res = await GET();
@@ -50,7 +47,7 @@ describe('GET /api/emission-factors/years', () => {
 
     expect(res.status).toBe(200);
     expect(data.dbYears).toEqual([]);
-    expect(data.ubaReferenceYears.length).toBeGreaterThan(0);
+    expect(data.ubaReferenceYears).toEqual([]);
   });
 
   it('GET_emissionFactorYears_dbYearsAreSortedAscending', async () => {

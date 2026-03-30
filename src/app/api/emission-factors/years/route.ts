@@ -1,19 +1,18 @@
 /**
  * GET /api/emission-factors/years
  *
- * Returns distinct years that have factor data in the DB plus the years
- * for which built-in UBA reference data is available (for auto-fill eligibility).
+ * Returns distinct years that have factor data in the DB.
  *
  * Response: { dbYears: number[], ubaReferenceYears: number[] }
  *
- * The UI uses ubaReferenceYears to enable/disable the "UBA-Werte übernehmen" button.
+ * ubaReferenceYears is always an empty array — UBA reference data is not
+ * bundled in source code. UBA values are managed exclusively in the database.
  */
 
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getUbaReferenceYears } from '@/lib/uba-reference-data';
 
 export async function GET() {
   // Fetch distinct validYear values from the DB
@@ -24,7 +23,6 @@ export async function GET() {
   });
 
   const dbYears = rawYears.map((r) => r.validYear);
-  const ubaReferenceYears = getUbaReferenceYears();
 
-  return NextResponse.json({ dbYears, ubaReferenceYears });
+  return NextResponse.json({ dbYears, ubaReferenceYears: [] });
 }
