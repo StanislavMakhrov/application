@@ -497,9 +497,9 @@ test.describe("API /api/emission-factors", () => {
     expect(data).toHaveProperty("dbYears");
     expect(data).toHaveProperty("ubaReferenceYears");
     expect(Array.isArray(data.dbYears)).toBe(true);
+    // ubaReferenceYears is always [] — UBA data is managed in DB only
     expect(Array.isArray(data.ubaReferenceYears)).toBe(true);
-    // UBA reference data should include at least 2023 and 2024
-    expect(data.ubaReferenceYears.length).toBeGreaterThan(0);
+    expect(data.ubaReferenceYears).toEqual([]);
   });
 
   test("GET /api/emission-factors?year=2024 returns an array of factors", async ({
@@ -529,21 +529,16 @@ test.describe("API /api/emission-factors", () => {
     expect(response.status()).toBe(400);
   });
 
-  test("POST /api/emission-factors/uba-fill with year=2024 succeeds or 422 if no data", async ({
+  test("POST /api/emission-factors/uba-fill returns 501 stub", async ({
     request,
   }) => {
     const response = await request.post("/api/emission-factors/uba-fill", {
       data: { year: 2024 },
     });
-    const status = response.status();
-    // Accept 200 (success) or 422/400 if reference data unavailable
-    expect([200, 400, 404, 422]).toContain(status);
-    if (status === 200) {
-      const data = await response.json();
-      expect(data).toHaveProperty("upsertedCount");
-      expect(typeof data.upsertedCount).toBe("number");
-      expect(data.upsertedCount).toBeGreaterThan(0);
-    }
+    // The endpoint is a stub — UBA auto-fill is not yet implemented
+    expect(response.status()).toBe(501);
+    const data = await response.json();
+    expect(data).toHaveProperty("error");
   });
 
   test("POST /api/emission-factors/uba-fill for year 2024 does not affect year 2023 factors", async ({
