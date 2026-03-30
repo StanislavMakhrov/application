@@ -251,8 +251,10 @@ test.describe("Settings — Inline factor override", () => {
     // Trigger change event by pressing Tab
     await firstInput.press("Tab");
 
-    // The row containing this input should now have amber styling
-    const dirtyRow = table.locator("tr").filter({ has: firstInput });
+    // The row containing this input should now have amber styling.
+    // Use page.locator("tr") with a relative has: locator to avoid strict-mode
+    // violations from chained locators in filter().
+    const dirtyRow = page.locator("tr").filter({ has: page.locator("input[type='number']").first() });
     const rowClass = await dirtyRow.getAttribute("class");
     // The implementation uses: border-l-2 border-amber-400 bg-amber-50/40
     expect(rowClass).toMatch(/amber/i);
@@ -275,8 +277,10 @@ test.describe("Settings — Inline factor override", () => {
     await firstInput2.fill(newValue2);
     await firstInput2.press("Tab");
 
-    // Speichern button should now appear
-    await expect(page.getByRole("button", { name: /Speichern/i })).toBeVisible({
+    // Speichern button should now appear — use exact partial match on the dirty-count
+    // button text ("💾 Speichern (N geändert)") to avoid colliding with the settings
+    // page's own "💾 Speichern" submit button.
+    await expect(page.getByRole("button", { name: /Speichern \(\d+ geändert\)/i })).toBeVisible({
       timeout: 5000,
     });
   });
