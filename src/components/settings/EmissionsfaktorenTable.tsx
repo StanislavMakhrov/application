@@ -105,8 +105,6 @@ export function EmissionsfaktorenTable({ year, refreshKey }: EmissionsfaktorenTa
     if (Object.keys(newSaveErrors).length === 0) {
       // Refresh to get updated sources from DB
       void fetchFactors();
-    } else {
-      setIsSaving(false);
     }
     setIsSaving(false);
   };

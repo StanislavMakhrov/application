@@ -272,7 +272,7 @@ src/
 │       │   ├── [id]/route.ts   # PUT  /api/emission-factors/[id] — update single factor
 │       │   └── uba-fill/route.ts # POST /api/emission-factors/uba-fill — auto-fill year with UBA reference values
 │       ├── methodology/
-│       │   └── route.ts        # GET  /api/methodology?year=X — get methodology block data
+│       │   └── route.ts        # GET  /api/methodology?yearId=X — get methodology block data
 │       ├── documents/
 │       │   └── [id]/route.ts   # GET  /api/documents/[id] — download uploaded file
 │       └── field-documents/

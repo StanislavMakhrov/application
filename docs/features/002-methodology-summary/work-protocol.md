@@ -87,3 +87,25 @@
   - `docs/features.md` — added row for Feature #002 (Methodology Summary)
   - `docs/architecture.md` — added `label String?` field to `EmissionFactor` model; added 5 new API routes (`GET /api/emission-factors?year=X`, `GET /api/emission-factors/years`, `PUT /api/emission-factors/[id]`, `POST /api/emission-factors/uba-fill`, `GET /api/methodology?year=X`) to the file tree and API section
 - **Problems Encountered:** None — implementation was consistent with specification and architecture documents.
+
+### Code Reviewer
+- **Date:** 2025-07-14
+- **Summary:** Conducted a thorough line-by-line review of the full Feature #002 implementation: all 5 new API routes, 3 new settings components, `MethodologySummary`, `methodology.ts`, `uba-reference-data.ts`, `factor-labels.ts`, `prisma/schema.prisma`, and integration with `GHGReport.tsx`, `CSRDQuestionnaire.tsx`, and `page.tsx`. All tests pass. Explicit Constraints from the specification (year isolation, automated UBA fill) are correctly implemented. Applied inline fixes for the issues found.
+- **Artifacts Produced:**
+  - `docs/features/002-methodology-summary/code-review.md` — full code review report
+  - `src/app/api/emission-factors/uba-fill/route.test.ts` — 7 new API route tests (TC-08, TC-09 year-isolation, TC-10)
+  - `src/app/api/emission-factors/[id]/route.test.ts` — 6 new API route tests (TC-07)
+  - `src/app/api/emission-factors/route.test.ts` — 4 new API route tests (TC-11)
+  - `src/app/api/emission-factors/years/route.test.ts` — 3 new API route tests (TC-12)
+  - `src/app/api/methodology/route.test.ts` — 4 new API route tests (TC-13, TC-14)
+- **Issues Fixed Inline:**
+  - M-1 (Major): Added 24 missing API route tests covering all planned TC-07 through TC-14 test cases
+  - m-1 (Minor): Added "Faktoren verwalten →" link to `MethodologySummary.tsx` expanded view
+  - m-2 (Minor): Added custom-override warning banner to `MethodologySummary.tsx`
+  - m-3 (Minor): Fixed `?year=X` → `?yearId=X` parameter name in `docs/architecture.md`
+  - m-4 (Minor): Removed redundant `setIsSaving(false)` call in `EmissionsfaktorenTable.tsx`
+- **Remaining Items:**
+  - Component tests (TC-18 through TC-22) require `@testing-library/react` to be installed — not blocking
+  - Scope color-coding chips in `MethodologySummary` (cosmetic UX improvement) — Suggestion only
+- **Decision:** Approved — all core criteria satisfied, all planned API tests added, explicit constraints verified
+- **Problems Encountered:** None — implementation was clean; issues found were quality/completeness gaps, not functional bugs

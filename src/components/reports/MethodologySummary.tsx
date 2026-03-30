@@ -15,6 +15,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { MethodologyData } from '@/lib/methodology';
 
@@ -158,8 +159,25 @@ export function MethodologySummary({ yearId }: MethodologySummaryProps) {
                   </tbody>
                 </table>
               </div>
+
+              {/* Custom-override warning — shown when any factor deviates from official UBA values */}
+              {data.factorSourceLabel.startsWith('Benutzerdefiniert') && (
+                <p className="mt-2 text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2">
+                  ⚠ Ein oder mehrere Faktoren wurden manuell angepasst ({data.factorSourceLabel}).
+                </p>
+              )}
             </div>
           )}
+
+          {/* Footer link to Settings for factor management */}
+          <div className="pt-2 border-t border-gray-100">
+            <Link
+              href="/settings"
+              className="text-xs text-brand-green hover:text-brand-green-dark font-medium transition-colors"
+            >
+              Faktoren verwalten →
+            </Link>
+          </div>
         </div>
       )}
     </div>
