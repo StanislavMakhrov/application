@@ -32,10 +32,8 @@ COPY --from=builder /app/public ./public
 # Copy full node_modules from builder (needed for prisma, tsx, seed script)
 COPY --from=builder /app/node_modules ./node_modules
 
-# Copy Prisma schema and seed files
-COPY prisma/migrations ./prisma/migrations
-COPY prisma/schema.prisma ./prisma/schema.prisma
-COPY prisma/seed.ts ./prisma/seed.ts
+# Copy Prisma schema, migrations, seed, and reference data
+COPY prisma/ ./prisma/
 
 # Copy Docker infrastructure files
 COPY docker/supervisord.conf /etc/supervisord.conf

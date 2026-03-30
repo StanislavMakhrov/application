@@ -11,7 +11,7 @@
  */
 
 import { PrismaClient, Scope, EmissionCategory, MaterialCategory, Branche } from '@prisma/client';
-import { UBA_REFERENCE_DATA } from '../src/lib/uba-reference-data';
+import { UBA_REFERENCE_DATA } from './uba-reference-data';
 
 const prisma = new PrismaClient();
 

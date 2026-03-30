@@ -172,9 +172,7 @@ test.describe("Settings — UBA auto-fill confirmation dialog", () => {
 
     // Check for Abbrechen and confirm buttons
     await expect(page.getByRole("button", { name: /Abbrechen/i })).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: /Übernehmen|Bestätigen/i })
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: 'Übernehmen', exact: true })).toBeVisible();
   });
 
   test("Abbrechen closes the dialog without changes", async ({ page }) => {
@@ -216,7 +214,7 @@ test.describe("Settings — UBA auto-fill confirmation dialog", () => {
     await expect(page.getByRole("button", { name: /Abbrechen/i })).toBeVisible();
 
     // Confirm the action
-    await page.getByRole("button", { name: /Übernehmen|Bestätigen/i }).click();
+    await page.getByRole("button", { name: 'Übernehmen', exact: true }).click();
 
     // Success: toast notification with "erfolgreich" text
     await expect(
