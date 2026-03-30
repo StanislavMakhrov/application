@@ -252,10 +252,11 @@ test.describe("Settings — Inline factor override", () => {
     await firstInput.press("Tab");
 
     // The row containing this input should now have amber styling.
-    // Use page.locator("tr") with a relative has: locator to avoid strict-mode
-    // violations from chained locators in filter().
-    const dirtyRow = page.locator("tr").filter({ has: page.locator("input[type='number']").first() });
-    const rowClass = await dirtyRow.getAttribute("class");
+    // Use element.evaluate() to traverse from the input to its parent <tr>
+    // to avoid strict-mode violations with locator().filter().
+    const rowClass = await firstInput.evaluate(
+      (el) => el.closest("tr")?.getAttribute("class") ?? ""
+    );
     // The implementation uses: border-l-2 border-amber-400 bg-amber-50/40
     expect(rowClass).toMatch(/amber/i);
   });
