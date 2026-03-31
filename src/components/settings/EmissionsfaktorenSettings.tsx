@@ -99,7 +99,7 @@ export function EmissionsfaktorenSettings({ reportingYears }: Props) {
           </select>
         </div>
 
-        <UbaFillButton />
+        <UbaFillButton year={currentYear} onDone={() => setTableRefreshKey((k) => k + 1)} />
       </div>
 
       {/* Editable factor table */}
