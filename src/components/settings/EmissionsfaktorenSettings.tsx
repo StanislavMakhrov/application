@@ -8,6 +8,11 @@
  * - EmissionsfaktorenTable (editable factor table for the selected year)
  * - UbaFillButton (stub placeholder for UBA auto-fill)
  *
+ * `reportingYears` is passed from the server component so that when YearManagement
+ * calls router.refresh() after adding/deleting a year, the server re-renders and
+ * passes a fresh array reference here, triggering a re-fetch of the year list without
+ * requiring a full page reload.
+ *
  * Integrates into the Settings page below the "Berichtsjahre" section.
  */
 
@@ -19,28 +24,41 @@ interface YearsResponse {
   dbYears: number[];
 }
 
-export function EmissionsfaktorenSettings() {
+interface Props {
+  /** Reporting years from the server component — used as a refresh trigger. */
+  reportingYears: number[];
+}
+
+export function EmissionsfaktorenSettings({ reportingYears }: Props) {
   const [dbYears, setDbYears] = useState<number[]>([]);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   // Incrementing this key forces the table to re-fetch after an auto-fill
   const [tableRefreshKey, setTableRefreshKey] = useState(0);
 
+  // Re-fetch whenever reportingYears changes (i.e. after a year is added/deleted
+  // and YearManagement calls router.refresh(), which re-renders the server component
+  // and passes a new array reference here).
   useEffect(() => {
+    setIsLoading(true);
     fetch('/api/emission-factors/years')
       .then((r) => r.json())
       .then((data: YearsResponse) => {
         const years = (data.dbYears ?? []).sort((a, b) => b - a);
         setDbYears(years);
-        if (years.length > 0) {
-          setSelectedYear(years[0]);
-        }
+        setSelectedYear((prev) => {
+          // Keep the currently selected year if it's still in the list;
+          // otherwise default to the most recent year.
+          if (prev !== null && years.includes(prev)) return prev;
+          return years.length > 0 ? years[0] : null;
+        });
       })
       .catch(() => {
         // Non-fatal: show empty state
       })
       .finally(() => setIsLoading(false));
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reportingYears]);
 
   if (isLoading) {
     return <p className="text-sm text-gray-400 animate-pulse">Berichtsjahre werden geladen…</p>;

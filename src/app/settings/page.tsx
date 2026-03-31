@@ -70,7 +70,7 @@ export default async function SettingsPage() {
           <p className="text-sm text-gray-500 mb-5">
             Emissionsfaktoren pro Berichtsjahr verwalten und offizielle UBA-Werte übernehmen.
           </p>
-          <EmissionsfaktorenSettings />
+          <EmissionsfaktorenSettings reportingYears={years} />
         </section>
       </div>
     </div>
