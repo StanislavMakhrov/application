@@ -25,6 +25,7 @@ import {
 import type { CO2eTotals, CompanyProfileData } from '@/types';
 import { CATEGORY_LABELS, CATEGORY_UNITS, BRANCHE_LABELS } from '@/types';
 import type { Branche } from '@/types';
+import type { MethodologyData } from '@/lib/methodology';
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, fontFamily: 'Helvetica', color: '#1a1a1a' },
@@ -67,9 +68,10 @@ interface GHGReportProps {
   entries: Array<{ category: string; quantity: number; isOekostrom: boolean; scope: string }>;
   materials: Array<{ material: string; quantityKg: number; supplierName?: string | null }>;
   benchmarkValue?: number;
+  methodologyData?: MethodologyData;
 }
 
-export function GHGReport({ profile, year, totals, entries, materials, benchmarkValue = 12.5 }: GHGReportProps) {
+export function GHGReport({ profile, year, totals, entries, materials, benchmarkValue = 12.5, methodologyData }: GHGReportProps) {
   const co2ePerEmployee = profile.mitarbeiter > 0 ? totals.total / profile.mitarbeiter : 0;
   const vsBenchmark = benchmarkValue > 0 ? ((co2ePerEmployee - benchmarkValue) / benchmarkValue) * 100 : 0;
 
@@ -160,7 +162,9 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
           </View>
           <View style={styles.headerRight}>
             <Text style={[styles.note, { fontSize: 9 }]}>GHG Protocol Corporate Standard</Text>
-            <Text style={[styles.note]}>UBA 2024 Emissionsfaktoren</Text>
+            <Text style={[styles.note]}>
+              {methodologyData ? methodologyData.factorSourceLabel : `UBA ${year} Emissionsfaktoren`}
+            </Text>
             <Text style={[styles.note]}>Erstellt: {new Date().toLocaleDateString('de-DE')}</Text>
           </View>
         </View>
@@ -240,13 +244,81 @@ export function GHGReport({ profile, year, totals, entries, materials, benchmark
 
           {/* Methodology */}
           <Text style={styles.sectionTitle}>Methodik</Text>
-          <Text style={{ fontSize: 9, color: '#555', lineHeight: 1.6 }}>
-            Diese CO₂-Bilanz wurde nach dem GHG Protocol Corporate Standard erstellt. 
-            Alle Emissionsfaktoren stammen aus dem Umweltbundesamt (UBA) Datenbericht 2024.
-            Die Berechnung folgt dem Ansatz: CO₂e = Aktivitätsdaten × Emissionsfaktor.
-            Scope 3 Kategorie 1 umfasst vorgelagerte Emissionen eingekaufter Waren und Dienstleistungen.
-            Negative Werte (z.B. Altmetall-Recycling) stellen anerkannte Gutschriften dar.
-          </Text>
+          {methodologyData ? (
+            <>
+              <View style={{ marginBottom: 6 }}>
+                <Text style={[styles.note, { fontSize: 9 }]}>
+                  Berechnungsstandard: {methodologyData.standard}
+                </Text>
+                <Text style={[styles.note, { fontSize: 9 }]}>
+                  Emissionsfaktoren: {methodologyData.factorSourceLabel}
+                </Text>
+                <Text style={[styles.note, { fontSize: 9 }]}>
+                  Berichtsrahmen: {
+                    methodologyData.includedScopes.length > 0
+                      ? methodologyData.includedScopes
+                          .map((s) => s.replace('SCOPE', 'Scope '))
+                          .join(', ')
+                      : 'Keine Emissionen erfasst'
+                  }
+                </Text>
+                <Text style={[styles.note, { fontSize: 9 }]}>
+                  Eingabemethoden: {methodologyData.inputMethodCounts.manual} manuell,{' '}
+                  {methodologyData.inputMethodCounts.ocr} per OCR-Beleg,{' '}
+                  {methodologyData.inputMethodCounts.csv} per CSV
+                </Text>
+              </View>
+              {(methodologyData.assumptions || methodologyData.exclusions) && (
+                <View style={[styles.boundaryBox, { marginBottom: 6 }]}>
+                  <Text style={styles.boundaryLabel}>Annahmen & Ausschlüsse</Text>
+                  {methodologyData.assumptions ? (
+                    <Text style={styles.boundaryText}>{methodologyData.assumptions}</Text>
+                  ) : null}
+                  {methodologyData.exclusions ? (
+                    <Text style={[styles.boundaryText, { marginTop: 4 }]}>
+                      {methodologyData.exclusions}
+                    </Text>
+                  ) : null}
+                </View>
+              )}
+              {/* Factor table */}
+              {methodologyData.factors.length > 0 && (
+                <View style={styles.table}>
+                  <View style={styles.tableHeader}>
+                    <Text style={[styles.tableHeaderCell, { width: '35%' }]}>Kategorie</Text>
+                    <Text style={[styles.tableHeaderCell, { width: '25%' }]}>Faktor (kg CO₂e)</Text>
+                    <Text style={[styles.tableHeaderCell, { width: '15%' }]}>Einheit</Text>
+                    <Text style={[styles.tableHeaderCell, { width: '15%' }]}>Scope</Text>
+                    <Text style={[styles.tableHeaderCell, { width: '10%' }]}>Quelle</Text>
+                  </View>
+                  {methodologyData.factors.map((f, i) => (
+                    <View
+                      key={f.key}
+                      style={i % 2 === 0 ? styles.tableRow : styles.tableRowAlt}
+                    >
+                      <Text style={[styles.tableCell, { width: '35%' }]}>{f.label}</Text>
+                      <Text style={[styles.tableCell, { width: '25%' }]}>{f.factorKg}</Text>
+                      <Text style={[styles.tableCell, { width: '15%' }]}>{f.unit}</Text>
+                      <Text style={[styles.tableCell, { width: '15%' }]}>
+                        {f.scope.replace('SCOPE', 'Scope ')}
+                      </Text>
+                      <Text style={[styles.tableCell, { width: '10%', fontSize: 7, color: '#888' }]}>
+                        {f.source}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </>
+          ) : (
+            <Text style={{ fontSize: 9, color: '#555', lineHeight: 1.6 }}>
+              Diese CO₂-Bilanz wurde nach dem GHG Protocol Corporate Standard erstellt.{'\n'}
+              Alle Emissionsfaktoren stammen aus dem Umweltbundesamt (UBA) Datenbericht {year}.{'\n'}
+              Die Berechnung folgt dem Ansatz: CO₂e = Aktivitätsdaten × Emissionsfaktor.{'\n'}
+              Scope 3 Kategorie 1 umfasst vorgelagerte Emissionen eingekaufter Waren und Dienstleistungen.{'\n'}
+              Negative Werte (z.B. Altmetall-Recycling) stellen anerkannte Gutschriften dar.
+            </Text>
+          )}
 
           <Text style={styles.footer}>
             GrünBilanz · GHG Protocol Corporate Standard · Emissionsfaktoren: UBA 2024 · Seite 2

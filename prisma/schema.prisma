@@ -134,6 +134,8 @@ model EmissionFactor {
   factorKg  Float
   unit      String
   source    String
+  // German display name (e.g. "Erdgas") — nullable for backward compat; falls back to FACTOR_LABELS map
+  label     String?
   scope     Scope
   createdAt DateTime @default(now())
 

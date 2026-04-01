@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mockup — Methodik-Abschnitt im PDF (Designreferenz)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              green: '#2D6A4F',
+              'green-light': '#52B788',
+              'green-pale': '#D8F3DC',
+              'green-dark': '#1B4332',
+            },
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    :root { --radius: 12px; }
+    body { background: #f5f5f5; }
+    /* Simulate A4 PDF page */
+    .pdf-page {
+      width: 595px;
+      min-height: 842px;
+      background: #ffffff;
+      padding: 40px;
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 10px;
+      color: #1a1a1a;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+    }
+    .pdf-section-title {
+      font-size: 13px;
+      font-weight: bold;
+      color: #2D6A4F;
+      margin-top: 18px;
+      margin-bottom: 8px;
+    }
+    .pdf-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12px;
+    }
+    .pdf-table th {
+      background-color: #D8F3DC;
+      padding: 5px 8px;
+      font-size: 9px;
+      font-weight: bold;
+      text-align: left;
+    }
+    .pdf-table td {
+      padding: 4px 8px;
+      font-size: 9px;
+      border-bottom: 0.5px solid #e5e7eb;
+    }
+    .pdf-table tr:nth-child(even) td {
+      background-color: #f9fafb;
+    }
+    .pdf-profile-row {
+      display: flex;
+      margin-bottom: 4px;
+    }
+    .pdf-profile-label {
+      width: 40%;
+      color: #555;
+      font-size: 9px;
+    }
+    .pdf-profile-value {
+      width: 60%;
+      font-weight: bold;
+      font-size: 9px;
+    }
+    .pdf-boundary-box {
+      background-color: #f0fdf4;
+      border-radius: 4px;
+      padding: 10px;
+      margin-top: 6px;
+      margin-bottom: 2px;
+    }
+    .pdf-boundary-label {
+      font-size: 8px;
+      font-weight: bold;
+      color: #2D6A4F;
+      margin-bottom: 3px;
+    }
+    .pdf-boundary-text {
+      font-size: 8px;
+      color: #444;
+      line-height: 1.5;
+    }
+    .pdf-footer {
+      position: absolute;
+      bottom: 30px;
+      left: 40px;
+      right: 40px;
+      font-size: 8px;
+      color: #aaa;
+      text-align: center;
+      border-top: 0.5px solid #e5e7eb;
+      padding-top: 8px;
+    }
+    .pdf-scope-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: bold;
+      color: #fff;
+      background-color: #2D6A4F;
+      padding: 2px 8px;
+      border-radius: 3px;
+      margin-bottom: 4px;
+    }
+    .pdf-kpi-box {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .pdf-kpi {
+      flex: 1;
+      background-color: #D8F3DC;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .pdf-source-uba {
+      background-color: #D8F3DC;
+      color: #1B4332;
+      font-size: 8px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    .pdf-source-custom {
+      background-color: #FEF3C7;
+      color: #92400E;
+      font-size: 8px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    /* Page break indicator */
+    .page-break-line {
+      border: none;
+      border-top: 2px dashed #D1FAE5;
+      margin: 24px 0;
+    }
+  </style>
+</head>
+<body class="p-8">
+
+  <!-- Annotation -->
+  <div class="mb-6 max-w-3xl">
+    <p class="text-sm font-semibold text-gray-600 mb-1">📄 PDF-Methodik-Abschnitt — Designreferenz</p>
+    <p class="text-xs text-gray-500">Diese Seite zeigt den <code>@react-pdf/renderer</code>-basierten Methodik-Abschnitt als statische HTML-Darstellung. Die Pixel-Maße und Abstände orientieren sich an der tatsächlichen A4-PDF-Ausgabe (595×842px bei 72dpi). Farben, Abstände und Schriften sind identisch zur bestehenden <code>GHGReport.tsx</code>-Implementierung.</p>
+  </div>
+
+  <!-- =========================================================
+       VARIANT A — GHG Protocol Report, UBA standard factors
+  ========================================================= -->
+  <div class="mb-10">
+    <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Variante A: GHG Protocol · Offizielle UBA-Werte</p>
+    <div class="pdf-page relative overflow-hidden">
+
+      <!-- PDF Header (abbreviated) -->
+      <div style="display:flex; justify-content:space-between; margin-bottom:24px; border-bottom:2px solid #2D6A4F; padding-bottom:12px;">
+        <div>
+          <div style="font-size:20px; font-weight:bold; color:#2D6A4F;">GrünBilanz</div>
+          <div style="font-size:11px; color:#555; margin-top:2px;">Treibhausgasbericht</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px; font-weight:bold;">Mustermann Elektro GmbH</div>
+          <div style="font-size:9px; color:#555;">Berichtsjahr 2024</div>
+        </div>
+      </div>
+
+      <!-- [Previous sections abbreviated] -->
+      <div style="font-size:8px; color:#aaa; border:1px dashed #e5e7eb; padding:8px; border-radius:4px; text-align:center; margin-bottom:16px;">
+        [Vorherige Abschnitte: Firmenprofil, Executive Summary, Scope 1/2/3-Tabellen]
+      </div>
+
+      <!-- ====== METHODIK SECTION ====== -->
+      <div class="pdf-section-title">Methodik</div>
+
+      <!-- Meta info as profile rows -->
+      <div style="background-color:#f9fafb; border-radius:4px; padding:10px; margin-bottom:12px;">
+        <div class="pdf-profile-row">
+          <span class="pdf-profile-label">Berechnungsstandard</span>
+          <span class="pdf-profile-value">GHG Protocol Corporate Standard</span>
+        </div>
+        <div class="pdf-profile-row">
+          <span class="pdf-profile-label">Emissionsfaktoren</span>
+          <span class="pdf-profile-value">UBA 2024 Emissionsfaktoren</span>
+        </div>
+        <div class="pdf-profile-row">
+          <span class="pdf-profile-label">Enthaltene Scopes</span>
+          <span class="pdf-profile-value">Scope 1, Scope 2, Scope 3</span>
+        </div>
+        <div class="pdf-profile-row" style="margin-bottom:0;">
+          <span class="pdf-profile-label">Dateneingabe-Methoden</span>
+          <span class="pdf-profile-value">12 manuelle Einträge · 3 per OCR-Beleg · 0 per CSV</span>
+        </div>
+      </div>
+
+      <!-- Assumptions -->
+      <div class="pdf-boundary-box">
+        <div class="pdf-boundary-label">Annahmen &amp; Ausschlüsse</div>
+        <div class="pdf-boundary-text">
+          Operationelle Kontrolle nach GHG Protocol. Alle Standorte in Deutschland eingeschlossen. Geschäftsreisen mit privatem PKW wurden nicht erfasst.
+        </div>
+      </div>
+
+      <!-- Factors Table -->
+      <div class="pdf-section-title" style="font-size:10px; margin-top:14px;">Verwendete Emissionsfaktoren</div>
+      <table class="pdf-table">
+        <thead>
+          <tr>
+            <th style="width:25%;">Kategorie</th>
+            <th style="width:20%;">Schlüssel</th>
+            <th style="width:15%; text-align:right;">Faktor</th>
+            <th style="width:12%;">Einheit</th>
+            <th style="width:12%;">Scope</th>
+            <th style="width:16%;">Quelle</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Erdgas</td>
+            <td style="font-family:monospace;">ERDGAS</td>
+            <td style="text-align:right;">2,00</td>
+            <td>m³</td>
+            <td>Scope 1</td>
+            <td><span class="pdf-source-uba">UBA 2024</span></td>
+          </tr>
+          <tr>
+            <td>Heizöl</td>
+            <td style="font-family:monospace;">HEIZOEL</td>
+            <td style="text-align:right;">2,65</td>
+            <td>l</td>
+            <td>Scope 1</td>
+            <td><span class="pdf-source-uba">UBA 2024</span></td>
+          </tr>
+          <tr>
+            <td>Flüssiggas (LPG)</td>
+            <td style="font-family:monospace;">FLUESSIGGAS</td>
+            <td style="text-align:right;">1,63</td>
+            <td>l</td>
+            <td>Scope 1</td>
+            <td><span class="pdf-source-uba">UBA 2024</span></td>
+          </tr>
+          <tr>
+            <td>Strom (Netz)</td>
+            <td style="font-family:monospace;">STROM_NETZ</td>
+            <td style="text-align:right;">0,38</td>
+            <td>kWh</td>
+            <td>Scope 2</td>
+            <td><span class="pdf-source-uba">UBA 2024</span></td>
+          </tr>
+          <tr>
+            <td>Strom (Ökostrom)</td>
+            <td style="font-family:monospace;">STROM_OEKO</td>
+            <td style="text-align:right;">0,00</td>
+            <td>kWh</td>
+            <td>Scope 2</td>
+            <td><span class="pdf-source-uba">UBA 2024</span></td>
+          </tr>
+          <tr>
+            <td>Fernwärme</td>
+            <td style="font-family:monospace;">FERNWAERME</td>
+            <td style="text-align:right;">0,15</td>
+            <td>kWh</td>
+            <td>Scope 2</td>
+            <td><span class="pdf-source-uba">UBA 2024</span></td>
+          </tr>
+          <tr>
+            <td>Diesel</td>
+            <td style="font-family:monospace;">DIESEL</td>
+            <td style="text-align:right;">2,65</td>
+            <td>l</td>
+            <td>Scope 3</td>
+            <td><span class="pdf-source-uba">UBA 2024</span></td>
+          </tr>
+          <tr>
+            <td>Benzin</td>
+            <td style="font-family:monospace;">BENZIN</td>
+            <td style="text-align:right;">2,37</td>
+            <td>l</td>
+            <td>Scope 3</td>
+            <td><span class="pdf-source-uba">UBA 2024</span></td>
+          </tr>
+          <tr>
+            <td>Flugreise (Kurzstrecke)</td>
+            <td style="font-family:monospace;">FLUG_KURZ</td>
+            <td style="text-align:right;">0,26</td>
+            <td>km</td>
+            <td>Scope 3</td>
+            <td><span class="pdf-source-uba">UBA 2024</span></td>
+          </tr>
+          <tr>
+            <td>Papier</td>
+            <td style="font-family:monospace;">PAPIER</td>
+            <td style="text-align:right;">1,84</td>
+            <td>kg</td>
+            <td>Scope 3</td>
+            <td><span class="pdf-source-uba">UBA 2024</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Footer note -->
+      <div style="font-size:8px; color:#777; margin-top:4px;">
+        Alle Faktoren in kg CO₂e pro angegebener Einheit. Quellen: Umweltbundesamt (UBA), Berichtsjahr 2024.
+      </div>
+
+      <!-- PDF Footer -->
+      <div class="pdf-footer">
+        GrünBilanz · Treibhausgasbericht 2024 · Mustermann Elektro GmbH · Erstellt am 31.01.2025
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       VARIANT B — Custom factors (partial override)
+  ========================================================= -->
+  <div class="mb-10">
+    <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Variante B: GHG Protocol · Benutzerdefinierte Faktoren (ein Faktor geändert)</p>
+    <div class="pdf-page relative overflow-hidden">
+
+      <div style="display:flex; justify-content:space-between; margin-bottom:24px; border-bottom:2px solid #2D6A4F; padding-bottom:12px;">
+        <div>
+          <div style="font-size:20px; font-weight:bold; color:#2D6A4F;">GrünBilanz</div>
+          <div style="font-size:11px; color:#555; margin-top:2px;">Treibhausgasbericht</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px; font-weight:bold;">Mustermann Elektro GmbH</div>
+          <div style="font-size:9px; color:#555;">Berichtsjahr 2024</div>
+        </div>
+      </div>
+
+      <div style="font-size:8px; color:#aaa; border:1px dashed #e5e7eb; padding:8px; border-radius:4px; text-align:center; margin-bottom:16px;">
+        [Vorherige Abschnitte: Firmenprofil, Executive Summary, Scope 1/2/3-Tabellen]
+      </div>
+
+      <div class="pdf-section-title">Methodik</div>
+
+      <div style="background-color:#f9fafb; border-radius:4px; padding:10px; margin-bottom:12px;">
+        <div class="pdf-profile-row">
+          <span class="pdf-profile-label">Berechnungsstandard</span>
+          <span class="pdf-profile-value">GHG Protocol Corporate Standard</span>
+        </div>
+        <div class="pdf-profile-row">
+          <span class="pdf-profile-label">Emissionsfaktoren</span>
+          <!-- CUSTOM LABEL when any factor is overridden -->
+          <span class="pdf-profile-value" style="color:#92400E;">Benutzerdefiniert 2024 ⚠</span>
+        </div>
+        <div class="pdf-profile-row">
+          <span class="pdf-profile-label">Enthaltene Scopes</span>
+          <span class="pdf-profile-value">Scope 1, Scope 2</span>
+        </div>
+        <div class="pdf-profile-row" style="margin-bottom:0;">
+          <span class="pdf-profile-label">Dateneingabe-Methoden</span>
+          <span class="pdf-profile-value">8 manuelle Einträge · 0 per OCR-Beleg · 0 per CSV</span>
+        </div>
+      </div>
+
+      <div class="pdf-boundary-box">
+        <div class="pdf-boundary-label">Annahmen &amp; Ausschlüsse</div>
+        <div class="pdf-boundary-text">Keine besonderen Annahmen dokumentiert.</div>
+      </div>
+
+      <!-- Custom override note -->
+      <div style="background-color:#FFFBEB; border:0.5px solid #F59E0B; border-radius:4px; padding:8px; margin-top:8px; margin-bottom:12px;">
+        <div style="font-size:8px; font-weight:bold; color:#92400E; margin-bottom:2px;">Hinweis: Benutzerdefinierte Faktoren</div>
+        <div style="font-size:8px; color:#78350F;">Ein oder mehrere Emissionsfaktoren wurden gegenüber den offiziellen UBA-Werten manuell geändert. Einzelne angepasste Faktoren sind in der Tabelle mit „Benutzerdefiniert 2024" gekennzeichnet.</div>
+      </div>
+
+      <div class="pdf-section-title" style="font-size:10px; margin-top:14px;">Verwendete Emissionsfaktoren</div>
+      <table class="pdf-table">
+        <thead>
+          <tr>
+            <th style="width:25%;">Kategorie</th>
+            <th style="width:20%;">Schlüssel</th>
+            <th style="width:15%; text-align:right;">Faktor</th>
+            <th style="width:12%;">Einheit</th>
+            <th style="width:12%;">Scope</th>
+            <th style="width:16%;">Quelle</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Erdgas</td>
+            <td style="font-family:monospace;">ERDGAS</td>
+            <td style="text-align:right;">2,00</td>
+            <td>m³</td>
+            <td>Scope 1</td>
+            <td><span class="pdf-source-uba">UBA 2024</span></td>
+          </tr>
+          <tr>
+            <td>Heizöl</td>
+            <td style="font-family:monospace;">HEIZOEL</td>
+            <td style="text-align:right;">2,65</td>
+            <td>l</td>
+            <td>Scope 1</td>
+            <td><span class="pdf-source-uba">UBA 2024</span></td>
+          </tr>
+          <!-- OVERRIDDEN ROW -->
+          <tr style="background-color:#FFFBEB;">
+            <td style="font-weight:bold;">Strom (Netz)</td>
+            <td style="font-family:monospace;">STROM_NETZ</td>
+            <td style="text-align:right; font-weight:bold; color:#92400E;">0,41</td>
+            <td>kWh</td>
+            <td>Scope 2</td>
+            <td><span class="pdf-source-custom">Benutzerdefiniert 2024</span></td>
+          </tr>
+          <tr>
+            <td>Strom (Ökostrom)</td>
+            <td style="font-family:monospace;">STROM_OEKO</td>
+            <td style="text-align:right;">0,00</td>
+            <td>kWh</td>
+            <td>Scope 2</td>
+            <td><span class="pdf-source-uba">UBA 2024</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="font-size:8px; color:#777; margin-top:4px;">
+        Alle Faktoren in kg CO₂e pro angegebener Einheit. Quellen: Umweltbundesamt (UBA) und benutzerdefinierte Anpassungen.
+      </div>
+
+      <div class="pdf-footer">
+        GrünBilanz · Treibhausgasbericht 2024 · Mustermann Elektro GmbH · Erstellt am 31.01.2025
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       VARIANT C — CSRD Questionnaire (abbreviated)
+  ========================================================= -->
+  <div class="mb-10">
+    <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Variante C: CSRD-Fragebogen · Methodik-Abschnitt (als nummerierter Abschnitt)</p>
+    <div class="pdf-page relative overflow-hidden">
+
+      <div style="display:flex; justify-content:space-between; margin-bottom:24px; border-bottom:2px solid #2D6A4F; padding-bottom:12px;">
+        <div>
+          <div style="font-size:18px; font-weight:bold; color:#2D6A4F;">CSRD-Klimafragebogen</div>
+          <div style="font-size:10px; color:#555; margin-top:2px;">Nachhaltigkeitsbericht · Klimaangaben gemäß ESRS E1</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:10px; font-weight:bold;">Mustermann Elektro GmbH</div>
+          <div style="font-size:9px; color:#555;">2024</div>
+        </div>
+      </div>
+
+      <div style="font-size:8px; color:#aaa; border:1px dashed #e5e7eb; padding:8px; border-radius:4px; text-align:center; margin-bottom:16px;">
+        [Vorherige Abschnitte 1–5: Unternehmensprofil, GHG-Gesamtemissionen, Scope-Aufschlüsselung, Maßnahmen]
+      </div>
+
+      <!-- Numbered section -->
+      <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:8px;">
+        <span style="font-size:13px; font-weight:bold; color:#2D6A4F;">6.</span>
+        <span class="pdf-section-title" style="margin-top:0; margin-bottom:0;">Berechnungsmethodik</span>
+      </div>
+
+      <div style="background-color:#f9fafb; border-radius:4px; padding:10px; margin-bottom:10px;">
+        <div class="pdf-profile-row">
+          <span class="pdf-profile-label">Berechnungsstandard</span>
+          <span class="pdf-profile-value">GHG Protocol Corporate Standard</span>
+        </div>
+        <div class="pdf-profile-row">
+          <span class="pdf-profile-label">Berichtspflicht</span>
+          <span class="pdf-profile-value">CSRD / ESRS E1 (Klimawandel)</span>
+        </div>
+        <div class="pdf-profile-row">
+          <span class="pdf-profile-label">Emissionsfaktoren</span>
+          <span class="pdf-profile-value">UBA 2024 Emissionsfaktoren</span>
+        </div>
+        <div class="pdf-profile-row">
+          <span class="pdf-profile-label">Enthaltene Scopes</span>
+          <span class="pdf-profile-value">Scope 1, Scope 2, Scope 3</span>
+        </div>
+        <div class="pdf-profile-row" style="margin-bottom:0;">
+          <span class="pdf-profile-label">Dateneingabe-Methoden</span>
+          <span class="pdf-profile-value">12 manuelle Einträge · 3 per OCR-Beleg · 0 per CSV</span>
+        </div>
+      </div>
+
+      <div class="pdf-boundary-box">
+        <div class="pdf-boundary-label">Systemgrenzen &amp; Berichtsrahmen</div>
+        <div class="pdf-boundary-text">
+          Operationelle Kontrolle nach GHG Protocol. Alle Standorte in Deutschland eingeschlossen.
+        </div>
+      </div>
+      <div class="pdf-boundary-box" style="margin-top:4px;">
+        <div class="pdf-boundary-label">Ausschlüsse</div>
+        <div class="pdf-boundary-text">
+          Geschäftsreisen mit privatem PKW wurden nicht erfasst.
+        </div>
+      </div>
+
+      <div class="pdf-section-title" style="font-size:10px; margin-top:14px;">Verwendete Emissionsfaktoren</div>
+      <table class="pdf-table">
+        <thead>
+          <tr>
+            <th style="width:25%;">Kategorie</th>
+            <th style="width:20%;">Schlüssel</th>
+            <th style="width:15%; text-align:right;">Faktor</th>
+            <th style="width:12%;">Einheit</th>
+            <th style="width:12%;">Scope</th>
+            <th style="width:16%;">Quelle</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Erdgas</td><td style="font-family:monospace;">ERDGAS</td>
+            <td style="text-align:right;">2,00</td><td>m³</td><td>Scope 1</td>
+            <td><span class="pdf-source-uba">UBA 2024</span></td>
+          </tr>
+          <tr>
+            <td>Strom (Netz)</td><td style="font-family:monospace;">STROM_NETZ</td>
+            <td style="text-align:right;">0,38</td><td>kWh</td><td>Scope 2</td>
+            <td><span class="pdf-source-uba">UBA 2024</span></td>
+          </tr>
+          <tr>
+            <td>Diesel</td><td style="font-family:monospace;">DIESEL</td>
+            <td style="text-align:right;">2,65</td><td>l</td><td>Scope 3</td>
+            <td><span class="pdf-source-uba">UBA 2024</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="font-size:8px; color:#777; margin-top:4px; margin-bottom:20px;">
+        Vollständige Faktorliste im GHG-Protocol-Bericht. Alle Faktoren in kg CO₂e / Einheit.
+      </div>
+
+      <div class="pdf-footer">
+        GrünBilanz · CSRD-Klimafragebogen 2024 · Mustermann Elektro GmbH · Erstellt am 31.01.2025
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       DESIGN ANNOTATIONS
+  ========================================================= -->
+  <div class="max-w-3xl mt-6 bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+    <h2 class="text-sm font-semibold text-gray-700 mb-3">📋 PDF-Design-Anmerkungen für den Entwickler</h2>
+    <ul class="space-y-2 text-xs text-gray-600 list-disc list-inside">
+      <li><strong>Implementierung:</strong> Methodik-Inhalt als eigene <code>MethodologySection</code>-Subkomponente in <code>GHGReport.tsx</code> und <code>CSRDQuestionnaire.tsx</code>, die <code>MethodologyData</code>-Props verarbeitet.</li>
+      <li><strong>Faktoren-Tabelle:</strong> Nutzt bestehende <code>tableHeader</code>/<code>tableRow</code>-Styles aus <code>StyleSheet.create()</code> — keine neuen Styles erforderlich.</li>
+      <li><strong>Quelle-Badge:</strong> Einfaches <code>&lt;View&gt;</code> mit <code>backgroundColor: '#D8F3DC'</code> (UBA) oder <code>'#FEF3C7'</code> (Benutzerdefiniert), <code>borderRadius: 999</code>.</li>
+      <li><strong>Benutzerdefiniert-Hinweis:</strong> Amber-farbene Box nur wenn <code>factorSourceLabel</code> enthält "Benutzerdefiniert" — zeigt erklärenden Text.</li>
+      <li><strong>Seitenumbruch:</strong> Methodik-Abschnitt beginnt auf neuer Seite wenn er nicht auf die laufende Seite passt (<code>wrap={false}</code> für Tabelle).</li>
+      <li><strong>CSRD:</strong> Methodik als nummerierter Abschnitt (6.) nach bestehenden 5 Abschnitten. Tabelle nur Top-10 Faktoren; Hinweis auf vollständigen GHG-Bericht.</li>
+      <li><strong>Leer-Fallback:</strong> Falls <code>assumptions</code> und <code>exclusions</code> null sind → "Keine besonderen Annahmen dokumentiert." (nie leer lassen).</li>
+    </ul>
+  </div>
+
+</body>
+</html>

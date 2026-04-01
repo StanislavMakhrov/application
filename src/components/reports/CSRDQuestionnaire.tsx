@@ -9,6 +9,7 @@ import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import type { CO2eTotals, CompanyProfileData } from '@/types';
 import { BRANCHE_LABELS } from '@/types';
 import type { Branche } from '@/types';
+import type { MethodologyData } from '@/lib/methodology';
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, fontFamily: 'Helvetica', color: '#1a1a1a' },
@@ -26,6 +27,7 @@ interface CSRDQuestionnaireProps {
   profile: CompanyProfileData;
   year: number;
   totals: CO2eTotals;
+  methodologyData?: MethodologyData;
 }
 
 function Row({ label, value }: { label: string; value: string }) {
@@ -37,7 +39,7 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function CSRDQuestionnaire({ profile, year, totals }: CSRDQuestionnaireProps) {
+export function CSRDQuestionnaire({ profile, year, totals, methodologyData }: CSRDQuestionnaireProps) {
   const co2ePerEmployee = profile.mitarbeiter > 0 ? totals.total / profile.mitarbeiter : 0;
 
   return (
@@ -74,8 +76,28 @@ export function CSRDQuestionnaire({ profile, year, totals }: CSRDQuestionnairePr
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>3. Methodik & Datenquellen</Text>
           <Row label="Berechnungsmethode" value="Aktivitätsdaten × Emissionsfaktor" />
-          <Row label="Emissionsfaktoren" value="UBA 2024 (Umweltbundesamt)" />
-          <Row label="Systemgrenzen" value="Scope 1, 2, 3 (Kategorie 1, 6, 7)" />
+          <Row
+            label="Emissionsfaktoren"
+            value={
+              methodologyData
+                ? methodologyData.factorSourceLabel
+                : `UBA ${year} (Umweltbundesamt)`
+            }
+          />
+          <Row
+            label="Systemgrenzen"
+            value={
+              methodologyData && methodologyData.includedScopes.length > 0
+                ? methodologyData.includedScopes.map((s) => s.replace('SCOPE', 'Scope ')).join(', ')
+                : 'Scope 1, 2, 3'
+            }
+          />
+          {methodologyData && (
+            <Row
+              label="Eingabemethoden"
+              value={`${methodologyData.inputMethodCounts.manual} manuell, ${methodologyData.inputMethodCounts.ocr} OCR, ${methodologyData.inputMethodCounts.csv} CSV`}
+            />
+          )}
           <Row label="Software" value="GrünBilanz v0.1" />
         </View>
 

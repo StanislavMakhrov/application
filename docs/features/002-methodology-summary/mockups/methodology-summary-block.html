@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="de" class="">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mockup — Methodik-Zusammenfassung (Dashboard-Block)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              green: '#2D6A4F',
+              'green-light': '#52B788',
+              'green-pale': '#D8F3DC',
+              'green-dark': '#1B4332',
+              amber: '#F4A261',
+              red: '#E76F51',
+            },
+            'warm-bg': '#F0F4F0',
+            'card-border': '#E2EAE5',
+          },
+          borderRadius: { card: '12px' },
+          boxShadow: {
+            card: '0 2px 8px 0 rgba(45,106,79,0.08), 0 0 1px 0 rgba(45,106,79,0.12)',
+            'card-hover': '0 8px 24px 0 rgba(45,106,79,0.15), 0 0 1px 0 rgba(45,106,79,0.15)',
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    :root { --radius: 12px; }
+    body {
+      background-color: #F0F4F0;
+      background-image:
+        radial-gradient(ellipse at 20% 0%, rgba(82,183,136,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 100%, rgba(45,106,79,0.05) 0%, transparent 60%);
+      background-attachment: fixed;
+    }
+    .shimmer {
+      background: linear-gradient(90deg, #f0f4f0 25%, #e8ede8 50%, #f0f4f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    details summary { list-style: none; }
+    details summary::-webkit-details-marker { display: none; }
+    details[open] .chevron { transform: rotate(180deg); }
+    .chevron { transition: transform 0.2s ease; }
+    .badge-uba {
+      background-color: #D8F3DC;
+      color: #1B4332;
+    }
+    .badge-custom {
+      background-color: #FEF3C7;
+      color: #92400E;
+    }
+    .scope-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.6;
+    }
+    .scope1 { background-color: #DCFCE7; color: #166534; }
+    .scope2 { background-color: #DBEAFE; color: #1D4ED8; }
+    .scope3 { background-color: #F3E8FF; color: #6B21A8; }
+  </style>
+</head>
+<body class="font-sans text-gray-900 antialiased min-h-screen px-6 py-10">
+
+  <!-- ===== SECTION LABEL ===== -->
+  <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Kontext: Dashboard-Karte (unterhalb KPIs)</p>
+
+  <!-- =========================================================
+       STATE 1 — COLLAPSED (Default)
+  ========================================================= -->
+  <section class="mb-12">
+    <h2 class="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wider">Zustand: Eingeklappt (Standard)</h2>
+
+    <!-- Dashboard simulation wrapper -->
+    <div class="max-w-4xl">
+      <!-- The collapsible block as it appears in the dashboard -->
+      <details class="bg-white rounded-card border border-card-border shadow-card overflow-hidden group">
+        <summary class="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-50 transition-colors select-none" aria-label="Methodik-Zusammenfassung ein-/ausklappen">
+          <div class="flex items-center gap-3 min-w-0">
+            <!-- Icon -->
+            <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-brand-green-pale">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <!-- Headline summary -->
+            <div class="min-w-0">
+              <p class="text-sm font-semibold text-gray-800 truncate">Methodik</p>
+              <p class="text-xs text-gray-500 truncate">
+                GHG Protocol Corporate Standard
+                <span class="mx-1.5 text-gray-300">·</span>
+                UBA 2024 Emissionsfaktoren
+                <span class="mx-1.5 text-gray-300">·</span>
+                <span class="scope1 scope-chip">S1</span>
+                <span class="ml-1 scope2 scope-chip">S2</span>
+                <span class="ml-1 scope3 scope-chip">S3</span>
+              </p>
+            </div>
+          </div>
+          <!-- Chevron -->
+          <div class="flex items-center gap-2 ml-4 flex-shrink-0">
+            <span class="text-xs text-brand-green font-medium hidden sm:block">Details anzeigen</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </summary>
+
+        <!-- ===== EXPANDED CONTENT ===== -->
+        <div class="border-t border-gray-100 px-5 py-5 space-y-6">
+
+          <!-- Meta-Info Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+            <!-- Berechnungsstandard -->
+            <div class="rounded-lg bg-gray-50 border border-gray-100 px-4 py-3">
+              <p class="text-xs font-medium text-gray-500 mb-0.5">Berechnungsstandard</p>
+              <p class="text-sm font-semibold text-gray-800">GHG Protocol Corporate Standard</p>
+            </div>
+
+            <!-- Emissionsfaktoren -->
+            <div class="rounded-lg bg-gray-50 border border-gray-100 px-4 py-3">
+              <p class="text-xs font-medium text-gray-500 mb-0.5">Emissionsfaktoren</p>
+              <p class="text-sm font-semibold text-gray-800">UBA 2024 Emissionsfaktoren</p>
+            </div>
+
+            <!-- Enthaltene Scopes -->
+            <div class="rounded-lg bg-gray-50 border border-gray-100 px-4 py-3">
+              <p class="text-xs font-medium text-gray-500 mb-1.5">Enthaltene Scopes</p>
+              <div class="flex gap-2 flex-wrap">
+                <span class="scope1 scope-chip">Scope 1</span>
+                <span class="scope2 scope-chip">Scope 2</span>
+                <span class="scope3 scope-chip">Scope 3</span>
+              </div>
+            </div>
+
+            <!-- Dateneingabe-Methoden -->
+            <div class="rounded-lg bg-gray-50 border border-gray-100 px-4 py-3">
+              <p class="text-xs font-medium text-gray-500 mb-1.5">Dateneingabe-Methoden</p>
+              <div class="flex flex-wrap gap-x-4 gap-y-1">
+                <span class="text-xs text-gray-700"><span class="font-semibold text-gray-900">12</span> manuelle Einträge</span>
+                <span class="text-xs text-gray-700"><span class="font-semibold text-gray-900">3</span> per OCR-Beleg</span>
+                <span class="text-xs text-gray-700"><span class="font-semibold text-gray-900">0</span> per CSV</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Assumptions -->
+          <div>
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Annahmen &amp; Ausschlüsse</p>
+            <div class="rounded-lg bg-brand-green-pale/30 border border-brand-green/10 px-4 py-3">
+              <p class="text-sm text-gray-700 leading-relaxed">
+                Operationelle Kontrolle nach GHG Protocol. Alle Standorte in Deutschland eingeschlossen. Geschäftsreisen mit privatem PKW wurden nicht erfasst.
+              </p>
+            </div>
+          </div>
+
+          <!-- Factors Table -->
+          <div>
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Verwendete Emissionsfaktoren</p>
+            <div class="overflow-x-auto rounded-lg border border-gray-200">
+              <table class="w-full text-xs">
+                <thead>
+                  <tr class="bg-brand-green-pale/50">
+                    <th class="text-left px-3 py-2.5 font-semibold text-gray-700">Kategorie</th>
+                    <th class="text-left px-3 py-2.5 font-semibold text-gray-700">Schlüssel</th>
+                    <th class="text-right px-3 py-2.5 font-semibold text-gray-700">Faktor (kg CO₂e)</th>
+                    <th class="text-left px-3 py-2.5 font-semibold text-gray-700">Einheit</th>
+                    <th class="text-left px-3 py-2.5 font-semibold text-gray-700">Scope</th>
+                    <th class="text-left px-3 py-2.5 font-semibold text-gray-700">Quelle</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-3 py-2 text-gray-800 font-medium">Erdgas</td>
+                    <td class="px-3 py-2 font-mono text-gray-500">ERDGAS</td>
+                    <td class="px-3 py-2 text-right text-gray-800">2,00</td>
+                    <td class="px-3 py-2 text-gray-600">m³</td>
+                    <td class="px-3 py-2"><span class="scope1 scope-chip">Scope 1</span></td>
+                    <td class="px-3 py-2"><span class="badge-uba text-xs font-medium px-2 py-0.5 rounded-full">UBA 2024</span></td>
+                  </tr>
+                  <tr class="hover:bg-gray-50 bg-gray-50/50">
+                    <td class="px-3 py-2 text-gray-800 font-medium">Heizöl</td>
+                    <td class="px-3 py-2 font-mono text-gray-500">HEIZOEL</td>
+                    <td class="px-3 py-2 text-right text-gray-800">2,65</td>
+                    <td class="px-3 py-2 text-gray-600">l</td>
+                    <td class="px-3 py-2"><span class="scope1 scope-chip">Scope 1</span></td>
+                    <td class="px-3 py-2"><span class="badge-uba text-xs font-medium px-2 py-0.5 rounded-full">UBA 2024</span></td>
+                  </tr>
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-3 py-2 text-gray-800 font-medium">Strom (Netz)</td>
+                    <td class="px-3 py-2 font-mono text-gray-500">STROM_NETZ</td>
+                    <td class="px-3 py-2 text-right text-gray-800">0,38</td>
+                    <td class="px-3 py-2 text-gray-600">kWh</td>
+                    <td class="px-3 py-2"><span class="scope2 scope-chip">Scope 2</span></td>
+                    <td class="px-3 py-2"><span class="badge-uba text-xs font-medium px-2 py-0.5 rounded-full">UBA 2024</span></td>
+                  </tr>
+                  <tr class="hover:bg-gray-50 bg-gray-50/50">
+                    <td class="px-3 py-2 text-gray-800 font-medium">Strom (Ökostrom)</td>
+                    <td class="px-3 py-2 font-mono text-gray-500">STROM_OEKO</td>
+                    <td class="px-3 py-2 text-right text-gray-800">0,00</td>
+                    <td class="px-3 py-2 text-gray-600">kWh</td>
+                    <td class="px-3 py-2"><span class="scope2 scope-chip">Scope 2</span></td>
+                    <td class="px-3 py-2"><span class="badge-uba text-xs font-medium px-2 py-0.5 rounded-full">UBA 2024</span></td>
+                  </tr>
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-3 py-2 text-gray-800 font-medium">Diesel</td>
+                    <td class="px-3 py-2 font-mono text-gray-500">DIESEL</td>
+                    <td class="px-3 py-2 text-right text-gray-800">2,65</td>
+                    <td class="px-3 py-2 text-gray-600">l</td>
+                    <td class="px-3 py-2"><span class="scope3 scope-chip">Scope 3</span></td>
+                    <td class="px-3 py-2"><span class="badge-uba text-xs font-medium px-2 py-0.5 rounded-full">UBA 2024</span></td>
+                  </tr>
+                  <tr class="hover:bg-gray-50 bg-gray-50/50">
+                    <td class="px-3 py-2 text-gray-800 font-medium">Benzin</td>
+                    <td class="px-3 py-2 font-mono text-gray-500">BENZIN</td>
+                    <td class="px-3 py-2 text-right text-gray-800">2,37</td>
+                    <td class="px-3 py-2 text-gray-600">l</td>
+                    <td class="px-3 py-2"><span class="scope3 scope-chip">Scope 3</span></td>
+                    <td class="px-3 py-2"><span class="badge-custom text-xs font-medium px-2 py-0.5 rounded-full">Benutzerdefiniert 2024</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <!-- Custom override hint -->
+            <p class="mt-2 text-xs text-amber-700 flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              Ein oder mehrere Faktoren wurden manuell angepasst (Benutzerdefiniert 2024).
+            </p>
+          </div>
+
+          <!-- Footer note -->
+          <div class="pt-2 border-t border-gray-100 flex items-center justify-between">
+            <p class="text-xs text-gray-400">
+              Automatisch assembliert bei Berichtserstellung · Berechnungsstandard: GHG Protocol Corporate Standard
+            </p>
+            <a href="/settings" class="text-xs text-brand-green hover:underline font-medium">Faktoren verwalten →</a>
+          </div>
+
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       STATE 2 — LOADING (Skeleton)
+  ========================================================= -->
+  <section class="mb-12">
+    <h2 class="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wider">Zustand: Laden (Skeleton)</h2>
+
+    <div class="max-w-4xl">
+      <div class="bg-white rounded-card border border-card-border shadow-card px-5 py-4">
+        <div class="flex items-center gap-3">
+          <div class="h-8 w-8 rounded-lg shimmer flex-shrink-0"></div>
+          <div class="flex-1 space-y-2">
+            <div class="h-3.5 w-24 rounded shimmer"></div>
+            <div class="h-3 w-72 rounded shimmer"></div>
+          </div>
+          <div class="h-4 w-4 rounded shimmer flex-shrink-0"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       STATE 3 — KEINE DATEN (Empty State)
+  ========================================================= -->
+  <section class="mb-12">
+    <h2 class="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wider">Zustand: Keine Daten / Kein Berichtsjahr</h2>
+
+    <div class="max-w-4xl">
+      <div class="bg-white rounded-card border border-card-border shadow-card px-5 py-5">
+        <div class="flex items-center gap-3">
+          <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gray-100">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-500">Methodik nicht verfügbar</p>
+            <p class="text-xs text-gray-400 mt-0.5">Keine Emissionsdaten für dieses Jahr vorhanden. Bitte Daten im Assistenten erfassen.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       STATE 4 — BENUTZERDEFINIERTE FAKTOREN (Variant)
+       When ALL factors are custom-labeled
+  ========================================================= -->
+  <section class="mb-12">
+    <h2 class="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wider">Variante: Benutzerdefinierte Faktoren (Collapsed)</h2>
+
+    <div class="max-w-4xl">
+      <details class="bg-white rounded-card border border-card-border shadow-card overflow-hidden">
+        <summary class="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-50 transition-colors select-none">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-amber-50">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm font-semibold text-gray-800 truncate">Methodik</p>
+              <p class="text-xs text-gray-500 truncate">
+                GHG Protocol Corporate Standard
+                <span class="mx-1.5 text-gray-300">·</span>
+                <span class="inline-flex items-center gap-1 text-amber-700 font-medium">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  Benutzerdefiniert 2024
+                </span>
+                <span class="mx-1.5 text-gray-300">·</span>
+                <span class="scope1 scope-chip">S1</span>
+                <span class="ml-1 scope2 scope-chip">S2</span>
+              </p>
+            </div>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 chevron ml-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+      </details>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       MOBILE VARIANT
+  ========================================================= -->
+  <section class="mb-12">
+    <h2 class="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wider">Mobil (&lt;640px) — Collapsed</h2>
+
+    <div class="max-w-sm">
+      <details class="bg-white rounded-card border border-card-border shadow-card overflow-hidden">
+        <summary class="flex items-center justify-between px-4 py-3.5 cursor-pointer hover:bg-gray-50 transition-colors select-none">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-brand-green-pale">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm font-semibold text-gray-800">Methodik</p>
+              <p class="text-xs text-gray-500 truncate">UBA 2024 · S1 S2 S3</p>
+            </div>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 chevron flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+      </details>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       ANNOTATIONS
+  ========================================================= -->
+  <section class="mb-12 max-w-4xl">
+    <h2 class="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wider">Design-Anmerkungen</h2>
+    <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-3 text-sm text-gray-700">
+      <ul class="space-y-2 list-disc list-inside text-sm text-gray-600">
+        <li>Der Block nutzt ein natives <code class="font-mono text-xs bg-gray-100 px-1.5 py-0.5 rounded">details/summary</code>-Element (oder shadcn/ui Accordion). Fokussierbar mit Tab, öffenbar mit Enter/Space.</li>
+        <li>Im eingeklappten Zustand fasst die Subzeile die wichtigsten Metadaten zusammen (Standard · Quelle · Scopes) — keine Interaktion nötig, um Basisdaten zu sehen.</li>
+        <li>Scope-Chips verwenden semantische Farben (Grün=1, Blau=2, Lila=3) — konsistent mit der restlichen Dashboard-Logik.</li>
+        <li>Benutzerdefinierte Faktoren → Badge <code class="font-mono text-xs bg-gray-100 px-1.5 py-0.5 rounded">Benutzerdefiniert 2024</code> in Amber, Icon-Warnung im Header.</li>
+        <li>Der Link "Faktoren verwalten →" führt zur Einstellungsseite.</li>
+        <li>Positionierung im Dashboard: nach den KPI-Karten, vor dem Hauptinhaltsgrid — gut sichtbar, aber nicht störend.</li>
+      </ul>
+    </div>
+  </section>
+
+</body>
+</html>

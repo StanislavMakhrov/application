@@ -2,63 +2,50 @@
  * Prisma seed script — populates emission factors, industry benchmarks,
  * company profile, and demo data for 2023 and 2024.
  *
+ * Emission factor values are imported from src/lib/uba-reference-data.ts,
+ * which is the single source of truth for official UBA factor values.
+ * This keeps the seed and the auto-fill API in sync.
+ *
  * Run with: npx tsx prisma/seed.ts
  * or via: npm run db:seed
  */
 
 import { PrismaClient, Scope, EmissionCategory, MaterialCategory, Branche } from '@prisma/client';
+import { UBA_REFERENCE_DATA } from './uba-reference-data';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Seeding emission factors (UBA 2024)...');
+  console.log('Seeding emission factors from UBA reference data...');
 
-  // UBA 2024 emission factors
-  const factors = [
-    { key: 'ERDGAS', validYear: 2024, factorKg: 2.0, unit: 'm³', source: 'UBA 2024', scope: Scope.SCOPE1 },
-    { key: 'HEIZOEL', validYear: 2024, factorKg: 2.65, unit: 'L', source: 'UBA 2024', scope: Scope.SCOPE1 },
-    { key: 'FLUESSIGGAS', validYear: 2024, factorKg: 1.65, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE1 },
-    { key: 'DIESEL_FUHRPARK', validYear: 2024, factorKg: 2.650, unit: 'L', source: 'UBA 2024', scope: Scope.SCOPE1 },
-    { key: 'BENZIN_FUHRPARK', validYear: 2024, factorKg: 2.33, unit: 'L', source: 'UBA 2024', scope: Scope.SCOPE1 },
-    { key: 'PKW_BENZIN_KM', validYear: 2024, factorKg: 0.142, unit: 'km', source: 'UBA 2024', scope: Scope.SCOPE1 },
-    { key: 'PKW_DIESEL_KM', validYear: 2024, factorKg: 0.171, unit: 'km', source: 'UBA 2024', scope: Scope.SCOPE1 },
-    { key: 'TRANSPORTER_KM', validYear: 2024, factorKg: 0.21, unit: 'km', source: 'UBA 2024', scope: Scope.SCOPE1 },
-    { key: 'LKW_KM', validYear: 2024, factorKg: 0.32, unit: 'km', source: 'UBA 2024', scope: Scope.SCOPE1 },
-    { key: 'STROM', validYear: 2024, factorKg: 0.380, unit: 'kWh', source: 'UBA 2024', scope: Scope.SCOPE2 },
-    { key: 'STROM_OEKOSTROM', validYear: 2024, factorKg: 0.03, unit: 'kWh', source: 'UBA 2024', scope: Scope.SCOPE2 },
-    { key: 'FERNWAERME', validYear: 2024, factorKg: 0.175, unit: 'kWh', source: 'UBA 2024', scope: Scope.SCOPE2 },
-    { key: 'GESCHAEFTSREISEN_FLUG', validYear: 2024, factorKg: 0.255, unit: 'km', source: 'UBA 2024', scope: Scope.SCOPE3 },
-    { key: 'GESCHAEFTSREISEN_BAHN', validYear: 2024, factorKg: 0.032, unit: 'km', source: 'UBA 2024', scope: Scope.SCOPE3 },
-    { key: 'PENDLERVERKEHR', validYear: 2024, factorKg: 0.142, unit: 'km', source: 'UBA 2024', scope: Scope.SCOPE3 },
-    { key: 'ABFALL_RESTMUELL', validYear: 2024, factorKg: 0.45, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE3 },
-    { key: 'ABFALL_BAUSCHUTT', validYear: 2024, factorKg: 0.008, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE3 },
-    // Negative factor: recycling credit reduces total CO₂e
-    { key: 'ABFALL_ALTMETALL', validYear: 2024, factorKg: -1.5, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE3 },
-    { key: 'ABFALL_SONSTIGES', validYear: 2024, factorKg: 0.35, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE3 },
-    // Material upstream emissions (Scope 3, Category 1)
-    { key: 'KUPFER', validYear: 2024, factorKg: 3.8, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE3 },
-    { key: 'STAHL', validYear: 2024, factorKg: 1.77, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE3 },
-    { key: 'ALUMINIUM', validYear: 2024, factorKg: 8.24, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE3 },
-    { key: 'HOLZ', validYear: 2024, factorKg: 0.47, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE3 },
-    { key: 'KUNSTSTOFF_PVC', validYear: 2024, factorKg: 2.41, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE3 },
-    { key: 'BETON', validYear: 2024, factorKg: 0.13, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE3 },
-    { key: 'FARBEN_LACKE', validYear: 2024, factorKg: 2.8, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE3 },
-    { key: 'SONSTIGE', validYear: 2024, factorKg: 1.0, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE3 },
-    // Kältemittel (refrigerant leak) Scope 1 — GWP values from UBA 2024
-    { key: 'R410A_KAELTEMITTEL', validYear: 2024, factorKg: 2088, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE1 },
-    { key: 'R32_KAELTEMITTEL', validYear: 2024, factorKg: 675, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE1 },
-    { key: 'R134A_KAELTEMITTEL', validYear: 2024, factorKg: 1430, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE1 },
-    { key: 'SONSTIGE_KAELTEMITTEL', validYear: 2024, factorKg: 1000, unit: 'kg', source: 'UBA 2024', scope: Scope.SCOPE1 },
-  ];
-
-  for (const factor of factors) {
-    await prisma.emissionFactor.upsert({
-      where: { key_validYear: { key: factor.key, validYear: factor.validYear } },
-      update: factor,
-      create: factor,
-    });
+  let totalFactorsSeeded = 0;
+  for (const [yearStr, factors] of Object.entries(UBA_REFERENCE_DATA)) {
+    const year = Number(yearStr);
+    for (const factor of factors) {
+      await prisma.emissionFactor.upsert({
+        where: { key_validYear: { key: factor.key, validYear: year } },
+        update: {
+          factorKg: factor.factorKg,
+          unit: factor.unit,
+          source: factor.source,
+          label: factor.label,
+          scope: factor.scope as Scope,
+        },
+        create: {
+          key: factor.key,
+          validYear: year,
+          factorKg: factor.factorKg,
+          unit: factor.unit,
+          source: factor.source,
+          label: factor.label,
+          scope: factor.scope as Scope,
+        },
+      });
+    }
+    totalFactorsSeeded += factors.length;
+    console.log(`  Seeded ${factors.length} factors for year ${year}.`);
   }
-  console.log(`Seeded ${factors.length} emission factors.`);
+  console.log(`Seeded ${totalFactorsSeeded} emission factors total.`);
 
   // Industry benchmarks (t CO₂e per employee per year)
   const benchmarks = [
