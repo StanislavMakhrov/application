@@ -21,6 +21,22 @@
 - **Artifacts:** `.github/workflows/release.yml` (modified)
 - **Problems:** None.
 
+### Code Reviewer
+- **Date:** 2025-04-01
+- **Summary:** Reviewed the two-line fix to `.github/workflows/release.yml`. Verified the fix is technically correct: `context: .` aligns with all COPY paths in `src/Dockerfile`; `file: ./src/Dockerfile` correctly locates the Dockerfile after the context change. Confirmed all 7 COPY source paths exist at repo root. Confirmed no other workflow files have the same bug (`pr-validation.yml` and `scripts/docker-build-test.sh` already used correct patterns). Identified one blocker: Technical Writer has not logged a work protocol entry (required for bug fix workflow). Minor: `file: ./src/Dockerfile` in `release.yml` uses a `./` prefix inconsistent with the `src/Dockerfile` form used in the other two locations.
+- **Artifacts:** Code Review Report (returned in response)
+- **Problems:** Missing Technical Writer work log entry — blocked approval pending their entry.
+
+### Technical Writer
+- **Date:** 2025-04-01
+- **Summary:** Reviewed all user-facing and developer documentation for references to the old Docker build context. Found three stale references using the incorrect `docker build -t app:local ./src` command pattern and one cosmetic path inconsistency. Updated the following:
+  - `.github/workflows/release.yml`: changed `file: ./src/Dockerfile` → `file: src/Dockerfile` to match the style used in `pr-validation.yml` and `scripts/docker-build-test.sh` (cosmetic fix flagged by Code Reviewer).
+  - `docs/agents.md`: updated Developer Definition of Done from `docker build -t app:local ./src` → `docker build -t app:local -f src/Dockerfile .` to reflect the correct repo-root build context.
+  - `docs/release-notes-template.md`: updated the local build example from `docker build -t app:local ./src` → `docker build -t app:local -f src/Dockerfile .` for the same reason.
+  - No changes needed to `README.md` (Docker section uses `docker compose up --build` which is unaffected) or `docs/architecture.md` (Dockerfile reference there is a compose config path, not a build command).
+- **Artifacts:** `.github/workflows/release.yml` (cosmetic fix), `docs/agents.md` (Docker command updated), `docs/release-notes-template.md` (Docker command updated), `docs/issues/004-ci-docker-build-context/work-protocol.md` (this entry).
+- **Problems:** None.
+
 ## Implementation Decisions
 
 ### What was NOT changed (and why)

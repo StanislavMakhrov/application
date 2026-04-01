@@ -22,7 +22,7 @@ If you list anything under ✨ Features and it changes rendered output, you shou
 
 Generate screenshots by running the app locally:
 ```bash
-docker build -t app:local ./src
+docker build -t app:local -f src/Dockerfile .
 docker run --rm -p 3000:3000 app:local
 # Take screenshots via browser or Playwright
 ```
