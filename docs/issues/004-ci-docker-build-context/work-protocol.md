@@ -37,6 +37,12 @@
 - **Artifacts:** `.github/workflows/release.yml` (cosmetic fix), `docs/agents.md` (Docker command updated), `docs/release-notes-template.md` (Docker command updated), `docs/issues/004-ci-docker-build-context/work-protocol.md` (this entry).
 - **Problems:** None.
 
+### Code Reviewer (Re-review)
+- **Date:** 2025-04-01
+- **Summary:** Re-reviewed after Technical Writer applied changes. Confirmed both previously identified issues are fully resolved: (B1) TW has logged a complete work protocol entry; (m1) `file: src/Dockerfile` (no `./` prefix) is now consistent with `pr-validation.yml` and `scripts/docker-build-test.sh`. Documentation changes in `docs/agents.md` and `docs/release-notes-template.md` are accurate — the updated command `docker build -t app:local -f src/Dockerfile .` correctly describes the repo-root build context. No new markdownlint issues were introduced (pre-existing errors in `docs/agents.md` also present on `main`). Minor finding: 8 stale `docker build -t app:local ./src` references remain in `.github/agents/` and `.github/skills/` (developer agent ×3, code-reviewer agent ×3, generate-release-screenshots skill ×1, generate-demo-artifacts skill ×1) — not blocking this fix but should be addressed. **Decision: Approved.** Recommended next agent: Release Manager.
+- **Artifacts:** Updated `work-protocol.md` (this entry)
+- **Problems:** None blocking. Minor: stale docker build command in `.github/agents/developer-coding-agent.agent.md`, `.github/agents/code-reviewer-coding-agent.agent.md`, `.github/skills/generate-release-screenshots/SKILL.md`, and `.github/skills/generate-demo-artifacts/SKILL.md`.
+
 ## Implementation Decisions
 
 ### What was NOT changed (and why)
