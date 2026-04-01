@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.7](https://github.com/StanislavMakhrov/application/compare/v0.1.6...v0.1.7) (2026-04-01)
+
+
+### Features
+
+* add methodology summary and UBA parameter management ([#002](https://github.com/StanislavMakhrov/application/issues/002)) ([b91c5ea](https://github.com/StanislavMakhrov/application/commit/b91c5ea953775d80e27a1476b683583d6ab698ea))
+* enhance PR workflow with draft conversion during rework and update related documentation ([3f02042](https://github.com/StanislavMakhrov/application/commit/3f020423495e2a72e6d2d60bcebd6b5d9af55267))
+* make UBA-Werte button clickable with simulated loading and add official UBA PDF link per year ([2f9274c](https://github.com/StanislavMakhrov/application/commit/2f9274c5c893f072eee9984e0d6e5b9fa648ac05))
+
+
+### Bug Fixes
+
+* add confirmation dialog to UbaFillButton to match e2e test expectations ([97459cc](https://github.com/StanislavMakhrov/application/commit/97459cce2b5a52316c99c012f692f54735872c5e))
+* exclude prisma/ from Next.js TypeScript compilation to fix Docker build ([2692ec9](https://github.com/StanislavMakhrov/application/commit/2692ec963621ac63962b558393eab54cc0e12cc1))
+* improve e2e test selectors for inline factor override tests ([4f3995a](https://github.com/StanislavMakhrov/application/commit/4f3995a6a1e773e284cb847142c29f2800960f03))
+* include all ReportingYear entries in emission-factors/years so new years appear in selector ([5f5c949](https://github.com/StanislavMakhrov/application/commit/5f5c949b6ec86bb296dbb9b710af750df1531d81))
+* re-fetch year list in EmissionsfaktorenSettings after Berichtsjahr add/delete without page reload ([40c6473](https://github.com/StanislavMakhrov/application/commit/40c6473be2250ee93f248c460b187cd532fde0c0))
+* replace docker pull with docker run in release notes and add version step outcome guard ([c0772e7](https://github.com/StanislavMakhrov/application/commit/c0772e77d56bb745e45c59cbd86d1edabf91303c))
+* resolve seed.ts import path for Docker, fix e2e button selectors ([13f5dba](https://github.com/StanislavMakhrov/application/commit/13f5dba5e68e3dc310729b393b222b090aab4e95))
+* update e2e tests to match stub uba-fill API and empty ubaReferenceYears ([8acf761](https://github.com/StanislavMakhrov/application/commit/8acf761d6d20c540a55f5ef245257170bb36f33e))
+* use element.evaluate() to check amber row class in e2e test ([7e9bd56](https://github.com/StanislavMakhrov/application/commit/7e9bd562d138386a3eab802659e187ad8de6b18f))
+
 ## [0.1.6](https://github.com/StanislavMakhrov/application/compare/v0.1.5...v0.1.6) (2026-03-26)
 
 
